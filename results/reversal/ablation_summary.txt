@@ -1,0 +1,17 @@
+Ablation: positive control ranks under different weight configurations
+
+  trace_only     (1.0, 0.0, 0.0)
+    pirfenidone     rank  842/1768 (47.6th pct)
+    nintedanib      rank   15/1768 (0.8th pct)
+
+  balanced       (0.5, 0.3, 0.2)
+    pirfenidone     rank  842/1768 (47.6th pct)
+    nintedanib      rank   15/1768 (0.8th pct)
+
+  genetic_heavy  (0.3, 0.5, 0.2)
+    pirfenidone     rank  842/1768 (47.6th pct)
+    nintedanib      rank   15/1768 (0.8th pct)
+
+  repro_heavy    (0.4, 0.3, 0.3)
+    pirfenidone     rank  842/1768 (47.6th pct)
+    nintedanib      rank   15/1768 (0.8th pct)

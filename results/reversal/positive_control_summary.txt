@@ -1,0 +1,10 @@
+Empirical null: 1000 permutations
+Total drugs scored: 1768
+FDR < 0.05: 0 drugs
+
+=== Positive control summary ===
+  pirfenidone      TRACE rank  842/1768 (47.6th pct)  emp_p=0.7980  FDR=1.0000  sig=False
+  nintedanib       TRACE rank   15/1768 (0.8th pct)  emp_p=0.0020  FDR=0.2357  sig=False
+
+=== Top 20 FDR-significant TRACE candidates ===
+Rank  Drug                              TRACE       FDR   Baseline rank
