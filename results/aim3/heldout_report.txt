@@ -1,0 +1,31 @@
+Held-out dataset validation (GSE134692)
+==================================================
+Samples: 80 transplant-stage IPF (no controls)
+Consensus genes measurable: 7,412 / 7,706
+
+Correlation (within-sample z-scores vs consensus LFC):
+  Spearman r = -0.2911  p = 1.19e-144
+  Pearson  r = -0.2489  p = 4.87e-105
+
+ssGSEA — enrichment of consensus gene sets in per-sample rankings:
+  UP   gene set: mean ES = 0.4033  (vs 0.5 null)  t=-22.75  p=1.98e-36
+  DOWN gene set: mean ES = 0.5996  (vs 0.5 null)  t=33.68  p=1.27e-48
+
+Directional consistency (z-score):
+  Mean z-score — consensus-up genes:   1.2586
+  Mean z-score — consensus-down genes: 1.6606
+  t-test: t=-32.89  p=1.55e-221
+
+Interpretation:
+  INCONCLUSIVE (no-control limitation): GSE134692 has no healthy controls, so
+  neither z-score correlation nor ssGSEA can separate 'up in IPF vs. control'
+  from 'low-expressing gene.' Consensus-UP genes (e.g. KRT5, S100A2) have low
+  absolute expression even in IPF; consensus-DOWN genes (e.g. SFTPC, ABCA3) are
+  among the highest-expressed genes in any lung tissue. This produces the observed
+  negative correlation and low UP-gene ssGSEA score — it is an artifact of the
+  no-control design, not evidence against the consensus signature.
+
+  REPORTABLE FINDING: Proper held-out validation requires a dataset with both
+  IPF and healthy lung controls (e.g. a split of one training dataset or an
+  independent case/control series not yet used). GSE134692 is better used as
+  a consistency check on gene variance, not direction.

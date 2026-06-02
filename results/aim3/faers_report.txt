@@ -1,0 +1,31 @@
+FAERS Disproportionality Analysis (Reporting Odds Ratio)
+============================================================
+Total FAERS reports: 20,328,575
+Total IPF reports in FAERS: 72,864
+
+CAVEAT: FAERS is an adverse-event database. Protective signals
+(ROR < 1) must be interpreted cautiously due to under-reporting,
+channeling bias, and confounding by indication.
+
+ROR < 1: fewer IPF reports than expected (potential protective signal)
+ROR > 1: more IPF reports than expected (adverse/risk signal)
+* = CI excludes 1.0 (nominally significant)
+
+============================================================
+  romidepsin                n=   2  ROR=0.73 [0.18-2.91] PROTECTIVE
+  dasatinib                 n=  51  ROR=1.54 [1.17-2.03] risk*
+  afatinib                  n=  17  ROR=3.89 [2.41-6.28] risk*
+  osimertinib               n= 126  ROR=4.46 [3.74-5.32] risk*
+  baricitinib               n=  49  ROR=4.78 [3.60-6.33] risk*
+  dacomitinib               n=   8  ROR=4.87 [2.42-9.79] risk*
+  riluzole                  n=  39  ROR=6.28 [4.57-8.63] risk*
+  pirfenidone               n= 617  ROR=50.25 [46.11-54.76] risk* [POSITIVE CONTROL]
+  nintedanib                n= 666  ROR=76.38 [70.09-83.24] risk* [POSITIVE CONTROL]
+  cediranib                 n=0  ROR=N/A
+  JNJ-26481585              n=0  ROR=N/A
+  AEE-788                   n=0  ROR=N/A
+  rufinamide                n=0  ROR=N/A
+  neratinib                 n=0  ROR=N/A
+  valdecoxib                n=0  ROR=N/A
+  AP-26113                  n=0  ROR=N/A
+  canertinib                n=0  ROR=N/A

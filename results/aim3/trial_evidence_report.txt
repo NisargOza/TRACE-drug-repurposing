@@ -1,0 +1,42 @@
+ClinicalTrials.gov evidence for top TRACE candidates
+============================================================
+Query date: 2026-06-02
+Drugs queried: 22
+
+EVIDENCE LEVELS:
+  strong   — Phase 3/4 completed trial in IPF
+  moderate — Phase 1/2 completed trial in IPF
+  active   — currently recruiting in IPF
+  weak     — terminated/withdrawn trial in IPF
+  none     — no trials found
+
+============================================================
+
+[MODERATE] (3 drugs)
+  pirfenidone                    *POSITIVE CONTROL*
+    Trials: 1  Phases: PHASE1  IDs: NCT04888715
+  nintedanib                     *POSITIVE CONTROL*
+    Trials: 1  Phases: PHASE1  IDs: NCT05817240
+  dasatinib                     
+    Trials: 1  Phases: PHASE1  IDs: NCT02874989
+
+[NONE] (19 drugs)
+  cediranib                     
+  JNJ-26481585                  
+  romidepsin                    
+  AEE-788                       
+  rufinamide                    
+  dacomitinib                   
+  afatinib                      
+  neratinib                     
+  baricitinib                   
+  riluzole                      
+  osimertinib                   
+  valdecoxib                    
+  AP-26113                      
+  canertinib                    
+  BIBX-1382                     
+  vorinostat                    
+  efatutazone                   
+  STA-5326                      
+  cepharanthine                 
