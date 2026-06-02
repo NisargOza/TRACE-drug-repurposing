@@ -1,0 +1,27 @@
+STRING PPI network (score >= 700)
+  Nodes (Entrez):   15,754
+  Edges:            460,782
+  Consensus genes on network: 6,633 / 7,706
+  RWR alpha:        0.85
+  Top 10 up-propagated genes (net RWR score):
+    Entrez     3852  net=0.00469  lfc=3.100
+    Entrez     6273  net=0.00464  lfc=3.191
+    Entrez     6318  net=0.00425  lfc=2.864
+    Entrez    92747  net=0.00423  lfc=2.841
+    Entrez    54578  net=0.00416  lfc=2.857
+    Entrez     1308  net=0.00411  lfc=2.795
+    Entrez   727897  net=0.00408  lfc=2.697
+    Entrez     3963  net=0.00392  lfc=2.679
+    Entrez 100423062  net=0.00361  lfc=2.437
+    Entrez     1734  net=0.00327  lfc=2.238
+  Top 10 down-propagated genes:
+    Entrez     1669  net=-0.00331  lfc=-2.665
+    Entrez      250  net=-0.00204  lfc=-1.648
+    Entrez   157310  net=-0.00196  lfc=-1.583
+    Entrez 100820829  net=-0.00195  lfc=-1.574
+    Entrez   374569  net=-0.00173  lfc=-1.394
+    Entrez     9721  net=-0.00172  lfc=-1.402
+    Entrez   653509  net=-0.00170  lfc=-1.269
+    Entrez     4311  net=-0.00163  lfc=-1.326
+    Entrez       21  net=-0.00161  lfc=-1.281
+    Entrez     2277  net=-0.00160  lfc=-1.290
