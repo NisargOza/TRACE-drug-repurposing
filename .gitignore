@@ -1,0 +1,13 @@
+data/
+.DS_Store
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+*.gctx
+*.h5
+*.rds
+*.RData
+CLAUDE.md
+RESEARCH.md
+.claude/commands/resume.md

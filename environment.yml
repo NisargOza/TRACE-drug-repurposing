@@ -1,0 +1,18 @@
+name: trace-ipf
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - scipy
+  - scikit-learn
+  - statsmodels
+  - networkx
+  - python-igraph
+  - pytorch
+  - pip
+  - pip:
+      - cmapPy
