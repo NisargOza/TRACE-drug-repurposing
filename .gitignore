@@ -12,3 +12,7 @@ __pycache__/
 CLAUDE.md
 RESEARCH.md
 .claude/commands/resume.md
+results/l1000/drug_cell_signatures.pkl
+data/raw/l1000/*.gctx
+data/raw/l1000/*.gctx.gz
+results/reversal/null_distribution.npz
