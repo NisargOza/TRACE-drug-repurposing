@@ -1,0 +1,29 @@
+Reversal scoring complete — 1,768 drugs scored
+
+=== Positive control ranks ===
+  pirfenidone     baseline rank 1251/1768 (70.8th pct)   TRACE rank  842/1768 (47.6th pct)
+  nintedanib      baseline rank   24/1768 (1.4th pct)   TRACE rank   15/1768 (0.8th pct)
+
+=== Top 20 TRACE candidates ===
+Rank  Drug                               TRACE    Baseline
+------------------------------------------------------------
+     1  STA-5326                          0.1646     -0.1410
+     2  cepharanthine                     0.1203     -0.1260
+     3  trametinib                        0.1170     -0.1500
+     4  orlistat                          0.1160      0.0000
+     5  WH-4-025                          0.1141     -0.0951
+     6  atorvastatin                      0.1114     -0.0923
+     7  fluspirilene                      0.1061     -0.1425
+     8  AT7867                            0.1060     -0.1441
+     9  bafilomycin a1                    0.1028      0.0000
+    10  cediranib                         0.1010     -0.1324
+    11  D-4476                            0.0976     -0.1293
+    12  JNJ-26481585                      0.0949      0.0000
+    13  romidepsin                        0.0948     -0.1302
+    14  dacinostat                        0.0939      0.0000
+    15  nintedanib                        0.0937     -0.1223
+    16  PD-0325901                        0.0931     -0.1215
+    17  BI-2536                           0.0925     -0.1489
+    18  sunitinib                         0.0909     -0.1683
+    19  WZ-4-145                          0.0895     -0.1159
+    20  trichostatin-a                    0.0895     -0.1727
