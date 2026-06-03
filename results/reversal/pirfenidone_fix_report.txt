@@ -1,0 +1,21 @@
+Pirfenidone Manual Target Fix
+=======================================================
+
+Manual MOA targets assigned (literature-derived):
+  TGFB1, TGFBR1, TGFBR2, PDGFB, FGF2, VEGFA, CCN2, NFE2L2
+
+Max Open Targets IPF association score: 0.1267
+  (was 0.000 — no ChEMBL MOA entry)
+
+Pirfenidone combined rank: before = 793/1768 (44.9%)
+                           after  = 69/1768 (3.9%)
+
+Target OT scores:
+  TGFB1      0.1267
+  TGFBR1     0.0000
+  TGFBR2     0.0000
+  PDGFB      0.0000
+  FGF2       0.0000
+  VEGFA      0.0000
+  CCN2       0.0000
+  NFE2L2     0.0000

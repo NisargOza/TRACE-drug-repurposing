@@ -1,0 +1,41 @@
+{
+  "drug": "pirfenidone",
+  "target_assignment": "manual (literature-derived)",
+  "references": [
+    "King TE Jr et al. NEJM 2014 (TGF-\u03b21 pathway)",
+    "Hecker L et al. (Nrf2/PDGF-B)",
+    "Taniguchi H et al. (CTGF/CCN2)",
+    "Inomata M et al. (FGF2, VEGF)"
+  ],
+  "entrez_targets": [
+    7040,
+    7046,
+    7048,
+    5155,
+    2247,
+    7422,
+    1490,
+    4780
+  ],
+  "ensembl_targets": [
+    "ENSG00000105329",
+    "ENSG00000106799",
+    "ENSG00000163513",
+    "ENSG00000197217",
+    "ENSG00000138685",
+    "ENSG00000112715",
+    "ENSG00000175592",
+    "ENSG00000116044"
+  ],
+  "max_ot_ipf_score": 0.12674340279128193,
+  "target_scores": {
+    "ENSG00000105329": 0.12674340279128193,
+    "ENSG00000106799": 0.0,
+    "ENSG00000163513": 0.0,
+    "ENSG00000197217": 0.0,
+    "ENSG00000138685": 0.0,
+    "ENSG00000112715": 0.0,
+    "ENSG00000175592": 0.0,
+    "ENSG00000116044": 0.0
+  }
+}

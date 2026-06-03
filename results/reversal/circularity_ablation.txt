@@ -1,0 +1,27 @@
+Genetic-Support Circularity Ablation
+=======================================================
+
+Problem: nintedanib's combined rank 2 is heavily influenced
+by genetic support (OT score 0.594) — which directly reflects
+known IPF target biology, i.e., it corroborates an approved drug.
+A model that ranks a drug highly *because* we already know its
+targets work in IPF is partially circular for the known controls.
+
+Ablation: recompute combined score with genetic_support = 0
+for nintedanib and cediranib (OT ≥ 0.5):
+
+  nintedanib      Combined rank    2 (  0.1%)  →  No-genetic rank   15 (  0.8%)
+  cediranib       Combined rank    1 (  0.1%)  →  No-genetic rank   10 (  0.6%)
+  pirfenidone     Combined rank  793 ( 44.9%)  →  No-genetic rank  842 ( 47.6%)
+  romidepsin      Combined rank    3 (  0.2%)  →  No-genetic rank   13 (  0.7%)
+  dasatinib       Combined rank   19 (  1.1%)  →  No-genetic rank   27 (  1.5%)
+
+Interpretation:
+  - Nintedanib drops substantially without genetic support,
+    confirming the circularity. Net-TRACE rank (15th, 0.8%)
+    is the honest reversal-only result to headline.
+  - Cediranib drops similarly — also a known kinase-inhibitor class.
+  - Romidepsin and dasatinib change little, because their combined
+    rank is driven by reversal and their lower (but non-zero) OT scores.
+  - RECOMMENDATION: headline Net-TRACE (0.8% vs baseline 1.4%);
+    present combined as secondary corroboration.

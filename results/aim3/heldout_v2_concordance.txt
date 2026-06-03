@@ -1,0 +1,13 @@
+Held-out Validation v2 — GSE47460 (LGRC dataset)
+============================================================
+Expression:        15261 probes × 429 samples
+ILD samples:       194
+Control samples:   91
+DE sig probes:     9265
+Probe–Entrez overlap: 6443
+
+Direction concordance (all overlap): 4961/6443 = 77.0%
+Direction concordance (sig consensus): 4961/6443 = 77.0%
+
+Random expectation: 50%
+Result: PASS (>65%)

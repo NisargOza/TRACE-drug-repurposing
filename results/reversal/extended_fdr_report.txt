@@ -1,0 +1,32 @@
+Extended FDR — 10,000 permutations on top-100 drugs
+============================================================
+Min achievable p-value: 1/10000 = 1.0e-04
+BH FDR threshold for 100 tests: 0.05/100 = 5.00e-04
+
+Drugs with FDR < 0.05: 36/100
+
+Drug                  Net-TRACE      Emp p     BH FDR   Sig?
+------------------------------------------------------------
+  STA-5326               0.2008     0.0000     0.0000      ✓
+  WH-4-025               0.1673     0.0001     0.0050      ✓
+  cepharanthine          0.1608     0.0003     0.0100      ✓
+  cediranib              0.1416     0.0006     0.0117      ✓
+  atorvastatin           0.1575     0.0006     0.0117      ✓
+  orlistat               0.1358     0.0007     0.0117      ✓
+  trametinib             0.1498     0.0009     0.0125      ✓
+  AT7867                 0.1445     0.0010     0.0125      ✓
+  BI-2536                0.1282     0.0017     0.0180      ✓
+  fluspirilene           0.1408     0.0018     0.0180      ✓
+  pitavastatin           0.1243     0.0021     0.0191      ✓
+  bafilomycin a1         0.1284     0.0036     0.0285      ✓
+  nintedanib             0.1344     0.0047     0.0285      ✓
+  romidepsin             0.1099     0.0048     0.0285      ✓
+  NVP-TAE684             0.1165     0.0049     0.0285      ✓
+  WZ-4-145               0.1343     0.0051     0.0285      ✓
+  trichostatin-a         0.1173     0.0057     0.0285      ✓
+  vandetanib             0.1097     0.0057     0.0285      ✓
+  VP-20629               0.1081     0.0062     0.0285      ✓
+  PD-0325901             0.1375     0.0064     0.0285      ✓
+
+Positive controls:
+  nintedanib         emp_p=0.0047  FDR=0.0285  FDR-significant

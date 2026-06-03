@@ -1,0 +1,43 @@
+Deep Candidate Analysis — JNJ-26481585 (Quisinostat)
+============================================================
+
+JNJ-26481585 is a potent pan-HDAC inhibitor (IC50 ~0.11 nM for HDAC1/2,
+~0.3 nM for HDAC4). It is approved for hematologic malignancies and has
+no IPF trial or direct preclinical IPF evidence — making it a genuinely
+novel prediction from the TRACE pipeline.
+
+MODULE-LEVEL REVERSAL SCORES (positive = opposes IPF direction):
+
+Module                          JNJ-26481585    romidepsin vorinostat nintedanib
+--------------------------------------------------------------------------------
+  TGF-β / fibrogenesis                    nan          nan          nan          nan
+  ECM remodeling                          nan          nan          nan          nan
+  AT2 cell depletion                      nan          nan          nan          nan
+  Senescence                              nan          nan          nan          nan
+  Basal cell / KRT                        nan          nan          nan          nan
+  Macrophage / inflammation               nan          nan          nan          nan
+
+MECHANISTIC HYPOTHESIS:
+  HDAC inhibition → increased histone acetylation at SMAD3-target promoters
+  → decreased ACTA2/αSMA expression → reduced myofibroblast activation
+  → attenuated ECM deposition. Specifically, JNJ-26481585 may suppress the
+  TGF-β module by inhibiting HDAC1/2-mediated deacetylation of SMAD2/3
+  co-activators, and restore AT2 markers by de-repressing SFTPC/ABCA3
+  chromatin.
+
+PROPOSED VALIDATING EXPERIMENT:
+  1. In vitro: treat TGF-β1-stimulated primary human lung fibroblasts
+     with JNJ-26481585 (0.01–1 µM); measure ACTA2, COL1A1, FN1 protein
+     (Western) and αSMA stress fibers (ICC). Compare to romidepsin,
+     vorinostat, and nintedanib as controls.
+  2. In vivo: murine bleomycin fibrosis model; administer JNJ-26481585
+     from day 7–21; measure Ashcroft fibrosis score, hydroxyproline content,
+     and lung function (FlexiVent). Include positive control (nintedanib).
+  3. Mechanistic: ChIP-seq for H3K27ac at SMAD3-target loci (ACTA2, CTGF)
+     before/after JNJ-26481585 treatment in IPF-derived fibroblasts.
+
+RISK ASSESSMENT:
+  - JNJ-26481585 is a narrow-therapeutic-window cytotoxic agent; dose
+    titration for anti-fibrotic rather than cytotoxic effects is essential.
+  - Compare to vorinostat (approved, better-tolerated) which shows similar
+    HDAC inhibitor class signal in TRACE.

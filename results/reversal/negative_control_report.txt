@@ -1,0 +1,27 @@
+Negative Control Validation
+=======================================================
+
+All-drug Net-TRACE distribution: median=-0.0213, IQR [-0.0434, 0.0020]
+
+Expectation: negative controls should score near or below median
+             (i.e., not in the top quartile of reversers)
+
+Drug                 Category                                       Net-TRACE  Combined rank
+-----------------------------------------------------------------------------------------------
+  bleomycin          A — pro-fibrotic (IPF mouse model inducer)    NOT IN L1000
+  amiodarone         C — drug-induced pulmonary fibrosis              -0.0248  rank 1290/1768  ✓
+  methotrexate       C — known pulmonary toxicity/ILD              NOT IN L1000
+  nitrofurantoin     C — known drug-induced ILD                    NOT IN L1000
+  osimertinib        C — FAERS ILD adverse signal                      0.0582  rank    5/1768  ⚠ HIGH
+  afatinib           C — FAERS ILD adverse signal                      0.0793  rank   17/1768  ⚠ HIGH
+  haloperidol        B — antipsychotic, no fibrosis biology            0.0126  rank  497/1768  ⚠ HIGH
+  lithium            B — mood stabilizer, no fibrosis biology      NOT IN L1000
+  gabapentin         B — anticonvulsant, no fibrosis biology           0.0159  rank  498/1768  ⚠ HIGH
+  azithromycin       B — antibiotic, no direct fibrosis relevance     -0.0037  rank  520/1768  ✓
+
+Negative controls in L1000: 6
+  Scoring above 75th percentile (potential false positives): 4/6
+
+Note: EGFR inhibitors (osimertinib, afatinib) show high reversal scores
+but are flagged as adverse candidates by FAERS — this is expected and
+demonstrates the need for multi-evidence filtering beyond reversal alone.

@@ -1,0 +1,11 @@
+drug,category,net_trace,baseline,combined_rank,combined_pct,in_l1000
+bleomycin,A — pro-fibrotic (IPF mouse model inducer),,,,,False
+amiodarone,C — drug-induced pulmonary fibrosis,-0.0247704463784779,0.0930149812734082,1290.0,72.96380090497738,True
+methotrexate,C — known pulmonary toxicity/ILD,,,,,False
+nitrofurantoin,C — known drug-induced ILD,,,,,False
+osimertinib,C — FAERS ILD adverse signal,0.0582240531468546,-0.0906179775280898,5.0,0.2828054298642534,True
+afatinib,C — FAERS ILD adverse signal,0.079279379634215,-0.1349438202247191,17.0,0.9615384615384616,True
+haloperidol,"B — antipsychotic, no fibrosis biology",0.0126147865305709,0.0,497.0,28.11085972850679,True
+lithium,"B — mood stabilizer, no fibrosis biology",,,,,False
+gabapentin,"B — anticonvulsant, no fibrosis biology",0.0159073487040004,0.0,498.0,28.167420814479637,True
+azithromycin,"B — antibiotic, no direct fibrosis relevance",-0.0037288199674917,0.0720224719101123,520.0,29.411764705882355,True
