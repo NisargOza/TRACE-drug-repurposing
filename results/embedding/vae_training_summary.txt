@@ -1,0 +1,26 @@
+=== VAE-TRACE encoding summary ===
+  pirfenidone: rank 699/1768 (39.5th pct)
+  nintedanib: rank 99/1768 (5.6th pct)
+
+Top 20:
+                     drug  vae_score  vae_rank
+             daunorubicin   0.360718         1
+                  AT-9283   0.357871         2
+                 AZD-4547   0.322005         3
+          barasertib-HQPA   0.317837         4
+              mitomycin-c   0.313670         5
+             temsirolimus   0.311581         6
+               everolimus   0.309233         7
+                  WZ-3105   0.300659         8
+                sirolimus   0.293857         9
+               epirubicin   0.288922        10
+                cediranib   0.286442        11
+         ingenol-mebutate   0.285417        12
+                    SN-38   0.279111        13
+phorbol-myristate-acetate   0.277174        14
+               KIN001-266   0.273590        15
+              cobimetinib   0.270610        16
+                dovitinib   0.267321        17
+                XMD-16144   0.266925        18
+             okadaic acid   0.262507        19
+             camptothecin   0.261996        20

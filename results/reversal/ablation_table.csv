@@ -1,0 +1,9 @@
+method,drug,rank,n_drugs,pct
+Baseline (KS),pirfenidone,1251,1768,70.8
+Baseline (KS),nintedanib,24,1768,1.4
+Net-TRACE,pirfenidone,842,1768,47.6
+Net-TRACE,nintedanib,15,1768,0.8
+Weighted TRACE,pirfenidone,895,1768,50.6
+Weighted TRACE,nintedanib,16,1768,0.9
+VAE-TRACE,pirfenidone,699,1768,39.5
+VAE-TRACE,nintedanib,99,1768,5.6
