@@ -1,0 +1,238 @@
+PubMed Literature Corroboration — Top TRACE Candidates
+============================================================
+
+CEDIRANIB  [VEGFR/PDGFR inhibitor]
+--------------------------------------------------
+  No PubMed hits found.
+
+NINTEDANIB  [VEGFR/PDGFR/FGFR inhibitor — POSITIVE CONTROL]
+--------------------------------------------------
+  PubMed hits returned: 8
+  [LOW     ] 2026 | case report/series
+    PMID 42232969: Case Report: Pulmonary alveolar proteinosis and fibrosis associated with indium-tin-oxide 
+    Finding: Case Report: Pulmonary alveolar proteinosis and fibrosis associated with indium-tin-oxide exposure.
+  [LOW     ] 2026 | other
+    PMID 42232154: Disulfiram Attenuates Bleomycin-Induced Lung Inflammation and Fibrosis with Reduced Endoth
+    Finding: Pulmonary fibrosis is a progressive disease characterized by chronic inflammation and ultimately leads to irreversible scarring of lung tissue.
+  [LOW     ] 2026 | in vitro/preclinical
+    PMID 42230731: Inhibition of runt related transcription factor 1 with Ro24-7429 improves lung function in
+    Finding: Idiopathic Pulmonary Fibrosis (IPF) is a life limiting disease with debilitating symptoms and limited therapeutic options.
+  [LOW     ] 2026 | other
+    PMID 42217209: Deciphering the multi-organ anti-fibrotic mechanisms of pirfenidone and nintedanib via net
+    Finding: Fibrosis is a systemic disorder driven by inflammation, immune imbalance, and extracellular matrix remodeling.
+  [LOW     ] 2026 | other
+    PMID 42214626: Achieving the goldilocks zone of lung-targeted mRNA delivery with a charge-steric optimize
+    Finding: The treatment of pulmonary diseases via nucleic acid drugs faces major challenges in targeting specificity and transfection efficiency.
+  [LOW     ] 2026 | in vitro/preclinical
+    PMID 42201233: Antifibrotic Drugs Regulate the Expression of Epithelial Sodium Channels in the Lungs.
+    Finding: A high-salt extracellular environment promotes fibrosis in multiple organs by inducing oxidative stress, fibroblast activation, and extracellular matrix remodel
+  [LOW     ] 2026 | other
+    PMID 42198248: Targeting Lysyl Oxidase-like 2: A Therapeutic Strategy for Idiopathic Pulmonary Fibrosis w
+    Finding: Background: Idiopathic pulmonary fibrosis (IPF) is a progressive lung disease marked by excessive extracellular matrix (ECM) deposition.
+  [LOW     ] 2026 | review/commentary
+    PMID 42193381: From Inflammation to Precision Medicine: Mechanistic Insights into Asthma, COPD, and IPF.
+    Finding: Asthma, chronic obstructive pulmonary disease (COPD), and idiopathic pulmonary fibrosis (IPF) are major non-communicable respiratory diseases (NCD-RDs) with hig
+
+ROMIDEPSIN  [HDAC inhibitor]
+--------------------------------------------------
+  PubMed hits returned: 1
+  [LOW     ] 2017 | other
+    PMID 28467787: The histone deacetylase inhibitor, romidepsin, as a potential treatment for pulmonary fibr
+    Finding: Idiopathic pulmonary fibrosis (IPF) is a progressive disease that usually affects elderly people.
+
+OSIMERTINIB  [EGFR inhibitor — ADVERSE SIGNAL IN FAERS]
+--------------------------------------------------
+  PubMed hits returned: 3
+  [MODERATE] 2018 | clinical trial (early phase)
+    PMID 29879078: Treatment rationale and design of the SPIRAL study: A phase II trial of osimertinib in eld
+    Finding: Advances in epidermal growth factor receptor-tyrosine kinase inhibitor (EGFR-TKI) treatment led to research on the mechanism of the resistance have revealed tha
+  [LOW     ] 2025 | case report/series
+    PMID 41479888: Lymphocyte dynamics as the central mediator in osimertinib-induced CD4+ T-cell depletion, 
+    Finding: Lymphocyte dynamics as the central mediator in osimertinib-induced CD4+ T-cell depletion, fulminant cytomegalovirus pneumonitis, and progressive pulmo
+  [LOW     ] 2025 | other
+    PMID 40999821: Integrated Machine Learning and Structure-Based Virtual Screening Identify Osimertinib as 
+    Finding: Traf2-and Nck-interacting kinase (TNIK) has been implicated in fibrosis-associated signaling pathways and has recently emerged as a promising therapeutic target
+
+DACOMITINIB  [pan-EGFR inhibitor]
+--------------------------------------------------
+  PubMed hits returned: 2
+  [MODERATE] 2026 | observational study
+    PMID 42105003: A real-world pharmacovigilance study of dacomitinib based on FDA adverse event reporting s
+    Finding: Dacomitinib, a second-generation, irreversible epidermal growth factor receptor tyrosine kinase inhibitor that was approved for the treatment of non-small cell 
+  [LOW     ] 2025 | animal/preclinical in vivo
+    PMID 41326761: N-phenylquinazolin-4-amine-based EGFR TKIs suppress pulmonary fibrosis by modulating the E
+    Finding: Although EGFR signaling plays a key role in pulmonary fibrosis (PF), its therapeutic targeting remains limited.
+
+JNJ-26481585  [HDAC inhibitor]
+--------------------------------------------------
+  No PubMed hits found.
+
+BARICITINIB  [JAK1/2 inhibitor]
+--------------------------------------------------
+  PubMed hits returned: 8
+  [MODERATE] 2023 | observational study
+    PMID 37817417: Safety and Outcomes With Combination Therapy With Sarilumab and Baricitinib for Severe COV
+    Finding: Safety and Outcomes With Combination Therapy With Sarilumab and Baricitinib for Severe COVID-19 Respiratory Infection in Cancer Patients.
+  [LOW     ] 2026 | other
+    PMID 41481958: Baricitinib alleviates myositis-associated interstitial lung disease in mice by inhibiting
+    Finding: Baricitinib, a JAK1/JAK2 inhibitor, has demonstrated promising therapeutic effects in various inflammatory diseases.
+  [LOW     ] 2025 | other
+    PMID 41277954: Impact of COVID-19 therapeutics on the development of post-infectious lung fibrosis.
+    Finding: Post-COVID-19 pulmonary fibrosis (PCPF) is a significant long-term complication in survivors of COVID-19.
+  [LOW     ] 2025 | in vitro/preclinical
+    PMID 41183930: Analysis of the anti-fibrotic potential of a JAK inhibitor in a bleomycin-induced pulmonar
+    Finding: Interstitial lung disease (ILD) associated with connective tissue diseases (CTD-ILD) remains to be a major cause of mortality.
+  [LOW     ] 2025 | review/commentary
+    PMID 40451590: Artificial intelligence revolution in drug discovery: A paradigm shift in pharmaceutical i
+    Finding: Artificial intelligence revolution in drug discovery: A paradigm shift in pharmaceutical innovation.
+  [LOW     ] 2025 | other
+    PMID 40010629: Novel synergistic therapeutic approach in idiopathic pulmonary fibrosis: Combining the ant
+    Finding: Baricitinib and nintedanib can target inflammation and fibrosis respectively, which are the two most important processes in idiopathic pulmonary fibrosis (IPF).
+  [LOW     ] 2024 | in vitro/preclinical
+    PMID 39737175: Impact of Janus kinase inhibitors and methotrexate on interstitial lung disease in rheumat
+    Finding: Little is known about how various treatments impact the progression of interstitial lung disease (ILD) in rheumatoid arthritis (RA) patients.
+  [LOW     ] 2023 | other
+    PMID 37674231: Correction to: Baricitinib improves pulmonary fibrosis in mice with rheumatoid arthritis-a
+    Finding: Correction to: Baricitinib improves pulmonary fibrosis in mice with rheumatoid arthritis-associated interstitial lung disease by inhibiting the Jak2/S
+
+VORINOSTAT  [HDAC inhibitor]
+--------------------------------------------------
+  PubMed hits returned: 2
+  [LOW     ] 2026 | animal/preclinical in vivo
+    PMID 41319687: Antifibrotic Efficacy of Daclatasvir Against Pulmonary Fibrosis: Insights From Network Pha
+    Finding: However, its therapeutic effect in pulmonary fibrosis (PF) remains to be fully elucidated.
+  [LOW     ] 2017 | in vitro/preclinical
+    PMID 28315487: XPLN is modulated by HDAC inhibitors and negatively regulates SPARC expression by targetin
+    Finding: Pathogenesis of idiopathic pulmonary fibrosis (IPF) remains unclear.
+
+DASATINIB  [BCR-ABL/Src inhibitor]
+--------------------------------------------------
+  PubMed hits returned: 8
+  [MODERATE] 2026 | clinical trial (early phase)
+    PMID 42094953: Beyond attenuation: a translational review of curative-intent pharmacological targets in i
+    Finding: Idiopathic Pulmonary Fibrosis (IPF) is a progressive, fatal lung disease with a median survival of 3-5 years, driven by a profound unmet medical need.
+  [MODERATE] 2024 | clinical trial (early phase)
+    PMID 39000270: Addition of Polyphenols to Drugs: The Potential of Controlling "Inflammaging" and Fibrosis
+    Finding: The combination of a polyphenol, quercetin, with dasatinib initiated clinical trials to evaluate the safety and efficacy of senolytics in idiopathic pulmonary f
+  [MODERATE] 2024 | clinical trial (early phase)
+    PMID 38256903: Researching New Drug Combinations with Senolytic Activity Using Senescent Human Lung Fibro
+    Finding: Therapeutically targeting senescent cells seems to be an interesting perspective in treating chronic lung diseases, which are often associated with human aging.
+  [LOW     ] 2025 | other
+    PMID 41126823: Targeting senescent microglia in progressive multiple sclerosis: a geroscience-informed ap
+    Finding: This clinical progression is associated with smoldering, CNS-compartmentalized inflammation and neurodegeneration, for which there are currently no effective di
+  [LOW     ] 2025 | review/commentary
+    PMID 39647393: Chemotherapeutic potential of radotinib against blood and solid tumors: A beacon of hope i
+    Finding: Tyrosine kinase inhibitors (TKIs) represent a pivotal class of targeted therapies in oncology, with multiple generations developed to address diverse molecular 
+  [LOW     ] 2024 | in vitro/preclinical
+    PMID 39578767: Co-culture of human AT2 cells with fibroblasts reveals a MUC5B phenotype: insights from an
+    Finding: Impaired interaction of fibroblasts with pneumocytes contributes to the progression of chronic lung disease such as idiopathic pulmonary fibrosis (IPF).
+  [LOW     ] 2024 | other
+    PMID 38796738: Senolytic Therapy Enabled by Senescent Cell-Sensitive Biomimetic Melanin Nano-Senolytics.
+    Finding: Despite the recent occurrence of nanomaterial-based approaches targeting SnCs, limited therapeutic effects, and potential toxicity still remain a major concern.
+  [LOW     ] 2024 | other
+    PMID 38171149: Design, synthesis, and biological evaluation of novel discoidin domain receptor inhibitors
+    Finding: When DDRs are overexpressed, it has been associated with various diseases such as cancers, fibrotic disorders, and inflammation.
+
+AFATINIB  [pan-HER EGFR inhibitor — ADVERSE SIGNAL IN FAERS]
+--------------------------------------------------
+  PubMed hits returned: 2
+  [LOW     ] 2019 | review/commentary
+    PMID 30877063: Properties of FDA-approved small molecule protein kinase inhibitors.
+    Finding: The US FDA has approved 48 small molecule protein kinase inhibitors, nearly all of which are orally effective with the exceptions of netarsudil (which is given 
+  [LOW     ] 2015 | review/commentary
+    PMID 26008987: Update on Cardiovascular Safety of Tyrosine Kinase Inhibitors: With a Special Focus on QT 
+    Finding: We previously reviewed the cardiovascular safety of 16 tyrosine kinase inhibitors (TKIs), approved for use in oncology as of 30 September 2012.
+
+ATORVASTATIN  [HMG-CoA reductase inhibitor (statin)]
+--------------------------------------------------
+  PubMed hits returned: 8
+  [MODERATE] 2021 | observational study
+    PMID 34606062: Role of Drug-Gene Interactions and Pharmacogenetics in Simvastatin-Associated Pulmonary To
+    Finding: Simvastatin has previously been associated with drug-induced interstitial lung disease.
+  [LOW     ] 2023 | other
+    PMID 35900334: Statin Use May Be Associated With a Lower Risk of Invasive Aspergillosis in Lung Transplan
+    Finding: Statins are competitive inhibitors of 3-hydroxy-3methylglutaryl coenzyme A reductase (HMG-CoA reductase) that catalyses HMG-CoA conversion to mevalonate, a proc
+  [LOW     ] 2022 | other
+    PMID 37082028: Atorvastatin and ezetimibe protect against hypercholesterolemia-induced lung oxidative str
+    Finding: Atorvastatin and ezetimibe are antilipemic drugs that have pleiotropic effects.
+  [LOW     ] 2022 | animal/preclinical in vivo
+    PMID 35416377: Atorvastatin attenuates pulmonary fibrosis in mice and human lung fibroblasts, by the regu
+    Finding: Statins have anti-inflammatory and antifibrotic effects in addition to cholesterol-lowering effect.
+  [LOW     ] 2022 | in vitro/preclinical
+    PMID 35083881: LDLR dysfunction induces LDL accumulation and promotes pulmonary fibrosis.
+    Finding: Treatments for pulmonary fibrosis (PF) are ineffective because its molecular pathogenesis and therapeutic targets are unclear.
+  [LOW     ] 2020 | review/commentary
+    PMID 32166725: Amiodarone: A Comprehensive Guide for Clinicians.
+    Finding: Amiodarone is an effective antiarrhythmic medication frequently used in practice for both ventricular and atrial arrhythmias.
+  [LOW     ] 2019 | animal/preclinical in vivo
+    PMID 31533801: Comparison of four pharmacological strategies aimed to prevent the lung inflammation and p
+    Finding: The aim of this study was to compare in vivo effect of five pharmacological options on inflammation and pulmonary fibrosis induced by paraquat.
+  [LOW     ] 2019 | other
+    PMID 31215034: The effects of atorvastatin on the kidney injury in mice with pulmonary fibrosis.
+    Finding: The present study investigated the effects of atorvastatin on kidney injury in mice with pulmonary fibrosis (PF).
+
+PITAVASTATIN  [HMG-CoA reductase inhibitor (statin)]
+--------------------------------------------------
+  PubMed hits returned: 1
+  [LOW     ] 2013 | in vitro/preclinical
+    PMID 24211780: Inhibitory effects of pitavastatin on fibrogenic mediator production by human lung fibrobl
+    Finding: Idiopathic pulmonary fibrosis continues to be a devastating clinical disorder for which there are few therapeutic options, and the pathogenesis of this disease 
+
+PIRFENIDONE  [anti-fibrotic — POSITIVE CONTROL]
+--------------------------------------------------
+  PubMed hits returned: 8
+  [LOW     ] 2026 | other
+    PMID 42232154: Disulfiram Attenuates Bleomycin-Induced Lung Inflammation and Fibrosis with Reduced Endoth
+    Finding: Pulmonary fibrosis is a progressive disease characterized by chronic inflammation and ultimately leads to irreversible scarring of lung tissue.
+  [LOW     ] 2026 | in vitro/preclinical
+    PMID 42230731: Inhibition of runt related transcription factor 1 with Ro24-7429 improves lung function in
+    Finding: Idiopathic Pulmonary Fibrosis (IPF) is a life limiting disease with debilitating symptoms and limited therapeutic options.
+  [LOW     ] 2026 | other
+    PMID 42217209: Deciphering the multi-organ anti-fibrotic mechanisms of pirfenidone and nintedanib via net
+    Finding: Fibrosis is a systemic disorder driven by inflammation, immune imbalance, and extracellular matrix remodeling.
+  [LOW     ] 2026 | other
+    PMID 42203065: Miltefosine attenuates silicosis involving inhibiting the Akt/mTOR signaling pathway.
+    Finding: Presently, the prevalence of silicosis remains significant, with treatment options being notably limited.
+  [LOW     ] 2026 | in vitro/preclinical
+    PMID 42201233: Antifibrotic Drugs Regulate the Expression of Epithelial Sodium Channels in the Lungs.
+    Finding: A high-salt extracellular environment promotes fibrosis in multiple organs by inducing oxidative stress, fibroblast activation, and extracellular matrix remodel
+  [LOW     ] 2026 | other
+    PMID 42200078: Inefficacy of dexamethasone and pirfenidone as comparators in the bleomycin-induced pulmon
+    Finding: Pulmonary fibrosis (PF) is a severe disease leading to disability and death.
+  [LOW     ] 2026 | other
+    PMID 42198248: Targeting Lysyl Oxidase-like 2: A Therapeutic Strategy for Idiopathic Pulmonary Fibrosis w
+    Finding: Background: Idiopathic pulmonary fibrosis (IPF) is a progressive lung disease marked by excessive extracellular matrix (ECM) deposition.
+  [LOW     ] 2026 | review/commentary
+    PMID 42193381: From Inflammation to Precision Medicine: Mechanistic Insights into Asthma, COPD, and IPF.
+    Finding: Asthma, chronic obstructive pulmonary disease (COPD), and idiopathic pulmonary fibrosis (IPF) are major non-communicable respiratory diseases (NCD-RDs) with hig
+
+RILUZOLE  [sodium channel blocker]
+--------------------------------------------------
+  PubMed hits returned: 1
+  [LOW     ]  | case report/series
+    PMID 10742997: [Respiratory form of onset of motor neuron disease].
+    Finding: [Respiratory form of onset of motor neuron disease].
+
+RUFINAMIDE  [sodium channel modulator]
+--------------------------------------------------
+  No PubMed hits found.
+
+NERATINIB  [pan-HER inhibitor]
+--------------------------------------------------
+  No PubMed hits found.
+
+AEE-788  [EGFR/VEGFR dual inhibitor]
+--------------------------------------------------
+  No PubMed hits found.
+
+CANERTINIB  [pan-HER inhibitor]
+--------------------------------------------------
+  No PubMed hits found.
+
+BIBX-1382  [EGFR inhibitor]
+--------------------------------------------------
+  No PubMed hits found.
+
+EFATUTAZONE  [PPARγ agonist]
+--------------------------------------------------
+  No PubMed hits found.

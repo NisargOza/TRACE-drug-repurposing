@@ -1,0 +1,131 @@
+TRACE — Final Candidate Evidence Dossier
+======================================================================
+Triangulated evidence: reversal score + genetic + trials + FAERS + literature
+
+NINTEDANIB [POSITIVE CONTROL]
+  Mechanism   : POSITIVE CONTROL
+  Combined rank: 2/1768  |  Net-TRACE=0.0937  |  VAE=0.1526
+  Genetic (OT): 0.594
+  Trials      : MODERATE — PHASE1 | NCT05817240
+  FAERS       : n=666, ROR=76.38 [70.09–83.24] (risk signal)
+  Literature  : 8 PubMed hits  |  best strength = low
+    Best study: PMID 42232969 (2026): Case Report: Pulmonary alveolar proteinosis and fibrosis associated with indium-
+  VERDICT     : strong reversal (top 10 combined); high genetic support (Open Targets); clinical trial evidence (moderate); ⚠ FAERS adverse signal (ROR=76.4)
+
+PIRFENIDONE [POSITIVE CONTROL]
+  Mechanism   : POSITIVE CONTROL
+  Combined rank: 793/1768  |  Net-TRACE=-0.0192  |  VAE=-0.0069
+  Genetic (OT): 0.000
+  Trials      : MODERATE — PHASE1 | NCT04888715
+  FAERS       : n=617, ROR=50.25 [46.11–54.76] (risk signal)
+  Literature  : 8 PubMed hits  |  best strength = low
+    Best study: PMID 42232154 (2026): Disulfiram Attenuates Bleomycin-Induced Lung Inflammation and Fibrosis with Redu
+  VERDICT     : clinical trial evidence (moderate); ⚠ FAERS adverse signal (ROR=50.2)
+
+CEDIRANIB
+  Mechanism   : VEGFR/PDGFR kinase inhibitor
+  Combined rank: 1/1768  |  Net-TRACE=0.1010  |  VAE=0.2864
+  Genetic (OT): 0.594
+  Trials      : no trials found
+  FAERS       : n=0, ROR=N/A (insufficient reports)
+  Literature  : 0 PubMed hits  |  best strength = none
+  VERDICT     : strong reversal (top 10 combined); high genetic support (Open Targets)
+
+ROMIDEPSIN
+  Mechanism   : HDAC inhibitor
+  Combined rank: 3/1768  |  Net-TRACE=0.0948  |  VAE=0.0712
+  Genetic (OT): 0.099
+  Trials      : no trials found
+  FAERS       : n=2, ROR=0.73 [0.18–2.91] (PROTECTIVE)
+  Literature  : 1 PubMed hits  |  best strength = low
+    Best study: PMID 28467787 (2017): The histone deacetylase inhibitor, romidepsin, as a potential treatment for pulm
+  VERDICT     : strong reversal (top 10 combined); modest genetic support; preclinical literature support
+
+DASATINIB
+  Mechanism   : BCR-ABL/Src kinase inhibitor (senolytic)
+  Combined rank: 19/1768  |  Net-TRACE=0.0814  |  VAE=-0.0665
+  Genetic (OT): 0.594
+  Trials      : MODERATE — PHASE1 | NCT02874989
+  FAERS       : n=51, ROR=1.54 [1.17–2.03] (risk signal)
+  Literature  : 8 PubMed hits  |  best strength = moderate
+    Best study: PMID 42094953 (2026): Beyond attenuation: a translational review of curative-intent pharmacological ta
+  VERDICT     : moderate reversal (top 25 combined); high genetic support (Open Targets); clinical trial evidence (moderate); moderate literature support
+
+DACOMITINIB
+  Mechanism   : pan-EGFR inhibitor
+  Combined rank: 9/1768  |  Net-TRACE=0.0794  |  VAE=0.0411
+  Genetic (OT): 0.064
+  Trials      : no trials found
+  FAERS       : n=8, ROR=4.87 [2.42–9.79] (risk signal)
+  Literature  : 2 PubMed hits  |  best strength = moderate
+    Best study: PMID 42105003 (2026): A real-world pharmacovigilance study of dacomitinib based on FDA adverse event r
+  VERDICT     : strong reversal (top 10 combined); modest genetic support; ⚠ FAERS adverse signal (ROR=4.9); moderate literature support
+
+JNJ-26481585
+  Mechanism   : HDAC inhibitor
+  Combined rank: 8/1768  |  Net-TRACE=0.0949  |  VAE=0.0538
+  Genetic (OT): 0.099
+  Trials      : no trials found
+  FAERS       : n=0, ROR=N/A (insufficient reports)
+  Literature  : 0 PubMed hits  |  best strength = none
+  VERDICT     : strong reversal (top 10 combined); modest genetic support
+
+BARICITINIB
+  Mechanism   : JAK1/2 inhibitor
+  Combined rank: 18/1768  |  Net-TRACE=0.0582  |  VAE=-0.0179
+  Genetic (OT): 0.065
+  Trials      : no trials found
+  FAERS       : n=49, ROR=4.78 [3.60–6.33] (risk signal)
+  Literature  : 8 PubMed hits  |  best strength = moderate
+    Best study: PMID 37817417 (2023): Safety and Outcomes With Combination Therapy With Sarilumab and Baricitinib for 
+  VERDICT     : moderate reversal (top 25 combined); modest genetic support; ⚠ FAERS adverse signal (ROR=4.8); moderate literature support
+
+VORINOSTAT
+  Mechanism   : HDAC inhibitor
+  Combined rank: 11/1768  |  Net-TRACE=0.0445  |  VAE=0.0196
+  Genetic (OT): 0.083
+  Trials      : no trials found
+  FAERS       : no data
+  Literature  : 2 PubMed hits  |  best strength = low
+    Best study: PMID 41319687 (2026): Antifibrotic Efficacy of Daclatasvir Against Pulmonary Fibrosis: Insights From N
+  VERDICT     : moderate reversal (top 25 combined); modest genetic support; preclinical literature support
+
+ATORVASTATIN
+  Mechanism   : HMG-CoA reductase inhibitor (statin)
+  Combined rank: 30/1768  |  Net-TRACE=0.1114  |  VAE=0.1134
+  Genetic (OT): 0.000
+  Trials      : no data
+  FAERS       : no data
+  Literature  : 8 PubMed hits  |  best strength = moderate
+    Best study: PMID 34606062 (2021): Role of Drug-Gene Interactions and Pharmacogenetics in Simvastatin-Associated Pu
+  VERDICT     : moderate literature support
+
+PITAVASTATIN
+  Mechanism   : HMG-CoA reductase inhibitor (statin)
+  Combined rank: 28/1768  |  Net-TRACE=0.0822  |  VAE=0.1382
+  Genetic (OT): 0.000
+  Trials      : no data
+  FAERS       : no data
+  Literature  : 1 PubMed hits  |  best strength = low
+    Best study: PMID 24211780 (2013): Inhibitory effects of pitavastatin on fibrogenic mediator production by human lu
+  VERDICT     : preclinical literature support
+
+OSIMERTINIB
+  Mechanism   : EGFR inhibitor — ⚠ ADVERSE SIGNAL
+  Combined rank: 5/1768  |  Net-TRACE=0.0582  |  VAE=0.1077
+  Genetic (OT): 0.064
+  Trials      : no trials found
+  FAERS       : n=126, ROR=4.46 [3.74–5.32] (risk signal)
+  Literature  : 3 PubMed hits  |  best strength = moderate
+    Best study: PMID 29879078 (2018): Treatment rationale and design of the SPIRAL study: A phase II trial of osimerti
+  VERDICT     : strong reversal (top 10 combined); modest genetic support; ⚠ FAERS adverse signal (ROR=4.5); moderate literature support
+
+AFATINIB
+  Mechanism   : pan-HER inhibitor — ⚠ ADVERSE SIGNAL
+  Combined rank: 17/1768  |  Net-TRACE=0.0793  |  VAE=-0.0178
+  Genetic (OT): 0.064
+  Trials      : no trials found
+  FAERS       : n=17, ROR=3.89 [2.41–6.28] (risk signal)
+  Literature  : 2 PubMed hits  |  best strength = low
+    Best study: PMID 30877063 (2019): Properties of FDA-approved small molecule protein kinase inhibitors.
+  VERDICT     : moderate reversal (top 25 combined); modest genetic support; ⚠ FAERS adverse signal (ROR=3.9)
