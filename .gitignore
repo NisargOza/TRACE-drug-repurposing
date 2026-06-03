@@ -16,3 +16,4 @@ results/l1000/drug_cell_signatures.pkl
 data/raw/l1000/*.gctx
 data/raw/l1000/*.gctx.gz
 results/reversal/null_distribution.npz
+TRACE_report.md
