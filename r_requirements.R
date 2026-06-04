@@ -11,3 +11,13 @@ BiocManager::install(
 )
 
 install.packages(c("metafor", "RobustRankAggreg"), repos = CRAN)
+
+# Mendelian Randomization packages (drug-target MR analysis)
+if (!require("remotes", quietly = TRUE))
+    install.packages("remotes", repos = CRAN)
+
+remotes::install_github("MRCIEU/TwoSampleMR")
+remotes::install_github("mrcieu/ieugwasr")
+
+install.packages(c("coloc", "data.table", "jsonlite", "dplyr", "ggplot2"),
+                 repos = CRAN)

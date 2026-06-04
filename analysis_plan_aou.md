@@ -1,7 +1,12 @@
 # Pre-registered Analysis Plan — All of Us Pharmacoepidemiology
 ## Statin initiation and incident IPF in the All of Us Researcher Workbench
 
-**Status:** Pre-registered. This plan was committed BEFORE any All of Us data were accessed.
+**Status:** SUPERSEDED by `analysis_plan_mr.md` (drug-target Mendelian randomization).
+MR is methodologically preferred because genetic instruments are structurally immune
+to confounding by indication — the dominant threat to this cohort design. This plan
+is retained on file as a complementary future analysis once All of Us access is obtained.
+
+**Original status:** Pre-registered. This plan was committed BEFORE any All of Us data were accessed.
 Any deviation from this plan must be documented as post-hoc and clearly labeled.
 
 **Corresponding TRACE prediction:** atorvastatin is FDR-significant (emp. p = 0.0006,

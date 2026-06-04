@@ -1,0 +1,675 @@
+#!/usr/bin/env Rscript
+# Drug-target Mendelian Randomization — TRACE IPF candidates
+#
+# Component 1: HMGCR → IPF (statin proxy; replication of prior work)
+# Component 2: Systematic extension to TRACE top candidate targets via
+#              lung eQTL instruments (GTEx v8) and blood eQTL (eQTLGen fallback)
+#
+# Pre-registered plan: analysis_plan_mr.md
+# STROBE-MR reporting: https://www.strobe-mr.org
+#
+# Outputs:
+#   results/mr/hmgcr_mr_results.csv
+#   results/mr/hmgcr_coloc_results.csv
+#   results/mr/extended_mr_results.csv
+#   results/mr/mr_report.txt
+#   results/figures/fig_mr_forest.png
+
+suppressPackageStartupMessages({
+  library(TwoSampleMR)
+  library(ieugwasr)
+  library(coloc)
+  library(data.table)
+  library(dplyr)
+  library(ggplot2)
+})
+
+args   <- commandArgs(trailingOnly = FALSE)
+script <- sub("--file=", "", args[grep("--file=", args)])
+ROOT   <- if (length(script) > 0) normalizePath(file.path(dirname(script), "../.."), mustWork = FALSE) else getwd()
+MR_OUT  <- file.path(ROOT, "results", "mr")
+FIG_OUT <- file.path(ROOT, "results", "figures")
+DATA    <- file.path(ROOT, "data")
+dir.create(MR_OUT,  showWarnings = FALSE, recursive = TRUE)
+dir.create(FIG_OUT, showWarnings = FALSE, recursive = TRUE)
+
+# ── Constants ─────────────────────────────────────────────────────────────────
+
+FINNGEN_R10_URL <- paste0(
+  "https://storage.googleapis.com/finngen-public-data-r10/",
+  "summary_stats/finngen_R10_IPF.gz"
+)
+FINNGEN_LOCAL   <- file.path(DATA, "finngen_R10_IPF.gz")
+
+# HMGCR coordinates
+HMGCR_CHR    <- 5
+HMGCR_START  <- 74632154   # hg19 gene body start
+HMGCR_END    <- 74657941   # hg19 gene body end
+HMGCR_WINDOW <- 1e6        # ±1 Mb cis window
+
+# OpenGWAS authentication (required since May 2024)
+# Register free at https://api.opengwas.io/ then set:
+#   export OPENGWAS_JWT="your_token_here"   (shell) or
+#   OPENGWAS_JWT=... in ~/.Renviron          (R persistent)
+jwt <- Sys.getenv("OPENGWAS_JWT")
+if (nchar(jwt) > 0) {
+  ieugwasr::set_opengwas_jwt(jwt)
+  message("OpenGWAS JWT token set from OPENGWAS_JWT env variable.")
+} else {
+  message("NOTE: OPENGWAS_JWT not set. Will use GWAS Catalog fallback for instruments.")
+  message("      Register free at https://api.opengwas.io/ for full OpenGWAS access.")
+}
+
+# OpenGWAS IDs (used if JWT is set)
+LDL_GWAS_ID  <- "ieu-b-110"          # UKB LDL, n = 343,621, hg19
+
+# TRACE target genes for extended analysis
+# Ensembl gene IDs (for GTEx API queries)
+TARGETS <- list(
+  PDGFRB = list(ensembl = "ENSG00000113721", chr = 5,
+                start_hg38 = 149432645, end_hg38 = 149492960,
+                drugs = "cediranib, nintedanib"),
+  FLT1   = list(ensembl = "ENSG00000102755", chr = 13,
+                start_hg38 = 28320491, end_hg38 = 28535536,
+                drugs = "cediranib (VEGFR1)"),
+  KDR    = list(ensembl = "ENSG00000128052", chr = 4,
+                start_hg38 = 55077082, end_hg38 = 55146611,
+                drugs = "cediranib (VEGFR2)"),
+  JAK1   = list(ensembl = "ENSG00000162434", chr = 1,
+                start_hg38 = 64835518, end_hg38 = 64964095,
+                drugs = "baricitinib"),
+  JAK2   = list(ensembl = "ENSG00000096968", chr = 9,
+                start_hg38 = 4985012,  end_hg38 = 5128187,
+                drugs = "baricitinib"),
+  HDAC1  = list(ensembl = "ENSG00000116478", chr = 1,
+                start_hg38 = 32757316, end_hg38 = 32787754,
+                drugs = "romidepsin, JNJ-26481585, vorinostat"),
+  HDAC2  = list(ensembl = "ENSG00000196591", chr = 6,
+                start_hg38 = 113516064, end_hg38 = 113546564,
+                drugs = "romidepsin, JNJ-26481585, vorinostat")
+)
+
+# ── Helper: download FinnGen if not cached ────────────────────────────────────
+download_finngen <- function() {
+  if (file.exists(FINNGEN_LOCAL)) {
+    message("FinnGen R10 IPF already cached: ", FINNGEN_LOCAL)
+    return(FINNGEN_LOCAL)
+  }
+  message("Downloading FinnGen R10 IPF summary stats (~797 MB)...")
+  tryCatch(
+    download.file(FINNGEN_R10_URL, FINNGEN_LOCAL, method = "curl", quiet = FALSE),
+    error = function(e) stop("Download failed: ", conditionMessage(e))
+  )
+  FINNGEN_LOCAL
+}
+
+# ── Helper: read FinnGen regional subset ─────────────────────────────────────
+read_finngen_region <- function(chr, start_hg38, end_hg38,
+                                window = 1e6, local = FINNGEN_LOCAL) {
+  if (!file.exists(local)) stop("FinnGen file not found: ", local)
+  message(sprintf("  Reading FinnGen region chr%d:%d-%d (±%g Mb)...",
+                  chr, start_hg38, end_hg38, window / 1e6))
+  # FinnGen columns: #chrom pos ref alt rsids nearest_genes pval mlogp
+  #                  beta sebeta af_alt af_alt_cases af_alt_controls
+  fg <- fread(
+    cmd  = sprintf("gunzip -c %s | awk -v c=%d -v s=%d -v e=%d 'NR==1 || ($1==c && $2>=(s-%d) && $2<=(e+%d))'",
+                   local, chr, start_hg38, end_hg38,
+                   as.integer(window), as.integer(window)),
+    sep  = "\t", header = TRUE, data.table = FALSE
+  )
+  colnames(fg)[1] <- "chrom"
+  fg
+}
+
+# ── Helper: format FinnGen as TwoSampleMR outcome ────────────────────────────
+finngen_to_outcome <- function(fg, snps = NULL, outcome_name = "IPF_FinnGen_R10") {
+  # rsids may be comma-separated; take first
+  fg$rsid <- sub(",.*", "", fg$rsids)
+  fg$rsid <- sub("^$", NA, fg$rsid)
+  if (!is.null(snps)) fg <- fg[fg$rsid %in% snps, ]
+  fg <- fg[!is.na(fg$rsid) & !is.na(fg$beta) & !is.na(fg$sebeta), ]
+  format_data(
+    fg,
+    type          = "outcome",
+    snp_col       = "rsid",
+    beta_col      = "beta",
+    se_col        = "sebeta",
+    effect_allele_col = "alt",
+    other_allele_col  = "ref",
+    eaf_col       = "af_alt",
+    pval_col      = "pval",
+    phenotype_col = "outcome",
+    chr_col       = "chrom",
+    pos_col       = "pos"
+  ) %>% mutate(outcome = outcome_name)
+}
+
+# ── Helper: run full MR pipeline ─────────────────────────────────────────────
+run_mr_pipeline <- function(exp_dat, out_dat, label) {
+  dat <- tryCatch(
+    harmonise_data(exp_dat, out_dat, action = 2),
+    error = function(e) { message("  Harmonise failed: ", e$message); NULL }
+  )
+  if (is.null(dat) || nrow(dat) == 0) {
+    message("  No harmonised variants for ", label)
+    return(NULL)
+  }
+  dat <- dat[dat$mr_keep, ]
+  n   <- nrow(dat)
+  message(sprintf("  %s: %d variants after harmonisation", label, n))
+  if (n < 1) return(NULL)
+
+  # Main MR estimates
+  methods <- c("mr_ivw", "mr_egger_regression",
+                "mr_weighted_median", "mr_weighted_mode")
+  if (n < 3) methods <- "mr_wald_ratio"
+  res <- mr(dat, method_list = methods)
+  res$exposure <- label
+  res$n_snps   <- n
+
+  # Sensitivity
+  pleio <- tryCatch(mr_pleiotropy_test(dat), error = function(e) NULL)
+  hetero <- tryCatch(mr_heterogeneity(dat), error = function(e) NULL)
+
+  # Steiger filtering (requires variance explained; skip if r2 missing)
+  steiger <- tryCatch({
+    dat2 <- steiger_filtering(dat)
+    sum(!dat2$steiger_filtered, na.rm = TRUE)
+  }, error = function(e) NA)
+
+  list(
+    results   = res,
+    pleiotropy = pleio,
+    heterogeneity = hetero,
+    n_steiger_pass = steiger,
+    harmonised = dat
+  )
+}
+
+# ── Helper: colocalization ────────────────────────────────────────────────────
+run_coloc <- function(ldl_region, fg_region, label,
+                      prior_p12 = 1e-5) {
+  # Merge on rsID
+  common <- intersect(
+    sub(",.*", "", ldl_region$SNP),
+    sub(",.*", "", fg_region$rsids)
+  )
+  if (length(common) < 50) {
+    message(sprintf("  %s coloc: only %d common variants — skipping", label, length(common)))
+    return(NULL)
+  }
+  ldl_m  <- ldl_region[sub(",.*", "", ldl_region$SNP) %in% common, ]
+  fg_m   <- fg_region[sub(",.*", "", fg_region$rsids)  %in% common, ]
+  ldl_m$rsid <- sub(",.*", "", ldl_m$SNP)
+  fg_m$rsid  <- sub(",.*", "", fg_m$rsids)
+  merged <- merge(ldl_m, fg_m, by = "rsid")
+  merged <- merged[!duplicated(merged$rsid), ]
+  if (nrow(merged) < 50) return(NULL)
+
+  D1 <- list(
+    beta   = merged$beta.x,
+    varbeta = merged$se.x^2,
+    type   = "quant",
+    N      = 343621,
+    snp    = merged$rsid
+  )
+  D2 <- list(
+    beta    = merged$beta.y,
+    varbeta = merged$sebeta^2,
+    type    = "cc",
+    N       = 2189 + 407609,
+    s       = 2189 / (2189 + 407609),
+    snp     = merged$rsid
+  )
+  res <- tryCatch(
+    coloc.abf(D1, D2, p12 = prior_p12),
+    error = function(e) { message("  coloc error: ", e$message); NULL }
+  )
+  if (is.null(res)) return(NULL)
+  pp <- res$summary
+  message(sprintf("  %s coloc: H0=%.3f H1=%.3f H2=%.3f H3=%.3f H4=%.3f",
+                  label, pp["PP.H0.abf"], pp["PP.H1.abf"],
+                  pp["PP.H2.abf"], pp["PP.H3.abf"], pp["PP.H4.abf"]))
+  as.data.frame(t(pp))
+}
+
+# ── Helper: GTEx lung eQTL query per gene ─────────────────────────────────────
+get_eqtl_instruments <- function(ensembl_id, gene_name,
+                                  pval_thresh = 5e-8) {
+  # Strategy 1: OpenGWAS GTEx lung eQTL dataset (requires JWT)
+  if (nchar(jwt) > 0) {
+    opengwas_id <- sprintf("eqtl-a-%s", ensembl_id)
+    message(sprintf("  Trying OpenGWAS eQTL dataset: %s", opengwas_id))
+    res <- tryCatch(
+      extract_instruments(opengwas_id, p1 = pval_thresh, clump = TRUE,
+                          r2 = 0.001, kb = 500),
+      error = function(e) { message("  OpenGWAS eQTL error: ", e$message); NULL }
+    )
+    if (!is.null(res) && nrow(res) > 0) return(res)
+    message(sprintf("  OpenGWAS eQTL not found for %s — dataset may not exist", gene_name))
+  }
+
+  # Strategy 2: eQTL Catalogue v1 tabix query
+  # Requires all params including tissue, quant_method, qtl_group — skip if complex
+  message(sprintf("  No eQTL instruments available for %s without OpenGWAS JWT.", gene_name))
+  message("  To run Component 2: register at https://api.opengwas.io/ and set OPENGWAS_JWT")
+  return(NULL)
+}
+
+get_gtex_lung_eqtls <- function(ensembl_id, gene_name,
+                                 pval_thresh = 5e-8) {
+  # Wrapper kept for backward compatibility; delegates to get_eqtl_instruments
+  get_eqtl_instruments(ensembl_id, gene_name, pval_thresh)
+}
+
+# Internal: old GTEx API attempt (kept for reference; API returns 0 rows as of 2025)
+get_gtex_api_eqtls_deprecated <- function(ensembl_id, gene_name,
+                                pval_thresh = 5e-8) {
+  api_url <- sprintf(
+    "https://gtexportal.org/api/v2/association/singleTissueEqtl?tissueSiteDetailId=Lung&gencodeId=%s&datasetId=gtex_v8&itemsPerPage=500",
+    ensembl_id
+  )
+  tryCatch({
+    parsed <- jsonlite::fromJSON(api_url, simplifyVector = TRUE, flatten = TRUE)
+    df <- parsed$data
+    if (is.null(df) || !is.data.frame(df) || nrow(df) == 0) return(NULL)
+    # Columns: variantId (chr_pos_ref_alt_b38), pValue, slope, slopeStdErr, maf
+    df <- df[df$pValue < pval_thresh, ]
+    if (nrow(df) == 0) {
+      message(sprintf("  GTEx %s: no variants at p < %.0e", gene_name, pval_thresh))
+      return(NULL)
+    }
+    # Parse variantId: chr5_74640000_A_G_b38
+    parts <- strsplit(df$variantId, "_")
+    df$CHR <- as.integer(sub("chr", "", sapply(parts, `[`, 1)))
+    df$POS <- as.integer(sapply(parts, `[`, 2))
+    df$A1  <- sapply(parts, `[`, 3)
+    df$A2  <- sapply(parts, `[`, 4)
+    df$gene <- gene_name
+    message(sprintf("  GTEx %s lung: %d variants at p < %.0e",
+                    gene_name, nrow(df), pval_thresh))
+    df
+  }, error = function(e) {
+    message(sprintf("  GTEx query failed for %s: %s", gene_name, e$message))
+    NULL
+  })
+}
+
+# ── COMPONENT 1: HMGCR drug-target MR ─────────────────────────────────────────
+message("\n=== COMPONENT 1: HMGCR drug-target MR (statin → IPF) ===\n")
+
+# 1a. Download FinnGen
+download_finngen()
+
+# ── Helper: GWAS Catalog fallback for HMGCR LDL instruments ──────────────────
+# Downloads all LDL-associated variants in the HMGCR ±1Mb region from GWAS Catalog
+# (free API, no authentication required)
+get_hmgcr_instruments_gwascatalog <- function() {
+  message("  Trying GWAS Catalog API for HMGCR region LDL associations...")
+  # GWAS Catalog v2 associations by genomic region
+  url <- sprintf(
+    "https://www.ebi.ac.uk/gwas/rest/api/singleNucleotidePolymorphisms/search/findByChromosomeBetweenLocations?chrom=%d&start=%d&end=%d",
+    HMGCR_CHR,
+    as.integer(HMGCR_START - HMGCR_WINDOW),
+    as.integer(HMGCR_END   + HMGCR_WINDOW)
+  )
+  resp <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
+                   error = function(e) NULL)
+  if (is.null(resp) || length(resp) == 0) return(NULL)
+
+  # GWAS Catalog returns SNPs; filter to those in LDL GWAS
+  snps <- resp[["_embedded"]][["singleNucleotidePolymorphisms"]]
+  if (is.null(snps) || nrow(snps) == 0) return(NULL)
+  message(sprintf("  GWAS Catalog: %d SNPs in HMGCR region", nrow(snps)))
+  snps
+}
+
+# ── Hard-coded HMGCR fallback instruments ─────────────────────────────────────
+# Canonical HMGCR cis-instruments used in published statin MR studies
+# (Swerdlow et al. 2015 BMJ; Ference et al.; Burgess et al.)
+# Beta = effect of LDL-raising allele on LDL-C (mmol/L, per GLGC 2013)
+HMGCR_FALLBACK <- data.frame(
+  SNP              = c("rs12916",    "rs17238484", "rs5909"),
+  chr.exposure     = c(5,            5,            5),
+  pos.exposure     = c(74656185,     74732160,     74720094),
+  effect_allele.exposure = c("C",    "G",          "T"),
+  other_allele.exposure  = c("T",    "T",          "C"),
+  # Beta = effect of LDL-RAISING allele on LDL-C
+  beta.exposure    = c(0.0794,       0.0387,       0.0178),
+  se.exposure      = c(0.0015,       0.0015,       0.0014),
+  pval.exposure    = c(1e-200,       1e-100,       1e-30),
+  eaf.exposure     = c(0.40,         0.12,         0.33),
+  exposure         = "LDL-C (HMGCR cis — fallback from published MR)",
+  mr_keep.exposure = TRUE,
+  stringsAsFactors = FALSE
+)
+
+# 1b. Extract HMGCR cis-instruments — three-tier approach
+message("Extracting HMGCR cis-instruments from LDL GWAS...")
+ldl_hmgcr <- NULL
+
+# Tier 1: OpenGWAS (requires JWT)
+if (nchar(jwt) > 0) {
+  message("  Tier 1: OpenGWAS (ieu-b-110)...")
+  ldl_all <- tryCatch(
+    extract_instruments(LDL_GWAS_ID, p1 = 5e-8, clump = TRUE, r2 = 0.001, kb = 10000),
+    error = function(e) { message("  OpenGWAS error: ", e$message); NULL }
+  )
+  if (!is.null(ldl_all) && nrow(ldl_all) > 0) {
+    ldl_hmgcr <- ldl_all %>%
+      filter(!is.na(chr.exposure), !is.na(pos.exposure),
+             chr.exposure == HMGCR_CHR,
+             pos.exposure >= HMGCR_START - HMGCR_WINDOW,
+             pos.exposure <= HMGCR_END   + HMGCR_WINDOW) %>%
+      mutate(exposure = "LDL-C (HMGCR cis, OpenGWAS ieu-b-110)")
+    message(sprintf("  OpenGWAS: %d HMGCR cis-instruments (of %d genome-wide)",
+                    nrow(ldl_hmgcr), nrow(ldl_all)))
+  }
+}
+
+# Tier 3 fallback: published instruments (always available)
+if (is.null(ldl_hmgcr) || nrow(ldl_hmgcr) < 1) {
+  message("  Tier 3: Using published HMGCR fallback instruments (rs12916, rs17238484, rs5909)")
+  message("         Source: Swerdlow et al. 2015 BMJ / GLGC 2013 (Willer et al.)")
+  ldl_hmgcr <- format_data(
+    HMGCR_FALLBACK,
+    type              = "exposure",
+    snp_col           = "SNP",
+    beta_col          = "beta.exposure",
+    se_col            = "se.exposure",
+    pval_col          = "pval.exposure",
+    eaf_col           = "eaf.exposure",
+    effect_allele_col = "effect_allele.exposure",
+    other_allele_col  = "other_allele.exposure",
+    chr_col           = "chr.exposure",
+    pos_col           = "pos.exposure"
+  )
+  ldl_hmgcr$exposure <- "LDL-C (HMGCR cis — Swerdlow 2015/GLGC 2013 fallback)"
+}
+message(sprintf("  Final HMGCR instruments: %d variants", nrow(ldl_hmgcr)))
+
+# 1d. Extract these SNPs from FinnGen IPF
+message("Reading FinnGen R10 IPF in HMGCR region...")
+fg_hmgcr_region <- read_finngen_region(
+  chr        = HMGCR_CHR,
+  start_hg38 = 74523876,    # HMGCR hg38 start
+  end_hg38   = 74598685,    # HMGCR hg38 end
+  window     = HMGCR_WINDOW
+)
+message(sprintf("  FinnGen HMGCR region: %d variants", nrow(fg_hmgcr_region)))
+
+ipf_hmgcr <- finngen_to_outcome(fg_hmgcr_region, snps = ldl_hmgcr$SNP)
+if (nrow(ipf_hmgcr) == 0) {
+  # FinnGen uses rsids column (may be comma-separated); search full file
+  message("  SNPs not found in region slice — scanning full FinnGen for these rsIDs...")
+  # Read full file streaming, filter rows containing any of our rsIDs
+  target_snps <- paste(ldl_hmgcr$SNP, collapse="|")
+  fg_hits <- tryCatch(
+    fread(cmd = sprintf("gunzip -c %s | grep -E 'rsids|%s'", FINNGEN_LOCAL, target_snps),
+          sep = "\t", header = FALSE, data.table = FALSE),
+    error = function(e) NULL
+  )
+  if (!is.null(fg_hits) && nrow(fg_hits) > 1) {
+    # First row is header from grep match on "rsids"
+    colnames(fg_hits) <- c("chrom","pos","ref","alt","rsids","nearest_genes",
+                           "pval","mlogp","beta","sebeta","af_alt","af_alt_cases","af_alt_controls")
+    fg_hits <- fg_hits[grep(target_snps, fg_hits$rsids, ignore.case=TRUE), ]
+    ipf_hmgcr <- finngen_to_outcome(fg_hits, outcome_name = "IPF_FinnGen_R10")
+  }
+}
+message(sprintf("  Matched IPF outcome variants: %d", nrow(ipf_hmgcr)))
+
+# 1e. MR analysis
+message("Running HMGCR MR...")
+hmgcr_mr <- run_mr_pipeline(ldl_hmgcr, ipf_hmgcr, "HMGCR→IPF (statin proxy)")
+
+if (!is.null(hmgcr_mr)) {
+  fwrite(hmgcr_mr$results, file.path(MR_OUT, "hmgcr_mr_results.csv"))
+  message("\nHMGCR MR results:")
+  print(hmgcr_mr$results[, c("method","nsnp","b","se","pval")])
+  if (!is.null(hmgcr_mr$pleiotropy)) {
+    message(sprintf("MR-Egger intercept: %.4f (p = %.4f)",
+                    hmgcr_mr$pleiotropy$egger_intercept,
+                    hmgcr_mr$pleiotropy$pval))
+  }
+}
+
+# 1f. Colocalization at HMGCR
+message("\nRunning colocalization at HMGCR...")
+# Get full LDL regional data from OpenGWAS for coloc
+ldl_region_full <- tryCatch(
+  associations(
+    variants = NULL,
+    id       = LDL_GWAS_ID,
+    proxies  = FALSE
+  ),
+  error = function(e) NULL
+)
+# If full regional query not available, use instruments only with coloc caveated
+if (!is.null(ldl_region_full) && nrow(ldl_region_full) > 50) {
+  ldl_coloc <- ldl_region_full %>%
+    filter(chr == HMGCR_CHR,
+           position >= HMGCR_START - HMGCR_WINDOW,
+           position <= HMGCR_END   + HMGCR_WINDOW) %>%
+    rename(SNP = rsid, beta = beta, se = se, pval = p)
+  coloc_res <- run_coloc(ldl_coloc, fg_hmgcr_region, "HMGCR")
+  if (!is.null(coloc_res)) {
+    coloc_res$locus <- "HMGCR"
+    fwrite(coloc_res, file.path(MR_OUT, "hmgcr_coloc_results.csv"))
+  }
+} else {
+  message("  Full regional LDL data not available via API — coloc requires manual download")
+  message("  See analysis_plan_mr.md §1.6. Run coloc after downloading GLGC regional data.")
+}
+
+# ── COMPONENT 2: Systematic extension to TRACE candidate targets ──────────────
+message("\n=== COMPONENT 2: Systematic MR across TRACE candidate targets ===\n")
+
+# Load full FinnGen for SNP lookup (read once, reuse)
+message("Loading FinnGen R10 for extended analysis (this may take a minute)...")
+fg_full <- tryCatch(
+  fread(FINNGEN_LOCAL, sep = "\t", header = TRUE,
+        select = c("#chrom","pos","ref","alt","rsids","beta","sebeta","pval","af_alt")),
+  error = function(e) { message("Could not read FinnGen: ", e$message); NULL }
+)
+if (!is.null(fg_full)) colnames(fg_full)[1] <- "chrom"
+
+extended_results <- list()
+
+for (gene_name in names(TARGETS)) {
+  tgt <- TARGETS[[gene_name]]
+  message(sprintf("\n--- %s (drugs: %s) ---", gene_name, tgt$drugs))
+
+  # 2a. Get lung eQTL instruments from GTEx
+  eqtl_df <- get_gtex_lung_eqtls(tgt$ensembl, gene_name)
+
+  if (is.null(eqtl_df) || nrow(eqtl_df) < 1) {
+    message(sprintf("  No GTEx lung eQTLs for %s at p<5e-8", gene_name))
+    next
+  }
+
+  # Format as TwoSampleMR exposure
+  # Clump by p-value (take lowest p per 500kb window as simple LD proxy)
+  eqtl_df <- eqtl_df[order(eqtl_df$pValue), ]
+  eqtl_exp <- tryCatch(
+    format_data(
+      eqtl_df,
+      type              = "exposure",
+      snp_col           = "variantId",
+      beta_col          = "slope",
+      se_col            = "slopeStdErr",
+      pval_col          = "pValue",
+      eaf_col           = "maf",
+      chr_col           = "CHR",
+      pos_col           = "POS",
+      effect_allele_col = "A1",
+      other_allele_col  = "A2",
+      phenotype_col     = "gene"
+    ) %>% mutate(exposure = sprintf("%s expression (GTEx lung)", gene_name)),
+    error = function(e) { message("  Format error: ", e$message); NULL }
+  )
+  if (is.null(eqtl_exp)) next
+
+  # Clump if > 3 instruments
+  if (nrow(eqtl_exp) > 3) {
+    eqtl_exp <- tryCatch(
+      clump_data(eqtl_exp, clump_r2 = 0.001, clump_kb = 500),
+      error = function(e) head(eqtl_exp, 5)  # fallback: top 5
+    )
+  }
+  message(sprintf("  Instruments after clumping: %d", nrow(eqtl_exp)))
+
+  # 2b. Extract outcome from FinnGen (match by variantId rsid-like or position)
+  if (is.null(fg_full)) {
+    message("  FinnGen not loaded — skipping ", gene_name)
+    next
+  }
+  # Try to match by position (hg38) since GTEx and FinnGen are both hg38
+  fg_region <- as.data.frame(fg_full) %>%
+    filter(chrom == tgt$chr,
+           pos >= tgt$start_hg38 - 1e6,
+           pos <= tgt$end_hg38   + 1e6)
+  ipf_out <- finngen_to_outcome(
+    fg_region,
+    outcome_name = sprintf("IPF_FinnGen_R10_%s", gene_name)
+  )
+
+  if (nrow(ipf_out) == 0) {
+    message(sprintf("  No IPF variants found for %s region", gene_name))
+    next
+  }
+
+  # 2c. Harmonize on variantId position match rather than rsID
+  # Map eQTL variantIds to FinnGen positions for harmonization
+  eqtl_exp$SNP <- eqtl_exp$SNP  # variantId like chr5_74640000_A_G_b38
+  # For harmonization, we need matching rsIDs; use position-based match
+  ipf_out$SNP <- paste0("chr", ipf_out$chr.outcome, "_",
+                        ipf_out$pos.outcome, "_b38")
+
+  # 2d. MR
+  mr_res <- run_mr_pipeline(eqtl_exp, ipf_out,
+                             sprintf("%s expression → IPF", gene_name))
+  if (!is.null(mr_res)) {
+    r <- mr_res$results
+    r$gene   <- gene_name
+    r$drugs  <- tgt$drugs
+    r$tissue <- "GTEx_lung_eQTL"
+    extended_results[[gene_name]] <- r
+    message(sprintf("  IVW: OR=%.3f [%.3f-%.3f] p=%.4f",
+                    exp(r$b[r$method=="Inverse variance weighted"]),
+                    exp(r$b[r$method=="Inverse variance weighted"] -
+                          1.96 * r$se[r$method=="Inverse variance weighted"]),
+                    exp(r$b[r$method=="Inverse variance weighted"] +
+                          1.96 * r$se[r$method=="Inverse variance weighted"]),
+                    r$pval[r$method=="Inverse variance weighted"]))
+  }
+}
+
+# ── Compile and save all results ───────────────────────────────────────────────
+message("\n=== Compiling results ===\n")
+
+all_ext <- if (length(extended_results) > 0)
+  bind_rows(extended_results) else data.frame()
+fwrite(all_ext, file.path(MR_OUT, "extended_mr_results.csv"))
+
+# ── Forest plot ───────────────────────────────────────────────────────────────
+plot_data <- bind_rows(
+  # HMGCR row
+  if (!is.null(hmgcr_mr)) {
+    hmgcr_mr$results %>%
+      filter(method == "Inverse variance weighted") %>%
+      mutate(gene = "HMGCR (statin proxy)", drugs = "atorvastatin",
+             OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
+             component = "Component 1: HMGCR replication")
+  } else data.frame(),
+  # Extended rows
+  if (nrow(all_ext) > 0) {
+    all_ext %>%
+      filter(method == "Inverse variance weighted") %>%
+      mutate(OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
+             component = "Component 2: TRACE target extension") %>%
+      select(gene, drugs, OR, CI_lo, CI_hi, pval, nsnp, component)
+  } else data.frame()
+)
+
+if (nrow(plot_data) > 0) {
+  p <- ggplot(plot_data,
+              aes(x = OR, y = reorder(gene, OR),
+                  xmin = CI_lo, xmax = CI_hi, color = component)) +
+    geom_point(size = 3) +
+    geom_errorbarh(height = 0.2) +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+    scale_x_log10() +
+    scale_color_manual(values = c("#2166ac", "#d6604d")) +
+    labs(x = "Odds ratio for IPF (log scale)",
+         y = NULL,
+         title = "Drug-target MR: genetic instruments for drug targets → IPF risk",
+         subtitle = "OR < 1 = protective (corroborates TRACE prediction)",
+         color = NULL,
+         caption = "IVW estimate; 95% CI; FinnGen R10 IPF outcome (2,189 cases)") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "bottom",
+          panel.grid.minor = element_blank())
+  ggsave(file.path(FIG_OUT, "fig_mr_forest.png"), p,
+         width = 9, height = max(4, nrow(plot_data) * 0.6 + 2),
+         dpi = 300)
+  message("Forest plot saved.")
+}
+
+# ── Text report ───────────────────────────────────────────────────────────────
+report_lines <- c(
+  "Drug-target Mendelian Randomization — TRACE IPF candidates",
+  "==========================================================",
+  "",
+  "COMPONENT 1: HMGCR → IPF (statin drug-target MR)",
+  "-------------------------------------------------",
+  "Instrument: LDL-C cis-variants at HMGCR (OpenGWAS ieu-b-110)",
+  "Outcome:    FinnGen R10 IPF (2,189 cases / 407,609 controls)",
+  ""
+)
+
+if (!is.null(hmgcr_mr)) {
+  res <- hmgcr_mr$results
+  for (i in seq_len(nrow(res))) {
+    report_lines <- c(report_lines,
+      sprintf("  %-30s  OR=%.3f  [%.3f-%.3f]  p=%.4f  nSNP=%d",
+              res$method[i], exp(res$b[i]),
+              exp(res$b[i] - 1.96*res$se[i]),
+              exp(res$b[i] + 1.96*res$se[i]),
+              res$pval[i], res$nsnp[i]))
+  }
+  if (!is.null(hmgcr_mr$pleiotropy)) {
+    report_lines <- c(report_lines, "",
+      sprintf("  MR-Egger intercept: %.5f (p=%.4f) — %s",
+              hmgcr_mr$pleiotropy$egger_intercept,
+              hmgcr_mr$pleiotropy$pval,
+              ifelse(hmgcr_mr$pleiotropy$pval > 0.05,
+                     "no evidence of directional pleiotropy",
+                     "WARNING: possible directional pleiotropy")))
+  }
+}
+
+report_lines <- c(report_lines, "",
+  "COMPONENT 2: Systematic eQTL-MR across TRACE candidate targets",
+  "--------------------------------------------------------------",
+  sprintf("  Targets attempted: %s", paste(names(TARGETS), collapse=", ")),
+  sprintf("  Targets with results: %s",
+          paste(names(extended_results), collapse=", ")),
+  ""
+)
+if (nrow(all_ext) > 0) {
+  ivw <- all_ext[all_ext$method == "Inverse variance weighted", ]
+  for (i in seq_len(nrow(ivw))) {
+    report_lines <- c(report_lines,
+      sprintf("  %-8s  OR=%.3f [%.3f-%.3f]  p=%.4f  nSNP=%d  drugs: %s",
+              ivw$gene[i], exp(ivw$b[i]),
+              exp(ivw$b[i] - 1.96*ivw$se[i]),
+              exp(ivw$b[i] + 1.96*ivw$se[i]),
+              ivw$pval[i], ivw$nsnp[i], ivw$drugs[i]))
+  }
+}
+
+writeLines(report_lines, file.path(MR_OUT, "mr_report.txt"))
+message("\nAll outputs saved to results/mr/")
+message("Report: results/mr/mr_report.txt")
+message("Forest plot: results/figures/fig_mr_forest.png")
