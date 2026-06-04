@@ -1,0 +1,4313 @@
+{
+  "BI-2536": {
+    "chembl_id": "CHEMBL513909",
+    "uniprot": [
+      "Q15479",
+      "C9JEC4",
+      "Q5JWX1",
+      "A8K593",
+      "B3KTB2",
+      "Q86UE8",
+      "Q3MIN6",
+      "Q8IYC7",
+      "Q9UD35",
+      "O60219"
+    ],
+    "ensembl": [
+      "ENSG00000204580",
+      "ENSG00000146872",
+      "ENSG00000137332",
+      "ENSG00000215522",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000128829",
+      "ENSG00000077264",
+      "ENSG00000008086",
+      "ENSG00000230456"
+    ],
+    "ot_score": 0.0
+  },
+  "cepharanthine": {
+    "chembl_id": "CHEMBL449782",
+    "uniprot": [
+      "Q96CY0",
+      "Q86WT0",
+      "Q9H7N2",
+      "Q0VFZ4",
+      "Q5XWF0",
+      "Q9NXY3",
+      "P0DTD1",
+      "Q5CZI7",
+      "Q15550",
+      "Q7L3E5"
+    ],
+    "ensembl": [
+      "ENSG00000094631",
+      "ENSG00000080709",
+      "ENSG00000186868",
+      "ENSG00000124574",
+      "ENSG00000276155",
+      "ENSG00000277956",
+      "ENSG00000130234"
+    ],
+    "ot_score": 0.0
+  },
+  "volasertib": {
+    "chembl_id": "CHEMBL4284151",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "JQ1-(+)": {
+    "chembl_id": "CHEMBL3220211",
+    "uniprot": [
+      "Q969U4",
+      "O60433",
+      "Q58F21",
+      "Q4LE28",
+      "Q5T1R7",
+      "Q6P3U2",
+      "Q92645",
+      "Q92793",
+      "Q658Y7",
+      "Q15310"
+    ],
+    "ensembl": [
+      "ENSG00000137948",
+      "ENSG00000234507",
+      "ENSG00000204256",
+      "ENSG00000235307",
+      "ENSG00000005339",
+      "ENSG00000234704",
+      "ENSG00000141867",
+      "ENSG00000215077",
+      "ENSG00000169925"
+    ],
+    "ot_score": 0.0
+  },
+  "darapladib": {
+    "chembl_id": "CHEMBL204021",
+    "uniprot": [
+      "Q96CY0",
+      "Q8BKM3",
+      "Q7L3E5",
+      "Q13093",
+      "Q9UBN7",
+      "Q60963",
+      "Q921T4",
+      "Q8IVA2",
+      "Q6NT75",
+      "A5HTT5"
+    ],
+    "ensembl": [
+      "ENSG00000146070",
+      "ENSMUSG00000023913",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "cobimetinib": {
+    "chembl_id": "CHEMBL2146883",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q86TJ1",
+      "Q92795",
+      "Q3MIN6",
+      "O00732",
+      "Q8IYC7",
+      "O75873"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000146648",
+      "ENSG00000087586",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "Ro-4987655": {
+    "chembl_id": "CHEMBL1614766",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "Q8IYC7"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "TAK-733": {
+    "chembl_id": "CHEMBL1615025",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q86TJ1",
+      "Q92795",
+      "Q3MIN6",
+      "O00732",
+      "O75873",
+      "Q9UD35"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000204580",
+      "ENSG00000111816",
+      "ENSG00000137332",
+      "ENSG00000146648",
+      "ENSG00000215522",
+      "ENSG00000087586",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000230456"
+    ],
+    "ot_score": 0.0
+  },
+  "pitavastatin": {
+    "chembl_id": "CHEMBL1201753",
+    "uniprot": [
+      "Q4PLI4",
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "Q8VCH6",
+      "Q13675",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "B0LPG8"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000118432",
+      "ENSMUSG00000034926",
+      "ENSG00000101204",
+      "ENSG00000120907",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "AZD-4547": {
+    "chembl_id": "CHEMBL3184679",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q86TJ1",
+      "Q92795",
+      "Q3MIN6",
+      "O00732",
+      "Q8IYC7",
+      "O75873"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000146648",
+      "ENSG00000087586",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "atorvastatin": {
+    "chembl_id": "CHEMBL1487",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "Q6FI12",
+      "Q8NGM5",
+      "A3KMC8",
+      "Q2XNE0",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8",
+      "P33259"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000169403",
+      "ENSG00000275211"
+    ],
+    "ot_score": 0.0
+  },
+  "XMD-885": {
+    "chembl_id": "CHEMBL5303523",
+    "uniprot": [
+      "A4D1R8",
+      "Q5VXY0",
+      "O75873",
+      "Q16294",
+      "O60219",
+      "A4D1R7",
+      "Q9UMY9",
+      "Q9BTN5",
+      "A2I2P2",
+      "O00286"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000068078",
+      "ENSG00000132356",
+      "ENSG00000131791",
+      "ENSG00000087586",
+      "ENSG00000141551",
+      "ENSG00000075413"
+    ],
+    "ot_score": 0.0
+  },
+  "XMD11-85H": {
+    "chembl_id": "CHEMBL5557434",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "binimetinib": {
+    "chembl_id": "CHEMBL3187723",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "O00732"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "I-BET-151": {
+    "chembl_id": "CHEMBL5821130",
+    "uniprot": [
+      "O00688",
+      "B2RAW1",
+      "Q9GZX1",
+      "Q92795",
+      "O00732",
+      "Q32ML5",
+      "Q9H3C9",
+      "Q9H2C9",
+      "Q06187",
+      "P06268"
+    ],
+    "ensembl": [
+      "ENSG00000010671",
+      "ENSG00000146648"
+    ],
+    "ot_score": 0.0
+  },
+  "dovitinib": {
+    "chembl_id": "CHEMBL4297063",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "fluspirilene": {
+    "chembl_id": "CHEMBL46516",
+    "uniprot": [
+      "A5H1P7",
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "Q13675",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "B2RAC5",
+      "B0LPG8"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000101204",
+      "ENSG00000120907",
+      "ENSG00000102468",
+      "ENSG00000055118",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "PCI-24781": {
+    "chembl_id": "CHEMBL2103863",
+    "uniprot": [
+      "F8W9E0",
+      "E1P561",
+      "O95028",
+      "O00613",
+      "Q8NEH4",
+      "Q9UEI5",
+      "B4E0Q5",
+      "Q5SRI8",
+      "O43268",
+      "Q9NP76"
+    ],
+    "ensembl": [
+      "ENSG00000196591",
+      "ENSG00000061273",
+      "ENSG00000171720",
+      "ENSG00000048052",
+      "ENSG00000147099",
+      "ENSG00000196498"
+    ],
+    "ot_score": 0.0
+  },
+  "foretinib": {
+    "chembl_id": "CHEMBL1230609",
+    "uniprot": [
+      "Q15479",
+      "C9JEC4",
+      "Q5JWX1",
+      "A8K593",
+      "B3KTB2",
+      "Q86UE8",
+      "Q3MIN6",
+      "Q8IYC7",
+      "Q9UD35",
+      "O60219"
+    ],
+    "ensembl": [
+      "ENSG00000204580",
+      "ENSG00000146872",
+      "ENSG00000137332",
+      "ENSG00000215522",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000128829",
+      "ENSG00000077264",
+      "ENSG00000008086",
+      "ENSG00000230456"
+    ],
+    "ot_score": 0.0
+  },
+  "STA-5326": {
+    "chembl_id": "CHEMBL4297643",
+    "uniprot": [
+      "P40337",
+      "Q96CY0",
+      "Q53T36",
+      "Q7L3E5",
+      "Q08AR8",
+      "Q6PDA9",
+      "Q08AR7",
+      "Q9UBN7",
+      "Q9Y2I7",
+      "Q6NT75"
+    ],
+    "ensembl": [
+      "ENSG00000134086",
+      "ENSG00000094631",
+      "ENSG00000115020"
+    ],
+    "ot_score": 0.0
+  },
+  "XMD-1150": {
+    "chembl_id": "CHEMBL5303523",
+    "uniprot": [
+      "A4D1R8",
+      "Q5VXY0",
+      "O75873",
+      "Q16294",
+      "O60219",
+      "A4D1R7",
+      "Q9UMY9",
+      "Q9BTN5",
+      "A2I2P2",
+      "O00286"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000068078",
+      "ENSG00000132356",
+      "ENSG00000131791",
+      "ENSG00000087586",
+      "ENSG00000141551",
+      "ENSG00000075413"
+    ],
+    "ot_score": 0.0
+  },
+  "AZD-8330": {
+    "chembl_id": "CHEMBL3182621",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "Q504U4",
+      "D3DT78",
+      "Q13128",
+      "A8K7W5",
+      "Q86TJ1",
+      "Q92795",
+      "Q3MIN6",
+      "O00732"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000123143",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "TG-101348": {
+    "chembl_id": "CHEMBL4465517",
+    "uniprot": [
+      "Q12866",
+      "Q8N5L2",
+      "Q9HBB4",
+      "Q9UD27",
+      "P30530"
+    ],
+    "ensembl": [
+      "ENSG00000167601",
+      "ENSG00000153208"
+    ],
+    "ot_score": 0.0
+  },
+  "refametinib": {
+    "chembl_id": "CHEMBL1236682",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "Q504U4",
+      "D3DT78",
+      "Q13128",
+      "A8K7W5",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000123143",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "trichostatin-a": {
+    "chembl_id": "CHEMBL99",
+    "uniprot": [
+      "F8W9E0",
+      "E1P561",
+      "O00613",
+      "O95028",
+      "Q8NEH4",
+      "Q3V3Y4",
+      "Q9UEI5",
+      "Q99N13",
+      "Q8R4Y6",
+      "Q70I53"
+    ],
+    "ensembl": [
+      "ENSG00000196591",
+      "ENSG00000171720",
+      "ENSG00000048052",
+      "ENSMUSG00000026313",
+      "ENSG00000196498"
+    ],
+    "ot_score": 0.0
+  },
+  "vandetanib": {
+    "chembl_id": "CHEMBL6054362",
+    "uniprot": [
+      "A8K6Z2",
+      "Q15250",
+      "Q9H4A2",
+      "P07949",
+      "Q9BTB0"
+    ],
+    "ensembl": [
+      "ENSG00000165731"
+    ],
+    "ot_score": 0.0
+  },
+  "NVP-TAE684": {
+    "chembl_id": "CHEMBL4567342",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "AS-703026": {
+    "chembl_id": "CHEMBL2107832",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "Q8IYC7"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "XMD-16144": {
+    "chembl_id": "CHEMBL5303523",
+    "uniprot": [
+      "A4D1R8",
+      "Q5VXY0",
+      "O75873",
+      "Q16294",
+      "O60219",
+      "A4D1R7",
+      "Q9UMY9",
+      "Q9BTN5",
+      "A2I2P2",
+      "O00286"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000068078",
+      "ENSG00000132356",
+      "ENSG00000131791",
+      "ENSG00000087586",
+      "ENSG00000141551",
+      "ENSG00000075413"
+    ],
+    "ot_score": 0.0
+  },
+  "dacinostat": {
+    "chembl_id": "CHEMBL356066",
+    "uniprot": [
+      "F8W9E0",
+      "A5H1P7",
+      "E1P561",
+      "O95028",
+      "Q8NEH4",
+      "Q9UEI5",
+      "B4E0Q5",
+      "Q5SRI8",
+      "O43268",
+      "Q9NP76"
+    ],
+    "ensembl": [
+      "ENSG00000196591",
+      "ENSG00000061273",
+      "ENSG00000171720",
+      "ENSG00000048052",
+      "ENSG00000147099",
+      "ENSG00000055118"
+    ],
+    "ot_score": 0.0
+  },
+  "YM-201636": {
+    "chembl_id": "CHEMBL2178735",
+    "uniprot": [
+      "Q96CY0",
+      "Q9Y2I7",
+      "D6VTQ0",
+      "Q08AR8",
+      "Q7L3E5",
+      "Q24JU2",
+      "D3DNF0",
+      "P42336",
+      "O94975",
+      "Q99762"
+    ],
+    "ensembl": [
+      "ENSG00000051382",
+      "ENSG00000121879",
+      "ENSG00000094631",
+      "ENSG00000115020"
+    ],
+    "ot_score": 0.0
+  },
+  "I-BET-762": {
+    "chembl_id": "CHEMBL5795569",
+    "uniprot": [
+      "Q6QB10",
+      "Q96CH0",
+      "P29597"
+    ],
+    "ensembl": [
+      "ENSG00000105397"
+    ],
+    "ot_score": 0.0
+  },
+  "trametinib": {
+    "chembl_id": "CHEMBL2103875",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "Q8IYC7"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "bosutinib": {
+    "chembl_id": "CHEMBL2095206",
+    "uniprot": [
+      "P78501",
+      "Q4LE80",
+      "A3KFJ3",
+      "Q13869",
+      "Q45F09",
+      "Q12842",
+      "P00519",
+      "Q17R61",
+      "Q6NZI3",
+      "Q13870"
+    ],
+    "ensembl": [
+      "ENSG00000186716",
+      "ENSG00000097007"
+    ],
+    "ot_score": 0.0
+  },
+  "XMD-892": {
+    "chembl_id": "CHEMBL5303523",
+    "uniprot": [
+      "A4D1R8",
+      "Q5VXY0",
+      "O75873",
+      "Q16294",
+      "O60219",
+      "A4D1R7",
+      "Q9UMY9",
+      "Q9BTN5",
+      "A2I2P2",
+      "O00286"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000068078",
+      "ENSG00000132356",
+      "ENSG00000131791",
+      "ENSG00000087586",
+      "ENSG00000141551",
+      "ENSG00000075413"
+    ],
+    "ot_score": 0.0
+  },
+  "AST-1306": {
+    "chembl_id": "CHEMBL4779286",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "KW-2478": {
+    "chembl_id": "CHEMBL4300557",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "NVP-AUY922": {
+    "chembl_id": "CHEMBL252164",
+    "uniprot": [
+      "Q9NTK6",
+      "A4D1R8",
+      "P07900",
+      "B4DR68",
+      "A5H1P7",
+      "Q86YI4",
+      "Q5CAQ7",
+      "Q9UM87",
+      "O75873",
+      "Q9L3L1"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000087586",
+      "ENSG00000080824",
+      "ENSG00000096384",
+      "ENSG00000126602",
+      "ENSG00000055118",
+      "ENSG00000066468"
+    ],
+    "ot_score": 0.0
+  },
+  "ganetespib": {
+    "chembl_id": "CHEMBL2103879",
+    "uniprot": [
+      "Q5T9W7",
+      "Q96CY0",
+      "Q9NTK6",
+      "P07900",
+      "B4DR68",
+      "P08238",
+      "Q5CAQ7",
+      "O43642",
+      "Q7L3E5",
+      "Q2PP14"
+    ],
+    "ensembl": [
+      "ENSG00000080824",
+      "ENSG00000096384",
+      "ENSG00000126602",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "radicicol": {
+    "chembl_id": "CHEMBL489523",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "cabazitaxel": {
+    "chembl_id": "CHEMBL1201748",
+    "uniprot": [
+      "Q5SQX9",
+      "A8MUB1",
+      "Q5W099",
+      "P0DPH7",
+      "Q6PEY2",
+      "Q27I68",
+      "P07437",
+      "A2BFA2",
+      "A8K854",
+      "Q969E5"
+    ],
+    "ensembl": [
+      "ENSG00000104833",
+      "ENSG00000183311",
+      "ENSG00000152086",
+      "ENSG00000196230",
+      "ENSG00000188229",
+      "ENSG00000123416",
+      "ENSG00000232575",
+      "ENSG00000258947",
+      "ENSG00000224156",
+      "ENSG00000232421"
+    ],
+    "ot_score": 0.0
+  },
+  "WZ-4-145": {
+    "chembl_id": "CHEMBL237830",
+    "uniprot": [
+      "Q96CY0",
+      "Q9UKN2",
+      "Q8VD47",
+      "Q7L3E5",
+      "F1LPN8",
+      "O60835",
+      "O08565",
+      "P30991",
+      "Q9UBN7",
+      "Q9BXA0"
+    ],
+    "ensembl": [
+      "ENSRNOG00055020692",
+      "ENSG00000094631",
+      "ENSG00000121966",
+      "ENSRNOG00060018809",
+      "ENSRNOG00065009543",
+      "ENSRNOG00000003866"
+    ],
+    "ot_score": 0.0
+  },
+  "NVP-BHG712": {
+    "chembl_id": "CHEMBL3752910",
+    "uniprot": [
+      "Q15479",
+      "P13798",
+      "Q86VK8",
+      "Q9BTA5",
+      "P21709",
+      "Q52M80",
+      "B5A967",
+      "Q15278",
+      "P48444",
+      "E9PEU4"
+    ],
+    "ensembl": [
+      "ENSG00000196411",
+      "ENSG00000164062",
+      "ENSG00000284816",
+      "ENSG00000135503",
+      "ENSG00000095139",
+      "ENSG00000132155",
+      "ENSG00000114779",
+      "ENSG00000146904"
+    ],
+    "ot_score": 0.0
+  },
+  "R-428": {
+    "chembl_id": "CHEMBL5834834",
+    "uniprot": [
+      "Q9UDP8",
+      "Q3MIN6",
+      "Q9UC20",
+      "A4D1T4",
+      "B6HY66",
+      "Q13878",
+      "B2R5N3",
+      "B6HY63",
+      "B6HY64",
+      "P04049"
+    ],
+    "ensembl": [
+      "ENSG00000132155",
+      "ENSG00000157764"
+    ],
+    "ot_score": 0.0
+  },
+  "ENMD-2076": {
+    "chembl_id": "CHEMBL482968",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "Q8IYC7"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "XL-888": {
+    "chembl_id": "CHEMBL4297451",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "BVD-523": {
+    "chembl_id": "CHEMBL3590106",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q86TJ1",
+      "Q92795",
+      "Q3MIN6",
+      "O00732",
+      "Q8IYC7",
+      "O75873"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000146648",
+      "ENSG00000087586",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "KIN001-266": {
+    "chembl_id": "CHEMBL3663550",
+    "uniprot": [
+      "A8K3A6",
+      "P56718",
+      "O43614",
+      "O43613",
+      "Q9HBV6",
+      "Q5VTM0"
+    ],
+    "ensembl": [
+      "ENSRNOG00055023927",
+      "ENSRNOG00065025700",
+      "ENSG00000121764",
+      "ENSG00000137252",
+      "ENSRNOG00060026227",
+      "ENSRNOG00000013838"
+    ],
+    "ot_score": 0.0
+  },
+  "AV-412": {
+    "chembl_id": "CHEMBL6067986",
+    "uniprot": [
+      "B2RZG3",
+      "O00688",
+      "Q9GZX1",
+      "Q92795",
+      "O00732",
+      "Q9UMK4",
+      "Q9H3C9",
+      "Q9H2C9",
+      "Q14256",
+      "Q6LDV1"
+    ],
+    "ensembl": [
+      "ENSG00000141736",
+      "ENSG00000146648"
+    ],
+    "ot_score": 0.0
+  },
+  "selumetinib": {
+    "chembl_id": "CHEMBL2105684",
+    "uniprot": [
+      "Q02750",
+      "P36507"
+    ],
+    "ensembl": [
+      "ENSG00000126934",
+      "ENSG00000169032"
+    ],
+    "ot_score": 0.0
+  },
+  "CC-930": {
+    "chembl_id": "CHEMBL3916385",
+    "uniprot": [
+      "O75100",
+      "B4DNF9",
+      "B2R9A0",
+      "Q6LEF0",
+      "Q6FG61",
+      "P24941",
+      "P24385",
+      "O00576",
+      "P11802",
+      "A8K7C6"
+    ],
+    "ensembl": [
+      "ENSG00000110092",
+      "ENSG00000123374",
+      "ENSG00000135446"
+    ],
+    "ot_score": 0.0
+  },
+  "S-ruxolitinib": {
+    "chembl_id": "CHEMBL1287854",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "O14636",
+      "Q9UBN7",
+      "O75297",
+      "Q6NT75",
+      "O60674",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000096968",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "macitentan": {
+    "chembl_id": "CHEMBL2103873",
+    "uniprot": [
+      "Q5W0G9",
+      "Q8NHM7",
+      "Q9UD67",
+      "Q9Y5N1",
+      "Q13675",
+      "P35367",
+      "E5RHC9",
+      "Q59GB1",
+      "B2RAC5",
+      "Q16433"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000136160",
+      "ENSG00000196639",
+      "ENSG00000101180",
+      "ENSG00000120907",
+      "ENSG00000102468"
+    ],
+    "ot_score": 0.0
+  },
+  "MK-2206": {
+    "chembl_id": "CHEMBL4635254",
+    "uniprot": [
+      "B2RBD8",
+      "Q0VAA6",
+      "P31751",
+      "Q5VTI1",
+      "Q5VTI2",
+      "B2RAM5",
+      "P31750",
+      "Q9BWB6",
+      "Q05BV0",
+      "Q68GC0"
+    ],
+    "ensembl": [
+      "ENSG00000142208",
+      "ENSG00000117020",
+      "ENSG00000105221",
+      "ENSMUSG00000001729",
+      "ENSG00000275199"
+    ],
+    "ot_score": 0.0
+  },
+  "crizotinib": {
+    "chembl_id": "CHEMBL601719",
+    "uniprot": [
+      "C9JEC4",
+      "Q13128",
+      "Q5JWX1",
+      "Q9Y4K6",
+      "Q86UE8",
+      "Q16294",
+      "Q9UD35",
+      "O60219",
+      "A8MSK1",
+      "Q9UMY9"
+    ],
+    "ensembl": [
+      "ENSG00000204580",
+      "ENSG00000146872",
+      "ENSG00000111816",
+      "ENSG00000137332",
+      "ENSG00000068078",
+      "ENSG00000215522",
+      "ENSG00000171094",
+      "ENSG00000128829",
+      "ENSG00000077264",
+      "ENSG00000230456"
+    ],
+    "ot_score": 0.0
+  },
+  "PD-184352": {
+    "chembl_id": "CHEMBL1474985",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q9NZM7",
+      "Q6NT75",
+      "Q86TV8",
+      "Q9NUW8",
+      "Q9NZM8",
+      "O94975",
+      "Q2HXX4"
+    ],
+    "ensembl": [
+      "ENSG00000042088",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "paclitaxel": {
+    "chembl_id": "CHEMBL428647",
+    "uniprot": [
+      "Q4PLI4",
+      "O15538",
+      "B4DHQ2",
+      "Q2XND7",
+      "P00190",
+      "P10635",
+      "B5AK60",
+      "O14703",
+      "O14699",
+      "P30988"
+    ],
+    "ensembl": [
+      "ENSG00000004948",
+      "ENSG00000160791",
+      "ENSG00000100197",
+      "ENSG00000118432",
+      "ENSG00000255974",
+      "ENSG00000085563",
+      "ENSG00000095303",
+      "ENSG00000275211"
+    ],
+    "ot_score": 0.0
+  },
+  "NU-7441": {
+    "chembl_id": "CHEMBL188678",
+    "uniprot": [
+      "O60850",
+      "P41240",
+      "Q7Z611",
+      "A5H1P7",
+      "B5TY32",
+      "Q24JU2",
+      "Q16294",
+      "A6NF68",
+      "Q9BZC8",
+      "A8K4L0"
+    ],
+    "ensembl": [
+      "ENSG00000103653",
+      "ENSG00000253729",
+      "ENSG00000068078",
+      "ENSG00000137948",
+      "ENSG00000105851",
+      "ENSG00000112062",
+      "ENSG00000284774",
+      "ENSG00000165059",
+      "ENSG00000185122",
+      "ENSG00000051382"
+    ],
+    "ot_score": 0.0
+  },
+  "clomifene": {
+    "chembl_id": "CHEMBL2355051",
+    "uniprot": [
+      "Q59G14",
+      "Q15125",
+      "Q8VCH6",
+      "P17406",
+      "A7X8B0",
+      "Q9Y5N1",
+      "P47870",
+      "Q9UN15",
+      "P08172",
+      "A8K115"
+    ],
+    "ensembl": [
+      "ENSG00000166311",
+      "ENSG00000145864",
+      "ENSG00000082175",
+      "ENSG00000181072",
+      "ENSMUSG00000034926",
+      "ENSG00000151834",
+      "ENSG00000101180",
+      "ENSG00000147155",
+      "ENSG00000113327"
+    ],
+    "ot_score": 0.0
+  },
+  "orlistat": {
+    "chembl_id": "CHEMBL175247",
+    "uniprot": [
+      "A0A024R517",
+      "Q13759",
+      "A7X8B0",
+      "Q9Y5N1",
+      "P54317",
+      "Q15341",
+      "Q99685",
+      "P06858",
+      "Q4VBK8",
+      "A8K627"
+    ],
+    "ensembl": [
+      "ENSG00000074416",
+      "ENSG00000134780",
+      "ENSG00000159216",
+      "ENSG00000082175",
+      "ENSG00000101180",
+      "ENSG00000175445",
+      "ENSG00000188822"
+    ],
+    "ot_score": 0.0
+  },
+  "bortezomib": {
+    "chembl_id": "CHEMBL325041",
+    "uniprot": [
+      "Q5JZH1",
+      "Q9NZC0",
+      "Q96QJ0",
+      "Q9NY58",
+      "P28074",
+      "P07711",
+      "Q5TZ01",
+      "B5BU45",
+      "Q53Y70",
+      "Q9UEQ3"
+    ],
+    "ensembl": [
+      "ENSG00000100804",
+      "ENSG00000109320",
+      "ENSG00000132906",
+      "ENSG00000064601",
+      "ENSG00000196188",
+      "ENSG00000135047",
+      "ENSG00000165806"
+    ],
+    "ot_score": 0.0
+  },
+  "D-4476": {
+    "chembl_id": "CHEMBL597856",
+    "uniprot": [
+      "Q8IXN1",
+      "Q8NAN0",
+      "G3V1P4",
+      "P08396",
+      "A8KA72",
+      "Q16012",
+      "P22830",
+      "G5EA58",
+      "A8K2L0",
+      "P08397"
+    ],
+    "ensembl": [
+      "ENSG00000066926",
+      "ENSG00000256269"
+    ],
+    "ot_score": 0.0
+  },
+  "GSK-429286A": {
+    "chembl_id": "CHEMBL4303308",
+    "uniprot": [
+      "Q15479",
+      "Q504U4",
+      "D3DT78",
+      "A8K7W5",
+      "Q2TA79",
+      "Q9BTA5",
+      "O75873",
+      "Q3MIN6",
+      "P21709",
+      "Q3B8N4"
+    ],
+    "ensembl": [
+      "ENSG00000123143",
+      "ENSG00000196411",
+      "ENSG00000087586",
+      "ENSG00000284816",
+      "ENSG00000129521",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000146904",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "rosuvastatin": {
+    "chembl_id": "CHEMBL1744447",
+    "uniprot": [
+      "Q2V504",
+      "P51639",
+      "Q2NL52",
+      "Q8N190",
+      "P04035",
+      "Q6P2A6",
+      "B7Z3Y9",
+      "B3KY83",
+      "Q64601",
+      "P19793"
+    ],
+    "ensembl": [
+      "ENSG00000113161",
+      "ENSRNOG00000016122",
+      "ENSG00000186350"
+    ],
+    "ot_score": 0.0
+  },
+  "pilaralisib": {
+    "chembl_id": "CHEMBL3360203",
+    "uniprot": [
+      "P42345",
+      "Q96CY0",
+      "Q8IXA2",
+      "Q7Z611",
+      "Q8N1C5",
+      "Q96SE6",
+      "D3DWA0",
+      "Q5G936",
+      "O60482",
+      "Q5EAT5"
+    ],
+    "ensembl": [
+      "ENSG00000253729",
+      "ENSG00000105647",
+      "ENSG00000117461",
+      "ENSG00000145675",
+      "ENSG00000141506",
+      "ENSG00000198793"
+    ],
+    "ot_score": 0.0
+  },
+  "mepacrine": {
+    "chembl_id": "CHEMBL3277743",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "VP-20629": {
+    "chembl_id": "CHEMBL4297402",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "clomethiazole": {
+    "chembl_id": "CHEMBL315795",
+    "uniprot": [
+      "A8K0U7",
+      "Q99928",
+      "Q32MJ1",
+      "P18507",
+      "Q59G14",
+      "Q14352",
+      "P28472",
+      "Q14DC2",
+      "H7BYV8",
+      "D6REL3"
+    ],
+    "ensembl": [
+      "ENSG00000182256",
+      "ENSG00000094755",
+      "ENSG00000163288",
+      "ENSG00000151834",
+      "ENSG00000113327",
+      "ENSG00000186297",
+      "ENSG00000166206"
+    ],
+    "ot_score": 0.0
+  },
+  "lorglumide": {
+    "chembl_id": "CHEMBL1255589",
+    "uniprot": [
+      "Q15343",
+      "Q13951",
+      "Q92479",
+      "A8MV94",
+      "Q13759",
+      "Q13081",
+      "P30551",
+      "Q15341",
+      "Q16286",
+      "Q16346"
+    ],
+    "ensembl": [
+      "ENSG00000159216",
+      "ENSG00000067955",
+      "ENSRNOG00060015710"
+    ],
+    "ot_score": 0.0
+  },
+  "docetaxel": {
+    "chembl_id": "CHEMBL92",
+    "uniprot": [
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "Q9Y5N1",
+      "Q13675",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "B0LPG8",
+      "B2R7E0"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000128271",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000120907",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "saracatinib": {
+    "chembl_id": "CHEMBL4438584",
+    "uniprot": [
+      "D3DUA4",
+      "F8W164",
+      "Q7LE24",
+      "B4DXD4",
+      "Q8TCM9",
+      "Q99640",
+      "B3KUN8",
+      "I3L1V2",
+      "O14731"
+    ],
+    "ensembl": [
+      "ENSG00000127564"
+    ],
+    "ot_score": 0.0
+  },
+  "temoporfin": {
+    "chembl_id": "CHEMBL500576",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "A0A024AXB9",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "tipifarnib-P2": {
+    "chembl_id": "CHEMBL4108679",
+    "uniprot": [
+      "Q9H0G9",
+      "Q9H303",
+      "Q8NER1",
+      "Q3LU47",
+      "Q9NY22",
+      "A2RUA9",
+      "Q9NQ74",
+      "Q9H304"
+    ],
+    "ensembl": [
+      "ENSG00000196689"
+    ],
+    "ot_score": 0.0
+  },
+  "triflupromazine": {
+    "chembl_id": "CHEMBL1201102",
+    "uniprot": [
+      "Q96CY0",
+      "Q9NZR3",
+      "Q86UV9",
+      "E9PBW7",
+      "Q5XWF0",
+      "Q5CZI7",
+      "Q15550",
+      "Q7L3E5",
+      "Q9NZM7",
+      "Q86TV8"
+    ],
+    "ensembl": [
+      "ENSG00000149295",
+      "ENSG00000094631",
+      "ENSG00000186868",
+      "ENSG00000276155",
+      "ENSG00000277956",
+      "ENSG00000152601",
+      "ENSG00000042088"
+    ],
+    "ot_score": 0.0
+  },
+  "flumatinib": {
+    "chembl_id": "CHEMBL3545413",
+    "uniprot": [
+      "Q96CY0",
+      "Q4LE80",
+      "Q99662",
+      "B5A957",
+      "Q9UM99",
+      "Q7L3E5",
+      "D5LXN2",
+      "O94975",
+      "P00519",
+      "Q13870"
+    ],
+    "ensembl": [
+      "ENSG00000186716",
+      "ENSG00000094631",
+      "ENSG00000113721",
+      "ENSG00000097007",
+      "ENSG00000157404"
+    ],
+    "ot_score": 0.0
+  },
+  "thioridazine": {
+    "chembl_id": "CHEMBL1200916",
+    "uniprot": [
+      "B1AMW4",
+      "Q96CY0",
+      "Q15343",
+      "Q13951",
+      "Q92479",
+      "Q9NZR3",
+      "Q8NGM5",
+      "A1A4V5",
+      "A8MV94",
+      "Q5XWF0"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000149295",
+      "ENSG00000067955",
+      "ENSG00000147246",
+      "ENSG00000159216",
+      "ENSG00000276825",
+      "ENSG00000186868",
+      "ENSG00000151577",
+      "ENSG00000277956",
+      "ENSG00000276155"
+    ],
+    "ot_score": 0.0
+  },
+  "PFI-1": {
+    "chembl_id": "CHEMBL4789678",
+    "uniprot": [
+      "B4DIJ1",
+      "Q4FZB7",
+      "Q4VBY8",
+      "B7Z1D6",
+      "B2RDP0",
+      "P26358",
+      "Q5JSS4",
+      "Q86V01",
+      "Q5JSS5",
+      "Q4V765"
+    ],
+    "ensembl": [
+      "ENSG00000143499",
+      "ENSG00000111218",
+      "ENSG00000108799",
+      "ENSG00000109685",
+      "ENSG00000152455",
+      "ENSG00000130816",
+      "ENSG00000106462",
+      "ENSG00000110066"
+    ],
+    "ot_score": 0.0
+  },
+  "BIX-01294": {
+    "chembl_id": "CHEMBL569864",
+    "uniprot": [
+      "Q8TAZ3",
+      "Q4VBY8",
+      "A2CG75",
+      "P26358",
+      "E1P561",
+      "Q9P130",
+      "Q86V01",
+      "Q8NEH4",
+      "Q9UEI5",
+      "Q9BYU9"
+    ],
+    "ensembl": [
+      "ENSMUSG00000013787",
+      "ENSG00000004487",
+      "ENSG00000196591",
+      "ENSG00000141458",
+      "ENSG00000171720",
+      "ENSG00000147548",
+      "ENSG00000109685",
+      "ENSG00000130816"
+    ],
+    "ot_score": 0.0
+  },
+  "MG-132": {
+    "chembl_id": "CHEMBL5314922",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "rociletinib": {
+    "chembl_id": "CHEMBL4527443",
+    "uniprot": [
+      "Q14225",
+      "Q9BZS2",
+      "Q9GZX1",
+      "Q92795",
+      "Q9H2C9",
+      "O00732",
+      "O00688",
+      "Q9UMD8",
+      "P06268",
+      "Q9UMG5"
+    ],
+    "ensembl": [
+      "ENSG00000146648"
+    ],
+    "ot_score": 0.0
+  },
+  "GSK-461364": {
+    "chembl_id": "CHEMBL1908394",
+    "uniprot": [
+      "Q15479",
+      "C9JEC4",
+      "Q5JWX1",
+      "A8K593",
+      "B3KTB2",
+      "Q86UE8",
+      "Q3MIN6",
+      "Q8IYC7",
+      "Q9UD35",
+      "O60219"
+    ],
+    "ensembl": [
+      "ENSG00000204580",
+      "ENSG00000146872",
+      "ENSG00000137332",
+      "ENSG00000215522",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000128829",
+      "ENSG00000077264",
+      "ENSG00000008086",
+      "ENSG00000230456"
+    ],
+    "ot_score": 0.0
+  },
+  "pimavanserin": {
+    "chembl_id": "CHEMBL2111101",
+    "uniprot": [
+      "Q8IWW4",
+      "A7X8B0",
+      "Q9Y5N1",
+      "Q7Z2D8",
+      "P08172",
+      "Q4VWM6",
+      "Q4VBK6",
+      "B2RAC5",
+      "B4E3T0",
+      "G8XRH6"
+    ],
+    "ensembl": [
+      "ENSG00000082175",
+      "ENSG00000181072",
+      "ENSG00000101180",
+      "ENSG00000112038",
+      "ENSG00000102468"
+    ],
+    "ot_score": 0.0
+  },
+  "meclofenamic-acid": {
+    "chembl_id": "CHEMBL509",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "Q6FI12",
+      "Q8NGM5",
+      "A3KMC8",
+      "Q2XNE0",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8",
+      "D3DQF4"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000113580",
+      "ENSG00000169403"
+    ],
+    "ot_score": 0.0
+  },
+  "SR-33805": {
+    "chembl_id": "CHEMBL33620",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "KU-60019": {
+    "chembl_id": "CHEMBL2140173",
+    "uniprot": [
+      "P42345",
+      "Q96CY0",
+      "Q7Z611",
+      "Q96SE6",
+      "Q13535",
+      "Q9BXK4",
+      "Q9UCX7",
+      "Q59HB2",
+      "O15429",
+      "Q16551"
+    ],
+    "ensembl": [
+      "ENSG00000253729",
+      "ENSG00000149311",
+      "ENSG00000198793",
+      "ENSG00000175054"
+    ],
+    "ot_score": 0.0
+  },
+  "HG-14-10-04": {
+    "chembl_id": "CHEMBL5883698",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "AZ-628": {
+    "chembl_id": "CHEMBL4526902",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "SU-014813": {
+    "chembl_id": "CHEMBL1721885",
+    "uniprot": [
+      "Q15479",
+      "D3DT78",
+      "Q5JWX1",
+      "B3KR15",
+      "Q9Y2N6",
+      "Q9NYH2",
+      "Q9HBH9",
+      "Q86UE8",
+      "Q3MIN6",
+      "Q9Y2H4"
+    ],
+    "ensembl": [
+      "ENSG00000146872",
+      "ENSG00000198586",
+      "ENSG00000070808",
+      "ENSG00000135503",
+      "ENSG00000099875",
+      "ENSG00000157764",
+      "ENSG00000077264",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "isofloxythepin": {
+    "chembl_id": "CHEMBL4573312",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "GSK-1070916": {
+    "chembl_id": "CHEMBL4303308",
+    "uniprot": [
+      "Q15479",
+      "Q504U4",
+      "D3DT78",
+      "A8K7W5",
+      "Q2TA79",
+      "Q9BTA5",
+      "O75873",
+      "Q3MIN6",
+      "P21709",
+      "Q3B8N4"
+    ],
+    "ensembl": [
+      "ENSG00000123143",
+      "ENSG00000196411",
+      "ENSG00000087586",
+      "ENSG00000284816",
+      "ENSG00000129521",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000146904",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "bisindolylmaleimide": {
+    "chembl_id": "CHEMBL1591531",
+    "uniprot": [
+      "Q5TBG3",
+      "O95747",
+      "B0YIY0",
+      "B2RAU2",
+      "Q9Y2H4",
+      "Q6FG86",
+      "Q5JPK8",
+      "Q96NX5",
+      "Q502Y2",
+      "Q9P289"
+    ],
+    "ensembl": [
+      "ENSG00000119408",
+      "ENSG00000177189",
+      "ENSG00000134602",
+      "ENSG00000172939",
+      "ENSG00000070808",
+      "ENSG00000183049",
+      "ENSG00000008118",
+      "ENSG00000105053"
+    ],
+    "ot_score": 0.0
+  },
+  "AT-9283": {
+    "chembl_id": "CHEMBL495727",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q86YI4",
+      "Q9UM87",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000066468",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "AZD-7762": {
+    "chembl_id": "CHEMBL2041933",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "O00732"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "tecastemizole": {
+    "chembl_id": "CHEMBL1788380",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "ticagrelor": {
+    "chembl_id": "CHEMBL398435",
+    "uniprot": [
+      "B3KQY5",
+      "Q86YI4",
+      "Q9UD67",
+      "A7X8B0",
+      "Q9Y5N1",
+      "Q9UM87",
+      "Q13675",
+      "P35367",
+      "Q9EPX4",
+      "E5RHC9"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSRNOG00055018749",
+      "ENSG00000196639",
+      "ENSRNOG00000013902",
+      "ENSG00000112759",
+      "ENSG00000082175",
+      "ENSRNOG00060005045",
+      "ENSG00000101180",
+      "ENSRNOG00065024609",
+      "ENSG00000120907"
+    ],
+    "ot_score": 0.0
+  },
+  "metergoline": {
+    "chembl_id": "CHEMBL19215",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "Q6FI12",
+      "Q8NGM5",
+      "Q2XNE0",
+      "P35368",
+      "Q4VAY7",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000135312",
+      "ENSG00000170214"
+    ],
+    "ot_score": 0.0
+  },
+  "rimcazole": {
+    "chembl_id": "CHEMBL2362766",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "AT7867": {
+    "chembl_id": "CHEMBL428462",
+    "uniprot": [
+      "B2RBD8",
+      "Q96CY0",
+      "Q9UQN5",
+      "Q0VAA6",
+      "P31751",
+      "Q5VTI1",
+      "Q5VTI2",
+      "B2RAM5",
+      "Q7L3E5",
+      "Q53QZ0"
+    ],
+    "ensembl": [
+      "ENSG00000142208",
+      "ENSG00000117020",
+      "ENSG00000105221",
+      "ENSG00000275199",
+      "ENSG00000094631",
+      "ENSG00000134318"
+    ],
+    "ot_score": 0.0
+  },
+  "FK-866": {
+    "chembl_id": "CHEMBL4303387",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "SB-939": {
+    "chembl_id": "CHEMBL5831523",
+    "uniprot": [
+      "Q9UDP8",
+      "Q3MIN6",
+      "Q9UC20",
+      "A4D1T4",
+      "B6HY66",
+      "Q13878",
+      "B2R5N3",
+      "B6HY63",
+      "B6HY64",
+      "P04049"
+    ],
+    "ensembl": [
+      "ENSG00000132155",
+      "ENSG00000157764"
+    ],
+    "ot_score": 0.0
+  },
+  "sarsagenin": {
+    "chembl_id": null,
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "cabergoline": {
+    "chembl_id": "CHEMBL1201087",
+    "uniprot": [
+      "Q8NGM5",
+      "Q9NZR3",
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "A7X8B0",
+      "Q9Y5N1",
+      "Q13675",
+      "P35367",
+      "E5RHC9"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000149295",
+      "ENSG00000082556",
+      "ENSG00000276825",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000082175",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000120907"
+    ],
+    "ot_score": 0.0
+  },
+  "LY-2157299": {
+    "chembl_id": "CHEMBL2364611",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "O00732"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "belinostat": {
+    "chembl_id": "CHEMBL408513",
+    "uniprot": [
+      "A5H1P7",
+      "Q8TB28",
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "Q8N0Y8",
+      "Q13675",
+      "E5RGP5",
+      "E5RHC9",
+      "P41968"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSG00000198363",
+      "ENSG00000112759",
+      "ENSG00000101204",
+      "ENSG00000120907",
+      "ENSG00000055118",
+      "ENSG00000100739",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "GDC-0941": {
+    "chembl_id": "CHEMBL2139930",
+    "uniprot": [
+      "Q15479",
+      "P49674",
+      "Q9NQL0",
+      "Q6P1Z4",
+      "Q9H2G2",
+      "Q706C1",
+      "B2R953",
+      "Q3MIN6",
+      "O95819",
+      "Q9NST7"
+    ],
+    "ensembl": [
+      "ENSG00000071054",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000065613",
+      "ENSG00000213923",
+      "ENSG00000106799",
+      "ENSG00000138696"
+    ],
+    "ot_score": 0.0
+  },
+  "WZ-4002": {
+    "chembl_id": "CHEMBL1229592",
+    "uniprot": [
+      "C9JEC4",
+      "Q8N1E8",
+      "O00688",
+      "Q9Y4K6",
+      "Q7Z5U7",
+      "Q92795",
+      "O00732",
+      "B4E2N6",
+      "A2A3I7",
+      "B0LPG3"
+    ],
+    "ensembl": [
+      "ENSG00000105639",
+      "ENSG00000146648",
+      "ENSG00000119508",
+      "ENSG00000109861",
+      "ENSG00000171094",
+      "ENSG00000102882",
+      "ENSG00000128829",
+      "ENSG00000169398"
+    ],
+    "ot_score": 0.0
+  },
+  "PD-0325901": {
+    "chembl_id": "CHEMBL540501",
+    "uniprot": [
+      "Q32M72",
+      "Q5TBG3",
+      "Q96RE4",
+      "Q6FG86",
+      "Q5JPK8",
+      "O60219",
+      "A6NL64",
+      "Q9UMY9",
+      "B2RAF6",
+      "Q5TBG9"
+    ],
+    "ensembl": [
+      "ENSG00000119408",
+      "ENSG00000075413",
+      "ENSG00000177189",
+      "ENSG00000184304",
+      "ENSG00000154229"
+    ],
+    "ot_score": 0.0
+  },
+  "bazedoxifene": {
+    "chembl_id": "CHEMBL2106615",
+    "uniprot": [
+      "O60685",
+      "Q13511",
+      "Q0MWT5",
+      "Q86Z31",
+      "A8K8K5",
+      "Q92731",
+      "O60608",
+      "Q14276",
+      "P03372",
+      "Q9UEV6"
+    ],
+    "ensembl": [
+      "ENSG00000140009",
+      "ENSG00000091831"
+    ],
+    "ot_score": 0.0
+  },
+  "meisoindigo": {
+    "chembl_id": "CHEMBL607535",
+    "uniprot": [
+      "Q15479",
+      "C9JEC4",
+      "O00688",
+      "D3DT78",
+      "A8K593",
+      "Q86YI4",
+      "B3KTB2",
+      "Q9UM87",
+      "Q9HBH9",
+      "Q92795"
+    ],
+    "ensembl": [
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000099875",
+      "ENSG00000128829",
+      "ENSG00000154928",
+      "ENSG00000066468",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "apabetalone": {
+    "chembl_id": "CHEMBL2393130",
+    "uniprot": [
+      "F8W9E0",
+      "Q6P3U2",
+      "E1P561",
+      "O95028",
+      "Q8NEH4",
+      "Q9UEI5",
+      "A6NF68",
+      "Q8N5M3",
+      "B4E0Q5",
+      "Q5SRI8"
+    ],
+    "ensembl": [
+      "ENSG00000196591",
+      "ENSG00000061273",
+      "ENSG00000137948",
+      "ENSG00000234507",
+      "ENSG00000204256",
+      "ENSG00000171720",
+      "ENSG00000235307",
+      "ENSG00000048052",
+      "ENSG00000234704",
+      "ENSG00000215077"
+    ],
+    "ot_score": 0.0
+  },
+  "varenicline": {
+    "chembl_id": "CHEMBL1076903",
+    "uniprot": [
+      "A4FTX5",
+      "B3KQY5",
+      "P43681",
+      "Q16607",
+      "Q53YK3",
+      "P12392",
+      "Q9Y5N1",
+      "Q8IZ46",
+      "P35367",
+      "P41968"
+    ],
+    "ensembl": [
+      "ENSG00000117971",
+      "ENSRNOG00065018488",
+      "ENSRNOG00055006718",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000101180",
+      "ENSG00000170175",
+      "ENSRNOG00065017636",
+      "ENSRNOG00060010857",
+      "ENSG00000101204"
+    ],
+    "ot_score": 0.0
+  },
+  "EMD-1214063": {
+    "chembl_id": "CHEMBL2109417",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "carfilzomib": {
+    "chembl_id": "CHEMBL451887",
+    "uniprot": [
+      "Q9UNV3",
+      "Q6GPG8",
+      "P01106",
+      "Q61067",
+      "Q96D87",
+      "A5H1P7",
+      "O14818",
+      "Q6PJM7",
+      "Q3B757",
+      "Q5JZH1"
+    ],
+    "ensembl": [
+      "ENSG00000173692",
+      "ENSG00000164733",
+      "ENSG00000165916",
+      "ENSG00000185627",
+      "ENSG00000064601",
+      "ENSG00000101182",
+      "ENSG00000136997",
+      "ENSG00000285132",
+      "ENSG00000055118"
+    ],
+    "ot_score": 0.0
+  },
+  "kakonein": {
+    "chembl_id": "CHEMBL1319403",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q9NZM7",
+      "Q6NT75",
+      "Q86TV8",
+      "Q9NUW8",
+      "Q9NZM8",
+      "Q53VB4",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000042088",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "CEP-37440": {
+    "chembl_id": "CHEMBL3951811",
+    "uniprot": [
+      "Q17RW0",
+      "Q96CY0",
+      "Q53QQ6",
+      "O00688",
+      "C4PFH9",
+      "A5H1P7",
+      "Q9Y4K6",
+      "Q9BUT7",
+      "Q05397",
+      "Q708S9"
+    ],
+    "ensembl": [
+      "ENSG00000055118",
+      "ENSG00000171105",
+      "ENSG00000169398",
+      "ENSG00000171094"
+    ],
+    "ot_score": 0.0
+  },
+  "AVL-292": {
+    "chembl_id": "CHEMBL3301625",
+    "uniprot": [
+      "A6NIH9",
+      "Q96CY0",
+      "Q12871",
+      "Q8N1E8",
+      "B7ZLT8",
+      "O00688",
+      "Q96CH0",
+      "Q13259",
+      "B2RAW1",
+      "Q13611"
+    ],
+    "ensembl": [
+      "ENSG00000122025",
+      "ENSG00000105639",
+      "ENSG00000105397",
+      "ENSG00000102010",
+      "ENSG00000010671"
+    ],
+    "ot_score": 0.0
+  },
+  "ixabepilone": {
+    "chembl_id": "CHEMBL1201752",
+    "uniprot": [
+      "Q5SQX9",
+      "Q96CY0",
+      "Q5W099",
+      "P0DPH7",
+      "A8MUB1",
+      "Q27I68",
+      "P07437",
+      "A2BFA2",
+      "A8K854",
+      "Q6PEY2"
+    ],
+    "ensembl": [
+      "ENSG00000183311",
+      "ENSG00000188229",
+      "ENSG00000196230",
+      "ENSG00000258947",
+      "ENSG00000123416",
+      "ENSG00000232575",
+      "ENSG00000152086",
+      "ENSG00000224156",
+      "ENSG00000232421",
+      "ENSG00000127824"
+    ],
+    "ot_score": 0.0
+  },
+  "PHA-848125": {
+    "chembl_id": "CHEMBL564829",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "Q8IYC7"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "LCQ-908": {
+    "chembl_id": "CHEMBL2364624",
+    "uniprot": [
+      "Q96BB8",
+      "Q9Z2A7",
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9D7Q5",
+      "O75907",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975",
+      "B2RWQ2"
+    ],
+    "ensembl": [
+      "ENSG00000285482",
+      "ENSG00000094631",
+      "ENSMUSG00000022555",
+      "ENSG00000185000"
+    ],
+    "ot_score": 0.0
+  },
+  "BIIB-021": {
+    "chembl_id": "CHEMBL467399",
+    "uniprot": [
+      "Q9NTK6",
+      "F8W9E0",
+      "P07900",
+      "B4DR68",
+      "Q5CAQ7",
+      "Q96SW2",
+      "E1P561",
+      "Q6NVZ0",
+      "O95028",
+      "Q8NEH4"
+    ],
+    "ensembl": [
+      "ENSG00000196591",
+      "ENSG00000080824",
+      "ENSG00000113851",
+      "ENSG00000096384",
+      "ENSG00000126602",
+      "ENSG00000048052"
+    ],
+    "ot_score": 0.0
+  },
+  "clonazepam": {
+    "chembl_id": "CHEMBL452",
+    "uniprot": [
+      "B2BF47",
+      "A1A441",
+      "O00688",
+      "Q53Y59",
+      "F5H5L6",
+      "B0LPF1",
+      "Q92795",
+      "P18089",
+      "O00732",
+      "P41968"
+    ],
+    "ensembl": [
+      "ENSG00000274286",
+      "ENSG00000146648",
+      "ENSG00000138814",
+      "ENSG00000100300",
+      "ENSG00000102755",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "bruceantin": {
+    "chembl_id": "CHEMBL509895",
+    "uniprot": [
+      "Q72547",
+      "Q96CY0",
+      "Q7L3E5",
+      "Q96G93",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975",
+      "P05412",
+      "Q6FHM7"
+    ],
+    "ensembl": [
+      "ENSG00000177606",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "AZD-3514": {
+    "chembl_id": "CHEMBL2346976",
+    "uniprot": [
+      "Q96CY0",
+      "C4PFH9",
+      "A5H1P7",
+      "A2RUN2",
+      "Q9BUT7",
+      "Q708S9",
+      "Q7L3E5",
+      "O94975",
+      "A0A0B4J1T2",
+      "A0A0G2JSI8"
+    ],
+    "ensembl": [
+      "ENSG00000055118",
+      "ENSG00000169083",
+      "ENSG00000094631",
+      "ENSRNOG00000005639"
+    ],
+    "ot_score": 0.0
+  },
+  "PF-03084014": {
+    "chembl_id": "CHEMBL1770916",
+    "uniprot": [
+      "Q9H0S0",
+      "Q96CY0",
+      "Q6UWQ1",
+      "Q9Y386",
+      "Q92542",
+      "A4D1B5",
+      "Q14762",
+      "O95465",
+      "Q96BI3",
+      "Q564N3"
+    ],
+    "ensembl": [
+      "ENSG00000186088",
+      "ENSG00000138613",
+      "ENSG00000117362",
+      "ENSG00000162736",
+      "ENSG00000080815"
+    ],
+    "ot_score": 0.0
+  },
+  "sertraline": {
+    "chembl_id": "CHEMBL809",
+    "uniprot": [
+      "Q8NGM5",
+      "P50052",
+      "Q2XND7",
+      "Q13016",
+      "P18089",
+      "P10635",
+      "P41968",
+      "A0AVQ3",
+      "P23976",
+      "Q00959"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000274286",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSRNOG00000003476",
+      "ENSG00000121807",
+      "ENSRNOG00060018174",
+      "ENSG00000124089",
+      "ENSRNOG00055025018",
+      "ENSG00000275211"
+    ],
+    "ot_score": 0.0
+  },
+  "NPK76-II-72-1": {
+    "chembl_id": "CHEMBL4112840",
+    "uniprot": [
+      "P28482",
+      "A8CZ64"
+    ],
+    "ensembl": [
+      "ENSG00000100030"
+    ],
+    "ot_score": 0.0
+  },
+  "palbociclib": {
+    "chembl_id": "CHEMBL2364621",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "colchicine": {
+    "chembl_id": "CHEMBL107",
+    "uniprot": [
+      "Q4PLI4",
+      "Q9UQP9",
+      "B5AK60",
+      "A0AVQ3",
+      "Q9UP44",
+      "P30988",
+      "B2R7E0",
+      "Q9HB24",
+      "Q96EC3",
+      "B4DX48"
+    ],
+    "ensembl": [
+      "ENSG00000004948",
+      "ENSG00000103546",
+      "ENSG00000169252",
+      "ENSG00000131747",
+      "ENSG00000128271",
+      "ENSG00000085563",
+      "ENSG00000121807",
+      "ENSG00000118432"
+    ],
+    "ot_score": 0.0
+  },
+  "camptothecin": {
+    "chembl_id": "CHEMBL65",
+    "uniprot": [
+      "Q9NPY0",
+      "P0DMS8",
+      "Q9HB25",
+      "P00656",
+      "Q9HB26",
+      "Q6UXK4",
+      "A2A3P4",
+      "O14783",
+      "Q04750",
+      "Q9UKG7"
+    ],
+    "ensembl": [
+      "ENSMUSG00000070544",
+      "ENSG00000131747",
+      "ENSG00000171873",
+      "ENSG00000164362",
+      "ENSG00000282608",
+      "ENSG00000163631",
+      "ENSG00000043591"
+    ],
+    "ot_score": 0.0
+  },
+  "laropiprant": {
+    "chembl_id": "CHEMBL426559",
+    "uniprot": [
+      "Q86W60",
+      "Q8NGM5",
+      "O43461",
+      "Q53Y59",
+      "P28222",
+      "Q5SUJ8",
+      "P18089",
+      "P41968",
+      "B3SXT0",
+      "Q9UBS5"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000237112",
+      "ENSG00000274286",
+      "ENSG00000204681",
+      "ENSG00000232632",
+      "ENSG00000237051",
+      "ENSG00000276825",
+      "ENSG00000135312",
+      "ENSG00000206511",
+      "ENSG00000206466"
+    ],
+    "ot_score": 0.0
+  },
+  "indole-3-carbinol": {
+    "chembl_id": "CHEMBL155625",
+    "uniprot": [
+      "P81908",
+      "Q96CY0",
+      "Q548D2",
+      "Q7L3E5",
+      "P17988",
+      "Q9UBN7",
+      "O42275",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631",
+      "ENSRNOG00000019342",
+      "ENSRNOG00060030085",
+      "ENSRNOG00055026108",
+      "ENSRNOG00065016720"
+    ],
+    "ot_score": 0.0
+  },
+  "naftopidil": {
+    "chembl_id": "CHEMBL1593765",
+    "uniprot": [
+      "Q923J1",
+      "Q5XWF0",
+      "Q9JLQ1",
+      "Q5CZI7",
+      "Q921Y5",
+      "Q8C7S7",
+      "Q9CUT2",
+      "Q15550",
+      "Q1RMF6",
+      "P18518"
+    ],
+    "ensembl": [
+      "ENSG00000186868",
+      "ENSMUSG00000027365",
+      "ENSG00000276155",
+      "ENSG00000277956"
+    ],
+    "ot_score": 0.0
+  },
+  "mizolastine": {
+    "chembl_id": "CHEMBL94454",
+    "uniprot": [
+      "A5H1P7",
+      "B3KQY5",
+      "P43681",
+      "Q9Y5N1",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "Q16433",
+      "B2R7E0",
+      "B0LPG8"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000128271",
+      "ENSG00000055118",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "conivaptan": {
+    "chembl_id": "CHEMBL1755",
+    "uniprot": [
+      "Q96CY0",
+      "Q14C77",
+      "Q3MJD3",
+      "Q9UCV9",
+      "Q9QW18",
+      "Q6DJV9",
+      "Q7L3E5",
+      "O94975",
+      "P48974",
+      "P23415"
+    ],
+    "ensembl": [
+      "ENSRNOG00000004400",
+      "ENSRNOG00060014890",
+      "ENSG00000126895",
+      "ENSG00000094631",
+      "ENSRNOG00055020578",
+      "ENSRNOG00065019314",
+      "ENSRNOG00060008510",
+      "ENSG00000145888",
+      "ENSRNOG00065016788",
+      "ENSRNOG00055026240"
+    ],
+    "ot_score": 0.0
+  },
+  "SU-11652": {
+    "chembl_id": "CHEMBL5303414",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "PF-02545920": {
+    "chembl_id": "CHEMBL562318",
+    "uniprot": [
+      "A4D1R8",
+      "A0A3F2YP58",
+      "Q86WN4",
+      "Q86YI4",
+      "Q9UM87",
+      "O75873",
+      "B2RC38",
+      "Q86SI6",
+      "Q8IV84",
+      "A4D1R7"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000112541",
+      "ENSG00000113448",
+      "ENSG00000087586",
+      "ENSG00000160191",
+      "ENSG00000066468",
+      "ENSG00000131981"
+    ],
+    "ot_score": 0.0
+  },
+  "lonidamine": {
+    "chembl_id": "CHEMBL1257030",
+    "uniprot": [
+      "B3KQY5",
+      "P43681",
+      "Q9Y5N1",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "Q16433",
+      "B2R7E0",
+      "B0LPG8",
+      "B4DX48"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000103546",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000128271",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "lafutidine": {
+    "chembl_id": "CHEMBL1742461",
+    "uniprot": [
+      "Q4PLI4",
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "Q9Y5N1",
+      "Q13675",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "B0LPG8"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000118432",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000120907",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "olanzapine": {
+    "chembl_id": "CHEMBL3989694",
+    "uniprot": [
+      "B1AMW4",
+      "Q8NGM5",
+      "Q9NZR3",
+      "A1A4V5",
+      "P21917",
+      "Q9NP28",
+      "F5GWE8",
+      "Q7Z7Q5",
+      "Q5VUF8",
+      "Q5T8C0"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000149295",
+      "ENSG00000147246",
+      "ENSG00000276825",
+      "ENSG00000151577",
+      "ENSG00000102468"
+    ],
+    "ot_score": 0.0
+  },
+  "cytochalasin-b": {
+    "chembl_id": "CHEMBL411729",
+    "uniprot": [
+      "O75535",
+      "Q96CY0",
+      "D3DSM1",
+      "Q147X2",
+      "Q96P00",
+      "D3DWC3",
+      "Q9NRM0",
+      "Q9UBC8",
+      "P20701",
+      "P11168"
+    ],
+    "ensembl": [
+      "ENSG00000163581",
+      "ENSG00000160255",
+      "ENSG00000005844",
+      "ENSG00000069535",
+      "ENSG00000117394",
+      "ENSG00000109667"
+    ],
+    "ot_score": 0.0
+  },
+  "CEP-32496": {
+    "chembl_id": "CHEMBL2029988",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "O00732"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "ursolic-acid": {
+    "chembl_id": "CHEMBL169",
+    "uniprot": [
+      "P80365",
+      "B3KXF5",
+      "Q7T3S7",
+      "O15296",
+      "B4DHQ2",
+      "Q6FI34",
+      "A8MXU3",
+      "Q9BWI0",
+      "Q8IYQ2",
+      "K7ENG3"
+    ],
+    "ensembl": [
+      "ENSG00000070501",
+      "ENSG00000176387",
+      "ENSG00000175354",
+      "ENSG00000179593",
+      "ENSG00000095303",
+      "ENSG00000170242"
+    ],
+    "ot_score": 0.0
+  },
+  "hexachlorophene": {
+    "chembl_id": "CHEMBL496",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "Q6FI12",
+      "Q8NGM5",
+      "Q2XNE0",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8",
+      "P33259",
+      "P41143"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000116329",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000275211"
+    ],
+    "ot_score": 0.0
+  },
+  "atipamezole": {
+    "chembl_id": "CHEMBL353972",
+    "uniprot": [
+      "Q96CY0",
+      "P35368",
+      "Q9BZK1",
+      "P43140",
+      "B0LPF6",
+      "Q9HB49",
+      "Q4TUH9",
+      "Q2XN99",
+      "P18089",
+      "Q7L3E5"
+    ],
+    "ensembl": [
+      "ENSG00000274286",
+      "ENSG00000094631",
+      "ENSG00000150594",
+      "ENSG00000184160",
+      "ENSG00000170214"
+    ],
+    "ot_score": 0.0
+  },
+  "licarbazepine": {
+    "chembl_id": "CHEMBL313120",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "penfluridol": {
+    "chembl_id": "CHEMBL47050",
+    "uniprot": [
+      "P41595",
+      "Q9NZR3",
+      "Q6P523",
+      "Q13759",
+      "P30729",
+      "Q62610",
+      "Q15341",
+      "Q62221",
+      "P18089",
+      "P35367"
+    ],
+    "ensembl": [
+      "ENSG00000274286",
+      "ENSG00000149295",
+      "ENSG00000159216",
+      "ENSG00000196639",
+      "ENSG00000135914"
+    ],
+    "ot_score": 0.0
+  },
+  "lomitapide": {
+    "chembl_id": "CHEMBL2105662",
+    "uniprot": [
+      "P32079",
+      "A8K428",
+      "P07237",
+      "P30037",
+      "Q6LDE5",
+      "Q6P5T3",
+      "Q15205",
+      "P55157",
+      "B2RDQ2",
+      "Q08AM4"
+    ],
+    "ensembl": [
+      "ENSG00000138823",
+      "ENSG00000185624"
+    ],
+    "ot_score": 0.0
+  },
+  "geldanamycin": {
+    "chembl_id": "CHEMBL278315",
+    "uniprot": [
+      "Q9NTK6",
+      "P07900",
+      "Q5TBG3",
+      "A5H1P7",
+      "O95747",
+      "Q5CAQ7",
+      "Q9Y2H4",
+      "Q6FG86",
+      "Q5JPK8",
+      "Q502Y2"
+    ],
+    "ensembl": [
+      "ENSG00000119408",
+      "ENSG00000177189",
+      "ENSG00000172939",
+      "ENSG00000080824",
+      "ENSG00000096384",
+      "ENSG00000070808",
+      "ENSG00000105053",
+      "ENSG00000055118"
+    ],
+    "ot_score": 0.0
+  },
+  "LY-2228820": {
+    "chembl_id": "CHEMBL1697688",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "diazoxide": {
+    "chembl_id": "CHEMBL4297276",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "delivert": {
+    "chembl_id": "CHEMBL408403",
+    "uniprot": [
+      "P22966",
+      "P50052",
+      "Q9QVS5",
+      "Q13016",
+      "Q7M4L4",
+      "Q59GY8",
+      "P25104",
+      "B4DXI3",
+      "B0LPF0",
+      "Q6FGY7"
+    ],
+    "ensembl": [
+      "ENSRNOG00055013980",
+      "ENSRNOG00060019076",
+      "ENSBTAG00000045633",
+      "ENSG00000159640",
+      "ENSRNOG00000018346",
+      "ENSBTAG00085035102",
+      "ENSRNOG00065023214",
+      "ENSG00000180772"
+    ],
+    "ot_score": 0.0
+  },
+  "raloxifene": {
+    "chembl_id": "CHEMBL1116",
+    "uniprot": [
+      "Q9BCN0",
+      "Q9MYI5",
+      "O77964",
+      "Q29899",
+      "O60685",
+      "Q95IZ5",
+      "P08842",
+      "Q29909",
+      "Q13759",
+      "Q95355"
+    ],
+    "ensembl": [
+      "ENSG00000159216",
+      "ENSG00000140009",
+      "ENSG00000206503"
+    ],
+    "ot_score": 0.0
+  },
+  "clofazimine": {
+    "chembl_id": "CHEMBL1292",
+    "uniprot": [
+      "P43681",
+      "Q9Y5N1",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "Q16433",
+      "B2R7E0",
+      "B0LPG8",
+      "B4DX48",
+      "P04150"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000103546",
+      "ENSG00000196639",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000128271",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "PF-04620110": {
+    "chembl_id": "CHEMBL1835919",
+    "uniprot": [
+      "Q96BB8",
+      "Q96CY0",
+      "A6ND76",
+      "Q9ERM3",
+      "Q96BS0",
+      "Q9Z2A7",
+      "Q9D7Q5",
+      "Q68CL3",
+      "Q68DJ0",
+      "Q9BYE5"
+    ],
+    "ensembl": [
+      "ENSG00000062282",
+      "ENSG00000285482",
+      "ENSMUSG00000022555",
+      "ENSG00000185000"
+    ],
+    "ot_score": 0.0
+  },
+  "podophyllotoxin": {
+    "chembl_id": "CHEMBL61",
+    "uniprot": [
+      "B4DHQ2",
+      "Q2XND7",
+      "P00190",
+      "Q9UQP9",
+      "P35367",
+      "P10635",
+      "Q9UP44",
+      "Q16433",
+      "B2R7E0",
+      "B0LPG8"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000100197",
+      "ENSG00000131747",
+      "ENSG00000196639",
+      "ENSG00000128271",
+      "ENSG00000255974",
+      "ENSG00000095303",
+      "ENSG00000113580",
+      "ENSG00000275211"
+    ],
+    "ot_score": 0.0
+  },
+  "PHA-665752": {
+    "chembl_id": "CHEMBL450786",
+    "uniprot": [
+      "C9JEC4",
+      "O00688",
+      "Q13128",
+      "Q5JWX1",
+      "Q86UE8",
+      "Q92795",
+      "O00732",
+      "Q8IYC7",
+      "O75873",
+      "Q9UD35"
+    ],
+    "ensembl": [
+      "ENSG00000204580",
+      "ENSG00000146872",
+      "ENSG00000111816",
+      "ENSG00000137332",
+      "ENSG00000146648",
+      "ENSG00000215522",
+      "ENSG00000087586",
+      "ENSG00000128829",
+      "ENSG00000077264",
+      "ENSG00000008086"
+    ],
+    "ot_score": 0.0
+  },
+  "ifosfamide": {
+    "chembl_id": "CHEMBL1024",
+    "uniprot": [
+      "A1A441",
+      "Q8NGM5",
+      "P50052",
+      "Q2XND7",
+      "Q13016",
+      "P18089",
+      "P10635",
+      "P41968",
+      "A0AVQ3",
+      "B0LPG3"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000274286",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000138814",
+      "ENSG00000121807",
+      "ENSG00000102882",
+      "ENSG00000124089",
+      "ENSG00000275211",
+      "ENSG00000180772"
+    ],
+    "ot_score": 0.0
+  },
+  "ibrutinib": {
+    "chembl_id": "CHEMBL1873475",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "Q13128",
+      "Q86YI4",
+      "Q9UM87",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000066468",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "zolpidem": {
+    "chembl_id": "CHEMBL3989820",
+    "uniprot": [
+      "Q6GRL6",
+      "Q9UN15",
+      "Q9UDB3",
+      "B2R6U7",
+      "P14867",
+      "Q16166",
+      "P18507",
+      "Q8TBK3",
+      "Q8N629",
+      "D3DQK6"
+    ],
+    "ensembl": [
+      "ENSG00000113327",
+      "ENSG00000022355",
+      "ENSG00000163288"
+    ],
+    "ot_score": 0.0
+  },
+  "linsidomine": {
+    "chembl_id": "CHEMBL1189150",
+    "uniprot": [
+      "Q96CY0",
+      "Q5XWF0",
+      "Q5CZI7",
+      "Q7L3E5",
+      "Q15550",
+      "O94975",
+      "Q1RMF6",
+      "P18518",
+      "Q53YB1",
+      "P10636"
+    ],
+    "ensembl": [
+      "ENSG00000186868",
+      "ENSG00000276155",
+      "ENSG00000277956",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "sofalcone": {
+    "chembl_id": "CHEMBL1441961",
+    "uniprot": [
+      "B3KQY5",
+      "P43681",
+      "Q9Y5N1",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "Q16433",
+      "B2R7E0",
+      "B0LPG8",
+      "B4DX48"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000103546",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000128271",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "BMS-599626": {
+    "chembl_id": "CHEMBL5307497",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "genz-644282": {
+    "chembl_id": "CHEMBL191958",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "KX2-391": {
+    "chembl_id": "CHEMBL571546",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q86TJ1",
+      "Q92795",
+      "Q3MIN6",
+      "O00732",
+      "O75873",
+      "Q9UD35"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000204580",
+      "ENSG00000111816",
+      "ENSG00000137332",
+      "ENSG00000146648",
+      "ENSG00000215522",
+      "ENSG00000087586",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000230456"
+    ],
+    "ot_score": 0.0
+  },
+  "umeclidinium": {
+    "chembl_id": "CHEMBL1187833",
+    "uniprot": [
+      "Q8IWW4",
+      "Q53HF5",
+      "A7X8B0",
+      "Q9Y5N1",
+      "Q7Z2D8",
+      "P08172",
+      "Q4VWM6",
+      "Q4VBK6",
+      "B4E3T0",
+      "G8XRH6"
+    ],
+    "ensembl": [
+      "ENSG00000082175",
+      "ENSG00000181072",
+      "ENSG00000142494",
+      "ENSG00000101180",
+      "ENSG00000112038"
+    ],
+    "ot_score": 0.0
+  },
+  "midostaurin": {
+    "chembl_id": "CHEMBL608533",
+    "uniprot": [
+      "Q15479",
+      "D3DT78",
+      "Q5JWX1",
+      "B3KR15",
+      "Q9Y2N6",
+      "Q9NYH2",
+      "Q9HBH9",
+      "Q86UE8",
+      "Q3MIN6",
+      "Q9Y2H4"
+    ],
+    "ensembl": [
+      "ENSG00000146872",
+      "ENSG00000198586",
+      "ENSG00000070808",
+      "ENSG00000135503",
+      "ENSG00000099875",
+      "ENSG00000157764",
+      "ENSG00000077264",
+      "ENSG00000263528"
+    ],
+    "ot_score": 0.0
+  },
+  "dexniguldipine": {
+    "chembl_id": "CHEMBL2051956",
+    "uniprot": [
+      "Q9NPY0",
+      "P0DMS8",
+      "Q96CY0",
+      "P35368",
+      "Q9BZK1",
+      "Q63271",
+      "O09022",
+      "B0LPF6",
+      "A2A3P4",
+      "Q6RUJ9"
+    ],
+    "ensembl": [
+      "ENSG00000150594",
+      "ENSG00000171873",
+      "ENSG00000282608",
+      "ENSG00000120907",
+      "ENSG00000170214"
+    ],
+    "ot_score": 0.0
+  },
+  "anamorelin": {
+    "chembl_id": "CHEMBL2110579",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "nortriptyline": {
+    "chembl_id": "CHEMBL1201156",
+    "uniprot": [
+      "Q96CY0",
+      "Q5XWF0",
+      "Q5CZI7",
+      "Q15550",
+      "Q7L3E5",
+      "Q5EE02",
+      "O94975",
+      "Q1RMF6",
+      "P18518",
+      "Q53YB1"
+    ],
+    "ensembl": [
+      "ENSG00000094631",
+      "ENSG00000186868",
+      "ENSG00000276155",
+      "ENSG00000277956",
+      "ENSG00000108576"
+    ],
+    "ot_score": 0.0
+  },
+  "picotamide": {
+    "chembl_id": "CHEMBL1257015",
+    "uniprot": [
+      "Q9NZR3",
+      "P43681",
+      "Q9Y5N1",
+      "P18089",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "Q16433",
+      "B2R7E0",
+      "B0LPG8"
+    ],
+    "ensembl": [
+      "ENSG00000274286",
+      "ENSG00000149295",
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000128271",
+      "ENSG00000113580",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "JW-7-24-1": {
+    "chembl_id": "CHEMBL3356976",
+    "uniprot": [
+      "Q96CY0",
+      "Q8R431",
+      "O35678",
+      "Q6IBG9",
+      "Q9D9G8",
+      "Q99685",
+      "B3KRC2",
+      "Q7L3E5",
+      "Q9DBF5",
+      "Q922S0"
+    ],
+    "ensembl": [
+      "ENSMUSG00000033174",
+      "ENSG00000074416",
+      "ENSMUSG00000034171",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "levetiracetam": {
+    "chembl_id": "CHEMBL1286",
+    "uniprot": [
+      "Q8N1Q1",
+      "B3KQY5",
+      "P43681",
+      "A7X8B0",
+      "Q9Y5N1",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "B4E3T0",
+      "Q16433"
+    ],
+    "ensembl": [
+      "ENSG00000151617",
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000082175",
+      "ENSG00000112759",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000185015",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "IKK-2-inhibitor-V": {
+    "chembl_id": "CHEMBL154580",
+    "uniprot": [
+      "Q96CY0",
+      "B4DNF9",
+      "Q8N1E8",
+      "O00688",
+      "Q8IXJ6",
+      "Q7RTZ3",
+      "Q13259",
+      "Q13611",
+      "Q96DW4",
+      "Q5XWF0"
+    ],
+    "ensembl": [
+      "ENSG00000068903",
+      "ENSG00000105639",
+      "ENSG00000186868",
+      "ENSG00000276155",
+      "ENSG00000277956",
+      "ENSG00000283100",
+      "ENSG00000182866",
+      "ENSG00000135446"
+    ],
+    "ot_score": 0.0
+  },
+  "SEP-227900": {
+    "chembl_id": "CHEMBL492591",
+    "uniprot": [
+      "Q96CY0",
+      "C4PFH9",
+      "O02846",
+      "A5H1P7",
+      "Q9GZT4",
+      "Q9BUT7",
+      "Q708S9",
+      "Q5JXM6",
+      "Q8N6R2",
+      "Q7L3E5"
+    ],
+    "ensembl": [
+      "ENSG00000167720",
+      "ENSG00000094631",
+      "ENSG00000203797",
+      "ENSG00000110887",
+      "ENSG00000055118",
+      "ENSBTAG00000033367"
+    ],
+    "ot_score": 0.0
+  },
+  "doxofylline": {
+    "chembl_id": "CHEMBL1527608",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "P09649",
+      "Q6FI12",
+      "A3KMC8",
+      "Q8NGM5",
+      "Q2XNE0",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000197561",
+      "ENSG00000277571"
+    ],
+    "ot_score": 0.0
+  },
+  "SB-743921": {
+    "chembl_id": "CHEMBL4590257",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "famciclovir": {
+    "chembl_id": "CHEMBL880",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "P09649",
+      "Q6FI12",
+      "A3KMC8",
+      "Q8NGM5",
+      "Q2XNE0",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000197561",
+      "ENSG00000277571"
+    ],
+    "ot_score": 0.0
+  },
+  "praziquantel": {
+    "chembl_id": "CHEMBL976",
+    "uniprot": [
+      "Q9NPY0",
+      "P33261",
+      "P09649",
+      "Q6FI12",
+      "A3KMC8",
+      "Q8NGM5",
+      "Q2XNE0",
+      "Q9BXX7",
+      "P50052",
+      "Q0VAJ8"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000165841",
+      "ENSG00000133019",
+      "ENSG00000104267",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000140505",
+      "ENSG00000171873",
+      "ENSG00000197561",
+      "ENSG00000277571"
+    ],
+    "ot_score": 0.0
+  },
+  "avagacestat": {
+    "chembl_id": "CHEMBL1090771",
+    "uniprot": [
+      "Q9H0S0",
+      "Q96CY0",
+      "Q6UWQ1",
+      "Q9Y386",
+      "Q92542",
+      "Q14762",
+      "O95465",
+      "Q96BI3",
+      "Q564N3",
+      "A8K589"
+    ],
+    "ensembl": [
+      "ENSG00000117362",
+      "ENSG00000162736",
+      "ENSG00000138613",
+      "ENSG00000080815"
+    ],
+    "ot_score": 0.0
+  },
+  "ketoconazole": {
+    "chembl_id": "CHEMBL295698",
+    "uniprot": [
+      "Q14095",
+      "Q15081",
+      "Q16726",
+      "Q16805",
+      "Q5TZV7",
+      "Q4VAQ9",
+      "G3XAD7",
+      "P19099",
+      "P05093",
+      "P15538"
+    ],
+    "ensembl": [
+      "ENSG00000179142",
+      "ENSG00000288362",
+      "ENSG00000148795",
+      "ENSG00000160882",
+      "ENSG00000140459"
+    ],
+    "ot_score": 0.0
+  },
+  "dilazep": {
+    "chembl_id": "CHEMBL126075",
+    "uniprot": [
+      "Q4PLI4",
+      "B3KQY5",
+      "P43681",
+      "Q9UD67",
+      "Q9Y5N1",
+      "Q13675",
+      "P35367",
+      "E5RHC9",
+      "P41968",
+      "B2RAC5"
+    ],
+    "ensembl": [
+      "ENSG00000082556",
+      "ENSG00000196639",
+      "ENSG00000112759",
+      "ENSG00000118432",
+      "ENSG00000101180",
+      "ENSG00000101204",
+      "ENSG00000120907",
+      "ENSG00000102468",
+      "ENSG00000124089"
+    ],
+    "ot_score": 0.0
+  },
+  "WH-4-025": {
+    "chembl_id": "CHEMBL213100",
+    "uniprot": [
+      "A4D1R8",
+      "B5TY32",
+      "Q86YI4",
+      "Q9UM87",
+      "O75873",
+      "A4D1R7",
+      "Q9BTN5",
+      "A2I2P2",
+      "Q14300",
+      "Q14672"
+    ],
+    "ensembl": [
+      "ENSG00000122779",
+      "ENSG00000112062",
+      "ENSG00000087586",
+      "ENSG00000141551",
+      "ENSG00000066468"
+    ],
+    "ot_score": 0.0
+  },
+  "sodium-gualenate": {
+    "chembl_id": "CHEMBL1837010",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  },
+  "combretastatin-A-4": {
+    "chembl_id": "CHEMBL67",
+    "uniprot": [
+      "Q4QQJ5",
+      "Q5SQX9",
+      "A8MUB1",
+      "Q5W099",
+      "P0DPH7",
+      "Q6PEY2",
+      "Q27I68",
+      "P07437",
+      "A2BFA2",
+      "A8K854"
+    ],
+    "ensembl": [
+      "ENSG00000183311",
+      "ENSG00000152086",
+      "ENSG00000196230",
+      "ENSG00000188229",
+      "ENSG00000123416",
+      "ENSG00000178462",
+      "ENSG00000232575",
+      "ENSG00000258947",
+      "ENSG00000224156",
+      "ENSG00000232421"
+    ],
+    "ot_score": 0.0
+  },
+  "hymecromone": {
+    "chembl_id": "CHEMBL12208",
+    "uniprot": [
+      "A7X8B0",
+      "Q9Y5N1",
+      "Q5U0Q6",
+      "O43570",
+      "B4E3T0",
+      "Q53YE5",
+      "B4DX48",
+      "Q9UDZ7",
+      "P06401",
+      "Q9UD95"
+    ],
+    "ensembl": [
+      "ENSG00000130948",
+      "ENSG00000169083",
+      "ENSG00000103546",
+      "ENSG00000082175",
+      "ENSG00000101180",
+      "ENSG00000091831",
+      "ENSG00000074410"
+    ],
+    "ot_score": 0.0
+  },
+  "AT-13387": {
+    "chembl_id": "CHEMBL4303347",
+    "uniprot": [
+      "Q96CY0",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "amoxapine": {
+    "chembl_id": "CHEMBL1113",
+    "uniprot": [
+      "Q8NGM5",
+      "Q9NZR3",
+      "P50052",
+      "Q2XND7",
+      "Q13016",
+      "P18089",
+      "P10635",
+      "P41968",
+      "A0AVQ3",
+      "B2R9S3"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000274286",
+      "ENSG00000149295",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000121807",
+      "ENSG00000169676",
+      "ENSG00000124089",
+      "ENSG00000275211",
+      "ENSG00000180772"
+    ],
+    "ot_score": 0.0
+  },
+  "scopolamine": {
+    "chembl_id": "CHEMBL2251240",
+    "uniprot": [
+      "Q8MLP2",
+      "Q1ECB8",
+      "Q96CY0",
+      "P16395",
+      "Q72547",
+      "Q7L3E5",
+      "G4LU59",
+      "Q9UBN7",
+      "M9NHK8",
+      "M9NKN3"
+    ],
+    "ensembl": [
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "vicriviroc": {
+    "chembl_id": "CHEMBL2107384",
+    "uniprot": [
+      "O15538",
+      "Q9UPA4",
+      "O14702",
+      "O14704",
+      "O14695",
+      "O14703",
+      "O14699",
+      "O14701",
+      "O14696",
+      "O14693"
+    ],
+    "ensembl": [
+      "ENSG00000160791"
+    ],
+    "ot_score": 0.0
+  },
+  "L-655240": {
+    "chembl_id": "CHEMBL362223",
+    "uniprot": [
+      "Q96CY0",
+      "Q5SYV6",
+      "Q5XWF0",
+      "Q9H7Z7",
+      "Q5CZI7",
+      "Q7L3E5",
+      "Q15550",
+      "Q9NZM7",
+      "Q53EW9",
+      "Q86TV8"
+    ],
+    "ensembl": [
+      "ENSG00000094631",
+      "ENSG00000186868",
+      "ENSG00000276155",
+      "ENSG00000277956",
+      "ENSG00000042088",
+      "ENSG00000148334"
+    ],
+    "ot_score": 0.0
+  },
+  "UNC-0638": {
+    "chembl_id": "CHEMBL1231795",
+    "uniprot": [
+      "Q8TAZ3",
+      "A4D1R8",
+      "A2CG75",
+      "P26358",
+      "P35348",
+      "Q9UD67",
+      "Q13675",
+      "O75873",
+      "Q16294",
+      "A4D1R7"
+    ],
+    "ensembl": [
+      "ENSMUSG00000013787",
+      "ENSG00000122779",
+      "ENSG00000004487",
+      "ENSG00000068078",
+      "ENSG00000087586",
+      "ENSG00000120907",
+      "ENSG00000130816"
+    ],
+    "ot_score": 0.0
+  },
+  "netupitant": {
+    "chembl_id": "CHEMBL206253",
+    "uniprot": [
+      "Q96CY0",
+      "P25103",
+      "Q7L3E5",
+      "Q9UBN7",
+      "Q6NT75",
+      "O94975",
+      "A8K150"
+    ],
+    "ensembl": [
+      "ENSG00000115353",
+      "ENSG00000094631"
+    ],
+    "ot_score": 0.0
+  },
+  "taselisib": {
+    "chembl_id": "CHEMBL2387080",
+    "uniprot": [
+      "P42345",
+      "Q96CY0",
+      "B0LPH2",
+      "Q8IXA2",
+      "Q8N1C5",
+      "Q7Z611",
+      "Q96SE6",
+      "D3DWA0",
+      "Q5G936",
+      "O60482"
+    ],
+    "ensembl": [
+      "ENSG00000253729",
+      "ENSG00000117461",
+      "ENSG00000145675",
+      "ENSG00000011405",
+      "ENSG00000141506",
+      "ENSG00000198793"
+    ],
+    "ot_score": 0.0
+  },
+  "ponatinib": {
+    "chembl_id": "CHEMBL1171837",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "O00732"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "golvatinib": {
+    "chembl_id": "CHEMBL3039525",
+    "uniprot": [
+      "Q15479",
+      "O00688",
+      "D3DT78",
+      "Q13128",
+      "Q8IZ71",
+      "Q86TJ1",
+      "Q92795",
+      "B3KTZ0",
+      "Q3MIN6",
+      "Q8IYC7"
+    ],
+    "ensembl": [
+      "ENSG00000198752",
+      "ENSG00000111816",
+      "ENSG00000263528",
+      "ENSG00000146648",
+      "ENSG00000135503",
+      "ENSG00000157764",
+      "ENSG00000008086",
+      "ENSG00000114353"
+    ],
+    "ot_score": 0.0
+  },
+  "troglitazone": {
+    "chembl_id": "CHEMBL408",
+    "uniprot": [
+      "Q8NGM5",
+      "A6NKK6",
+      "P50052",
+      "Q7Z6H8",
+      "P19224",
+      "Q2XND7",
+      "Q13016",
+      "P18089",
+      "P10635",
+      "P41968"
+    ],
+    "ensembl": [
+      "ENSG00000069696",
+      "ENSG00000274286",
+      "ENSG00000100197",
+      "ENSG00000276825",
+      "ENSG00000124089",
+      "ENSG00000167165",
+      "ENSG00000242515",
+      "ENSG00000275211",
+      "ENSG00000180772"
+    ],
+    "ot_score": 0.0
+  },
+  "AR-A014418": {
+    "chembl_id": "CHEMBL259850",
+    "uniprot": [
+      "Q5JWX1",
+      "A8K593",
+      "B3KTB2",
+      "Q9UQB9",
+      "Q9HBH9",
+      "Q6DLZ0",
+      "O75873",
+      "O60681",
+      "Q16294",
+      "O60219"
+    ],
+    "ensembl": [
+      "ENSG00000068078",
+      "ENSG00000087586",
+      "ENSG00000099875",
+      "ENSG00000077264",
+      "ENSG00000105146",
+      "ENSG00000075413",
+      "ENSG00000154928"
+    ],
+    "ot_score": 0.0
+  },
+  "AS-605240": {
+    "chembl_id": "CHEMBL1231533",
+    "uniprot": [
+      "B2BF47",
+      "Q15479",
+      "O00688",
+      "Q9UEE5",
+      "Q5JWX1",
+      "A8K593",
+      "F5H5L6",
+      "B0LPF1",
+      "Q15078",
+      "B3KTB2"
+    ],
+    "ensembl": [
+      "ENSG00000164543",
+      "ENSG00000135503",
+      "ENSG00000077264",
+      "ENSG00000176749",
+      "ENSG00000154928",
+      "ENSG00000102755"
+    ],
+    "ot_score": 0.0
+  },
+  "gsk126": {
+    "chembl_id": "CHEMBL5419363",
+    "uniprot": [
+      "O43287",
+      "B4DIJ1",
+      "Q53XP3",
+      "Q15755",
+      "B7Z1D6",
+      "Q96FI6",
+      "Q92800",
+      "B2RAQ1",
+      "B3KS30",
+      "Q75MG3"
+    ],
+    "ensembl": [
+      "ENSG00000108799",
+      "ENSG00000106462"
+    ],
+    "ot_score": 0.0
+  },
+  "meptazinol": {
+    "chembl_id": "CHEMBL1477274",
+    "uniprot": [],
+    "ensembl": [],
+    "ot_score": 0.0
+  }
+}
