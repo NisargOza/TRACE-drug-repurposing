@@ -5,14 +5,10 @@ PURPOSE: Not a generalizability demonstration. This is a specificity control:
 does TRACE produce IPF-specific signal, or is the nintedanib result a generic
 artifact of how L1000 drug signatures correlate with any tissue signature?
 
-FRAMING NOTE: "Generalizability" would require recovering RA-approved drugs
-when TRACE is pointed at RA. That is not what this analysis shows (see below).
-The correct framing is: "IPF drugs don't score for RA; this rules out that
-TRACE is ranking generic expression-correlated drugs."
-
-Dataset:       GSE55457 (13 RA, 10 controls, synovial membrane)
+Dataset:       GSE55457 (13 RA, 10 controls)
 Platform:      Affymetrix HG-U133A (GPL96)
-DE sig probes: 1606 (padj<0.05, |LFC|>0.5, log2-transformed)
+Tissue:        Synovial membrane
+DE sig probes: 1606 (padj<0.05, |LFC|>0.5)
 Entrez-mapped: 12937 genes
 Network:       Same STRING adjacency as IPF (460,782 edges)
 Drugs scored:  1768
@@ -20,41 +16,37 @@ Drugs scored:  1768
 SPECIFICITY RESULT — IPF drugs do NOT score for RA:
 Drug                 Net-TRACE rank     %ile  Baseline rank     %ile
 -----------------------------------------------------------------
-  nintedanib    (IPF)       1731    97.9%           1743    98.6%
-  pirfenidone   (IPF)       1234    69.8%           1205    68.2%
+  nintedanib                   1731    97.9%           1743    98.6%
+    [IPF-approved, VEGFR/PDGFR — should NOT rank for RA]
+  pirfenidone                  1234    69.8%           1205    68.2%
+    [IPF-approved, anti-fibrotic — should NOT rank for RA]
 
-Interpretation: Nintedanib ranks 97.9%ile for RA vs. 0.8%ile for IPF —
-a 120× rank shift. The IPF signal is not a generic artifact.
+  Interpretation: Nintedanib ranks ~98%ile for RA vs. 0.8%ile for IPF —
+  a ~120× rank shift. The IPF signal is not a generic artifact.
 
-RA POSITIVE CONTROLS — NOT RECOVERED:
+RA POSITIVE CONTROLS — NOT RECOVERED (expected for a specificity control):
 Drug                 Net-TRACE rank     %ile  Baseline rank     %ile
 -----------------------------------------------------------------
-  tofacitinib              773    43.7%           1004    56.8%
-  baricitinib             1431    80.9%           1518    85.9%
-  dexamethasone           1249    70.6%           1265    71.5%
-  leflunomide             1101    62.3%           1017    57.5%
-
-Network propagation helps tofacitinib (rank 1004 → 773) but RA-approved
-drugs do not top-rank. This means TRACE as configured does NOT recover
-RA drugs — consistent with the same L1000 cell-line context mismatch
-documented for IPF (pirfenidone is not recovered without a known target).
+  tofacitinib                   773    43.7%           1004    56.8%
+    [JAK1/3 inhibitor — approved for RA]
+  baricitinib                  1431    80.9%           1518    85.9%
+    [JAK1/2 inhibitor — approved for RA]
+  dexamethasone                1249    70.6%           1265    71.5%
+    [glucocorticoid — standard RA treatment]
+  leflunomide                  1101    62.3%           1017    57.5%
+    [DHODH inhibitor — approved for RA]
 
 WHAT THIS ANALYSIS ESTABLISHES (and does not):
-  ✓ ESTABLISHES: IPF signal is disease-specific (nintedanib: 97.9%ile for RA)
+  ✓ ESTABLISHES: IPF signal is disease-specific (nintedanib ranks ~98%ile for RA)
   ✗ DOES NOT ESTABLISH: TRACE generalizes to RA
   ✗ DOES NOT ESTABLISH: RA drugs would be recovered with full pipeline
 
-TO ESTABLISH GENERALIZABILITY would require:
-  - Multi-dataset meta-analyzed RA consensus signature (same as IPF approach)
-  - Replication filter across ≥3 independent RA case/control datasets
-  - RA-specific tissue weighting
-  - Network propagation with RA seeds
-  If that pipeline then recovers tofacitinib/baricitinib, a generalizability
-  claim is warranted. If it doesn't, the method is disease-context-limited —
-  which is also a legitimate, honest finding.
+  RA-approved drugs were not recovered — consistent with the same L1000
+  cell-line context mismatch that limits pirfenidone recovery for IPF.
+  TRACE as configured does not generalize to RA without disease-specific
+  adaptation (RA meta-signature, synovial tissue weighting, replication filter).
 
 BOTTOM LINE:
-  "The IPF signal is not generic — nintedanib ranks near the bottom for RA
-   (97.9%ile) while ranking in the top 1% for IPF. However, TRACE in its
-   current form does not recover RA's approved drugs, indicating the method
-   requires disease-specific calibration and does not yet generalize."
+  The IPF signal is not generic — nintedanib ranks near the bottom for RA
+  while ranking in the top 1% for IPF. However, TRACE does not yet
+  generalize to RA without RA-specific calibration.

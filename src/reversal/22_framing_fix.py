@@ -136,7 +136,7 @@ def main():
     ax.set_yticklabels(top20["drug"].values, fontsize=9)
     ax.set_xlabel("Net-TRACE reversal score (PRIMARY metric — no genetic support)", fontsize=10)
     ax.set_title("Top-20 drugs by reversal only (Net-TRACE)\n"
-                 "Headline result: nintedanib rank 15/1,768 (0.8%) vs baseline 24/1,768 (1.4%)",
+                 "Nintedanib FDR-significant (emp. p=0.0047, FDR=0.028); rank 15/1,768 as supporting context [CI 45–1,731]",
                  fontweight="bold")
     ax.xaxis.grid(True, lw=0.5, color="#dddddd", zorder=0)
 

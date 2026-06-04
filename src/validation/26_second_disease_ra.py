@@ -1,11 +1,17 @@
 """
-Generalizability validation: TRACE applied to Rheumatoid Arthritis (RA).
+Disease-specificity control: TRACE applied to Rheumatoid Arthritis (RA).
 
-Proves TRACE is not IPF-tuned by running the identical pipeline on a
-biologically distinct disease (RA, synovial tissue) and showing:
-  (a) TRACE improves over baseline for RA-specific positive controls
-  (b) IPF-specific drugs (nintedanib, pirfenidone) do NOT score as RA reversers
-  (c) RA-specific drugs (tofacitinib, baricitinib, dexamethasone) rank high
+Tests whether TRACE produces IPF-specific signal or generic expression artifacts
+by applying the identical pipeline to RA (synovial tissue) and showing:
+  (a) IPF-specific drugs (nintedanib, pirfenidone) do NOT score as RA reversers
+      — nintedanib ranks 97.9%ile for RA vs. 0.8%ile for IPF (120× rank shift)
+  (b) RA-approved drugs (tofacitinib, baricitinib) were NOT recovered
+      — consistent with same L1000 cell-line context mismatch seen for pirfenidone
+
+FRAMING: This is a SPECIFICITY CONTROL, not a generalizability demonstration.
+Generalizability would require recovering RA-approved drugs — which this analysis
+does not achieve. A proper generalizability run requires multi-dataset RA
+meta-signature through the full TRACE pipeline (out of scope for this study).
 
 Dataset: GSE55457 — synovial membrane RNA from 17 RA patients vs 10 controls
 (Alsalameh et al.; Affymetrix HG-U133A array; downloaded from NCBI GEO)
@@ -392,42 +398,26 @@ def main():
 
     # ── Report ─────────────────────────────────────────────────────────────────
     lines = [
-        "TRACE Generalizability — Rheumatoid Arthritis (GSE55457)",
+        "TRACE Disease-Specificity Control — Rheumatoid Arthritis (GSE55457)",
         "=" * 65,
         "",
-        "Purpose: prove TRACE is not IPF-tuned by running on a biologically",
-        "distinct disease (RA synovial membrane) with the same pipeline.",
+        "PURPOSE: Not a generalizability demonstration. This is a specificity control:",
+        "does TRACE produce IPF-specific signal, or is the nintedanib result a generic",
+        "artifact of how L1000 drug signatures correlate with any tissue signature?",
         "",
         f"Dataset:       GSE55457 ({len(ra_idx)} RA, {len(ctrl_idx)} controls)",
         f"Platform:      Affymetrix HG-U133A (GPL96)",
         f"Tissue:        Synovial membrane",
         f"DE sig probes: {sig.sum()} (padj<0.05, |LFC|>0.5)",
         f"Entrez-mapped: {len(de_mapped)} genes",
+        f"Network:       Same STRING adjacency as IPF (460,782 edges)",
         f"Drugs scored:  {n_drugs}",
         "",
-        "RA POSITIVE CONTROLS (expected: top ranks for RA):",
+        "SPECIFICITY RESULT — IPF drugs do NOT score for RA:",
         f"{'Drug':<18} {'Net-TRACE rank':>16} {'%ile':>8} {'Baseline rank':>14} {'%ile':>8}",
         "-" * 65,
     ]
 
-    for drug, desc in RA_POS_CTRL.items():
-        row = scores[scores["drug"].str.lower() == drug.lower()]
-        if len(row):
-            r = row.iloc[0]
-            lines.append(
-                f"  {drug:<16} {int(r['trace_rank']):>16} {r['trace_pct']:>7.1f}% "
-                f"{int(r['baseline_rank']):>14} {r['baseline_pct']:>7.1f}%"
-            )
-            lines.append(f"    [{desc}]")
-        else:
-            lines.append(f"  {drug:<16} NOT IN L1000")
-
-    lines += [
-        "",
-        "IPF DRUGS (expected: should NOT rank high for RA):",
-        f"{'Drug':<18} {'Net-TRACE rank':>16} {'%ile':>8} {'Baseline rank':>14} {'%ile':>8}",
-        "-" * 65,
-    ]
     for drug, desc in IPF_CTRL.items():
         row = scores[scores["drug"].str.lower() == drug.lower()]
         if len(row):
@@ -442,10 +432,41 @@ def main():
 
     lines += [
         "",
-        "INTERPRETATION:",
-        "  If RA positive controls rank higher (lower %ile) than IPF controls,",
-        "  TRACE is recovering disease-specific signals, not generic artifacts.",
-        "  This validates the method's generalizability beyond IPF.",
+        "  Interpretation: Nintedanib ranks ~98%ile for RA vs. 0.8%ile for IPF —",
+        "  a ~120× rank shift. The IPF signal is not a generic artifact.",
+        "",
+        "RA POSITIVE CONTROLS — NOT RECOVERED (expected for a specificity control):",
+        f"{'Drug':<18} {'Net-TRACE rank':>16} {'%ile':>8} {'Baseline rank':>14} {'%ile':>8}",
+        "-" * 65,
+    ]
+    for drug, desc in RA_POS_CTRL.items():
+        row = scores[scores["drug"].str.lower() == drug.lower()]
+        if len(row):
+            r = row.iloc[0]
+            lines.append(
+                f"  {drug:<16} {int(r['trace_rank']):>16} {r['trace_pct']:>7.1f}% "
+                f"{int(r['baseline_rank']):>14} {r['baseline_pct']:>7.1f}%"
+            )
+            lines.append(f"    [{desc}]")
+        else:
+            lines.append(f"  {drug:<16} NOT IN L1000")
+
+    lines += [
+        "",
+        "WHAT THIS ANALYSIS ESTABLISHES (and does not):",
+        "  ✓ ESTABLISHES: IPF signal is disease-specific (nintedanib ranks ~98%ile for RA)",
+        "  ✗ DOES NOT ESTABLISH: TRACE generalizes to RA",
+        "  ✗ DOES NOT ESTABLISH: RA drugs would be recovered with full pipeline",
+        "",
+        "  RA-approved drugs were not recovered — consistent with the same L1000",
+        "  cell-line context mismatch that limits pirfenidone recovery for IPF.",
+        "  TRACE as configured does not generalize to RA without disease-specific",
+        "  adaptation (RA meta-signature, synovial tissue weighting, replication filter).",
+        "",
+        "BOTTOM LINE:",
+        "  The IPF signal is not generic — nintedanib ranks near the bottom for RA",
+        "  while ranking in the top 1% for IPF. However, TRACE does not yet",
+        "  generalize to RA without RA-specific calibration.",
     ]
 
     report_path = VAL / "ra_generalizability_report.txt"
@@ -496,9 +517,9 @@ def main():
         mpatches.Patch(color="#d6604d", label="IPF controls (should score near null)"),
     ]
     fig.legend(handles=handles, loc="lower center", ncol=2, fontsize=9)
-    fig.suptitle("TRACE generalizability: RA vs. IPF drug specificity\n"
+    fig.suptitle("TRACE disease-specificity control: RA vs. IPF drug rankings\n"
                  f"(GSE55457, {len(ra_idx)} RA vs {len(ctrl_idx)} controls, "
-                 f"{n_drugs} drugs)",
+                 f"{n_drugs} drugs — IPF drugs ↑, RA drugs not recovered)",
                  fontweight="bold")
     plt.tight_layout(rect=[0, 0.08, 1, 1])
     fig.savefig(OUT / "fig_ra_generalizability.png", dpi=300, bbox_inches="tight")
