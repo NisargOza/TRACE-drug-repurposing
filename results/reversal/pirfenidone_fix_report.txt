@@ -1,21 +1,50 @@
-Pirfenidone Manual Target Fix
+Pirfenidone — Honest Limitation Statement
 =======================================================
 
-Manual MOA targets assigned (literature-derived):
-  TGFB1, TGFBR1, TGFBR2, PDGFB, FGF2, VEGFA, CCN2, NFE2L2
+REVERSAL RANK (all arms):
+  Baseline (KS):          rank 1251/1768  (70.8%)
+  Net-TRACE (net. prop.): rank  842/1768  (47.6%)
+  VAE-TRACE:              rank  699/1768  (39.5%)
+  Combined model:         rank  793/1768  (44.9%)
 
-Max Open Targets IPF association score: 0.1267
-  (was 0.000 — no ChEMBL MOA entry)
+WHY PIRFENIDONE DOES NOT RECOVER:
+  Pirfenidone's mechanism is antioxidant and diffuse anti-fibrotic (TGF-β1
+  pathway attenuation, NFE2L2/Nrf2 activation, PDGF-B suppression). It has
+  no specific binding target catalogued in ChEMBL with MOA-level evidence,
+  so its L1000 signature does not produce the coherent, directional reversal
+  that a target-specific drug would. The method's reversal scoring recovers
+  drugs whose L1000 profiles strongly anti-correlate with the IPF signature;
+  pirfenidone's diffuse mechanism means its L1000 profile lacks the focused
+  anti-correlation TRACE is designed to detect.
 
-Pirfenidone combined rank: before = 793/1768 (44.9%)
-                           after  = 69/1768 (3.9%)
+WHY THIS IS DEFENSIBLE, NOT A FAILURE:
+  A method that only recovers drugs with clean transcriptional reversal signatures
+  is being honest about its scope. Pirfenidone is a known edge case in L1000
+  analyses precisely because its mechanism is not target-specific. The failure
+  to recover pirfenidone does NOT mean the method is wrong; it means the method
+  correctly identifies target-specific reversal and pirfenidone is not that kind
+  of drug. This limitation is stated explicitly in the report and does not
+  undermine the recovery of nintedanib (rank 15, 0.8%) or the novel candidates.
 
-Target OT scores:
-  TGFB1      0.1267
-  TGFBR1     0.0000
-  TGFBR2     0.0000
-  PDGFB      0.0000
-  FGF2       0.0000
-  VEGFA      0.0000
-  CCN2       0.0000
-  NFE2L2     0.0000
+WHAT WAS NOT DONE (and why):
+  The approach of manually assigning pirfenidone's targets (TGFB1, FGF2, VEGFA)
+  to lift its genetic-support score was reverted. Reason: it special-cases the
+  benchmark drug while leaving 1,672 other drugs under-annotated, which is
+  inconsistent with the framing of item 2 (circularity fix). The correct path
+  is systematic target expansion via item 5 (ChEMBL REST + OT pipeline) for
+  ALL drugs, not hand-curated targets for the one drug we want to rank well.
+
+OT SCORES FOR PIRFENIDONE TARGETS (for record):
+  TGFB1  (ENSG00000105329): 0.1267
+  TGFBR1 (ENSG00000106799): 0.0000
+  TGFBR2 (ENSG00000163513): 0.0000
+  PDGFB  (ENSG00000197217): 0.0000
+  FGF2   (ENSG00000138685): 0.0000
+  VEGFA  (ENSG00000112715): 0.0000
+  CCN2   (ENSG00000175592): 0.0000
+  NFE2L2 (ENSG00000116044): 0.0000
+
+  Even with manual target assignment, max OT score = 0.127 (TGFB1), which
+  would improve combined rank to ~69/1768 (3.9%). But since this is special-
+  casing the control, these scores are reported only for transparency, not
+  incorporated into the pipeline.

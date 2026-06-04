@@ -1,5 +1,22 @@
 """
-IMPROVE item 10: Lock down the pirfenidone explanation.
+IMPROVE item 10: Document the pirfenidone limitation honestly.
+
+REVISION NOTE: The original approach (manually assigning pirfenidone's
+targets to lift its genetic-support score) was reverted because it
+special-cases the benchmark drug while leaving 1,672 other drugs
+under-annotated — inconsistent with the circularity fix in item 2.
+
+The honest result: pirfenidone's reversal rank (47.6%, Net-TRACE) does NOT
+recover it. This is a legitimate, defensible limitation: pirfenidone's
+mechanism is antioxidant/diffuse anti-fibrotic and does not produce a clean
+transcriptional reversal signature in L1000. The right fix is systematic
+target expansion for ALL drugs (item 5), not special-casing the control.
+
+This script now:
+1. Documents the pirfenidone limitation clearly
+2. Fetches OT scores for pirfenidone's targets for the report record
+3. Does NOT update final_candidates_fixed.csv (that file is deprecated)
+4. States explicitly that systematic item-5 expansion is the correct path
 
 Pirfenidone's combined rank is 44.9% — the main visible weakness.
 Explanation: its direct molecular binding target is uncharacterised in ChEMBL,

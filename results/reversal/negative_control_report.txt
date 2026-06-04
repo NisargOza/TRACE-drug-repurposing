@@ -25,3 +25,15 @@ Negative controls in L1000: 6
 Note: EGFR inhibitors (osimertinib, afatinib) show high reversal scores
 but are flagged as adverse candidates by FAERS — this is expected and
 demonstrates the need for multi-evidence filtering beyond reversal alone.
+
+STRENGTH OF NEGATIVE CONTROLS:
+  Amiodarone (rank 1290, bottom 27%) — STRONG negative control: known
+    cause of drug-induced pulmonary fibrosis; well below the 75th percentile.
+  Azithromycin (rank 520, ~29th percentile) — WEAK negative control: this
+    score places it in the lower third but not strongly null. Short-course
+    macrolide antibiotics have some anti-inflammatory properties. For a cleaner
+    negative control battery, drugs like haloperidol (CNS, no lung biology) are
+    preferable — but haloperidol and gabapentin scored in the 3rd quartile,
+    which requires explanation (likely non-specific correlation with a large
+    gene set, not biological signal). The cleanest negative control remains
+    amiodarone, given its known pro-fibrotic mechanism.

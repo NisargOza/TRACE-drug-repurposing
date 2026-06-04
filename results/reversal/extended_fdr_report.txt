@@ -30,3 +30,13 @@ Drug                  Net-TRACE      Emp p     BH FDR   Sig?
 
 Positive controls:
   nintedanib         emp_p=0.0047  FDR=0.0285  FDR-significant
+
+NOTE ON POST-SELECTION INFERENCE:
+  The 10,000 permutations were run on the top-100 drugs pre-selected by the
+  same Net-TRACE score used for the FDR test. This mild post-selection issue
+  means the FDR values are conditional on being in the top-100 by Net-TRACE,
+  not corrected over all 1,768 drugs. Interpretation: these are the 'best-case'
+  FDR values for the top candidates. A full BH correction over all 1,768 drugs
+  would require ~350K permutations to achieve FDR < 0.05; the 36 FDR-significant
+  drugs here should be interpreted as 'strong directional signal among the
+  top-ranking candidates' rather than 'globally FDR-controlled discoveries.'

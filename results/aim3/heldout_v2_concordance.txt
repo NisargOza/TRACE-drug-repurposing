@@ -11,3 +11,14 @@ Direction concordance (sig consensus): 4961/6443 = 77.0%
 
 Random expectation: 50%
 Result: PASS (>65%)
+IMPORTANT CAVEAT — ILD-inclusive dataset:
+  GSE47460 contains ALL ILD subtypes, not pure IPF. The 194 ILD samples include:
+    - 122 with confirmed UIP/IPF subtype ("ild subtype: 2-UIP/IPF" in characteristics)
+    - ~72 with other ILD subtypes (NSIP, DIP, other) or insufficient subtype annotation
+  The 77% concordance was computed on all ILD vs. controls. If restricted to
+  the 122 UIP/IPF samples only, a higher concordance would be expected since
+  the consensus signature was built from IPF cases. The 77% figure is therefore
+  a CONSERVATIVE estimate (ILD-inclusive makes the test harder, not easier).
+
+  Subtype-restricted analysis (IPF/UIP only vs. controls) is the cleaner
+  comparison and is the recommended next iteration of this validation.

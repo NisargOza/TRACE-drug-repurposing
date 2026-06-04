@@ -1,4 +1,0 @@
-analysis,drug,outcome,n_pairs,hr,ci_lo,ci_hi,note
-Primary (PSM matched),atorvastatin,IPF incidence,14149,0.6011392844464121,0.45671618376812767,0.7885958335176401,SIMULATED DATA
-Negative control outcome,atorvastatin,Cancer incidence,14149,0.9480640990069007,0.8395440603739344,1.0866373559334102,SIMULATED DATA
-Sensitivity (≥1yr follow-up),atorvastatin,IPF incidence,11952,0.6083815056795745,0.4649892062577232,0.784835063207793,SIMULATED DATA

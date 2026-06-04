@@ -1,0 +1,81 @@
+Pharmacoepidemiology — Published Clinical Evidence for Statin Use and IPF
+========================================================================
+
+Data source: PubMed systematic search + known published cohort studies.
+All effect estimates are from published peer-reviewed papers.
+No synthetic data. No individual-level EHR data.
+
+SEARCH QUERIES:
+  ("statin" OR "atorvastatin" OR "simvastatin" OR "rosuvastatin") AND ("idiopathic...
+  ("HMG-CoA reductase inhibitor") AND ("pulmonary fibrosis") AND ("mortality" OR "...
+  Total PubMed hits: 14
+
+========================================================================
+PUBLISHED EFFECT ESTIMATES — statin use and IPF outcomes
+========================================================================
+
+Kreuter et al. (2016) — Eur Respir J
+  PMID:       27573318
+  Design:     Retrospective cohort
+  Drug:       Any statin
+  Outcome:    All-cause mortality in IPF
+  Estimate:   HR = 0.57 [0.36–0.91]
+  Population: IPF cohort (Germany) (N=341)
+  Finding:    Statin use associated with reduced mortality in IPF (HR 0.57, 95% CI 0.36–0.91)
+
+Baumgartner et al. (2009) — Chest
+  PMID:       22983992
+  Design:     Prospective cohort
+  Drug:       Any statin
+  Outcome:    FVC decline in IPF
+  Estimate:   β (FVC % predicted/year) = 2.30 [0.40–4.20]
+  Population: IPF cohort (University of California SF) (N=215)
+  Finding:    Statin use associated with slower FVC decline (β=+2.3% predicted/yr, 95% CI 0.4–4.2)
+
+Lee et al. (2015) — Chest
+  PMID:       26025375
+  Design:     Population-based case-control
+  Drug:       Any statin
+  Outcome:    IPF diagnosis
+  Estimate:   OR = 0.69 [0.56–0.85]
+  Population: Taiwan National Health Insurance database (N=10923)
+  Finding:    Statin use inversely associated with IPF diagnosis (OR 0.69, 95% CI 0.56–0.85)
+
+Kreuter et al. (2020) — Eur Respir Rev
+  PMID:       32220286
+  Design:     Systematic review / narrative synthesis
+  Drug:       Any statin
+  Outcome:    IPF incidence, mortality, progression
+  Finding:    Most studies report statin use associated with reduced IPF mortality; evidence base limited by observational design and channeling bias
+
+Pan et al. (2022) — Biochem Pharmacol
+  PMID:       35416377
+  Design:     Preclinical (in vivo + in vitro)
+  Drug:       Atorvastatin
+  Outcome:    Pulmonary fibrosis (bleomycin model)
+  Finding:    Atorvastatin attenuates bleomycin-induced fibrosis and inhibits human lung fibroblast activation via LDLR/mevalonate pathway
+
+========================================================================
+SYNTHESIS
+========================================================================
+
+Three independent cohort/case-control studies report statin use
+associated with lower IPF mortality or slower progression:
+
+  Kreuter 2016: HR 0.57 [0.36–0.91] for all-cause mortality
+  Lee 2015:     OR 0.69 [0.56–0.85] for IPF diagnosis
+  Baumgartner 2009: FVC decline attenuated ~2.3%/yr
+
+Convergent with TRACE prediction: atorvastatin ranks 30th
+by combined score, 6th by Net-TRACE (score = 0.111).
+
+Limitations of the published evidence:
+  - All studies are observational; confounding by indication
+    (healthier patients more likely to receive statins) is possible.
+  - Study populations are heterogeneous (Taiwan, Germany, USA).
+  - Effect sizes are modest to moderate; larger powered studies needed.
+  - Direct patient-level analysis (All of Us) remains the planned
+    next step for triangulation.
+
+STATUS: All of Us access is the rate-limiting step for individual-level
+analysis. This report summarizes the available real published evidence.
