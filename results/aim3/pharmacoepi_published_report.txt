@@ -1,81 +1,61 @@
-Pharmacoepidemiology — Published Clinical Evidence for Statin Use and IPF
+Pharmacoepidemiology — Published Clinical Evidence: Statin Use and IPF
 ========================================================================
+Source: PubMed systematic search + four PMID-verified key studies.
+All effect sizes taken verbatim from PubMed-retrieved abstracts.
+Evidence is MIXED: the pre-specified random-effects meta-analysis
+does NOT reach statistical significance (see PMID 34091200).
 
-Data source: PubMed systematic search + known published cohort studies.
-All effect estimates are from published peer-reviewed papers.
-No synthetic data. No individual-level EHR data.
-
-SEARCH QUERIES:
-  ("statin" OR "atorvastatin" OR "simvastatin" OR "rosuvastatin") AND ("idiopathic...
-  ("HMG-CoA reductase inhibitor") AND ("pulmonary fibrosis") AND ("mortality" OR "...
-  Total PubMed hits: 14
-
-========================================================================
-PUBLISHED EFFECT ESTIMATES — statin use and IPF outcomes
-========================================================================
-
-Kreuter et al. (2016) — Eur Respir J
-  PMID:       27573318
-  Design:     Retrospective cohort
+Kreuter et al. (2017) — Thorax
+  PMID:       27708114
+  Design:     Post-hoc of RCT placebo arms
   Drug:       Any statin
-  Outcome:    All-cause mortality in IPF
-  Estimate:   HR = 0.57 [0.36–0.91]
-  Population: IPF cohort (Germany) (N=341)
-  Finding:    Statin use associated with reduced mortality in IPF (HR 0.57, 95% CI 0.36–0.91)
+  Outcome:    Death or ≥50m 6MWD decline
+  Estimate:   HR = 0.690 [0.480–0.990]
+  N:          624
+  Finding:    Statin users had lower risk of death/6MWD decline (HR 0.69 [0.48–0.99]); lower IPF-related mortality (HR 0.36 [0.14–0.95]). Post-hoc design; statin users older with more CVD comorbidities.
 
-Baumgartner et al. (2009) — Chest
-  PMID:       22983992
-  Design:     Prospective cohort
+Korean NHIS Study (2024) — Scientific Reports
+  PMID:       38565856
+  Design:     Nationwide population case-control + cohort
   Drug:       Any statin
-  Outcome:    FVC decline in IPF
-  Estimate:   β (FVC % predicted/year) = 2.30 [0.40–4.20]
-  Population: IPF cohort (University of California SF) (N=215)
-  Finding:    Statin use associated with slower FVC decline (β=+2.3% predicted/yr, 95% CI 0.4–4.2)
+  Outcome:    IPF risk (case-control) + overall survival (cohort)
+  Estimate:   OR / HR = 0.847 [0.800–0.898]
+  N:          42,272
+  Finding:    Statin use associated with lower IPF risk (adj OR 0.847 [0.800–0.898]) and improved overall survival (adj HR 0.779 [0.709–0.856]). Largest study to date; limited by observational design.
 
-Lee et al. (2015) — Chest
-  PMID:       26025375
-  Design:     Population-based case-control
+Korean NHIS-HSC Study (2023) — European Respiratory Journal
+  PMID:       37202155
+  Design:     Population-based cohort (time-dependent exposure)
+  Drug:       Any statin (dose-response)
+  Outcome:    Incident ILD / IPF
+  Finding:    Statin use independently associated with lower ILD/IPF incidence in a dose-response manner (p-trend <0.001). ILD incidence: 20.0 (statin) vs 44.8/100,000 person-years (no statin); IPF incidence: 15.6 vs 19.3/100,000 person-years.
+
+Systematic review & meta-analysis (2021) — Respiratory Medicine and Research
+  PMID:       34091200
+  Design:     Systematic review + meta-analysis (5 studies, n=3,407)
   Drug:       Any statin
-  Outcome:    IPF diagnosis
-  Estimate:   OR = 0.69 [0.56–0.85]
-  Population: Taiwan National Health Insurance database (N=10923)
-  Finding:    Statin use inversely associated with IPF diagnosis (OR 0.69, 95% CI 0.56–0.85)
-
-Kreuter et al. (2020) — Eur Respir Rev
-  PMID:       32220286
-  Design:     Systematic review / narrative synthesis
-  Drug:       Any statin
-  Outcome:    IPF incidence, mortality, progression
-  Finding:    Most studies report statin use associated with reduced IPF mortality; evidence base limited by observational design and channeling bias
-
-Pan et al. (2022) — Biochem Pharmacol
-  PMID:       35416377
-  Design:     Preclinical (in vivo + in vitro)
-  Drug:       Atorvastatin
-  Outcome:    Pulmonary fibrosis (bleomycin model)
-  Finding:    Atorvastatin attenuates bleomycin-induced fibrosis and inhibits human lung fibroblast activation via LDLR/mevalonate pathway
+  Outcome:    All-cause mortality
+  Estimate:   RR (pooled) = 0.870 [0.680–1.120]
+  N:          3,407
+  Finding:    Fixed-effect model: RR 0.80 [0.72–0.99] (significant). Random-effects model: RR 0.87 [0.68–1.12] (NOT significant). Heterogeneity limits conclusions. Overall risk of bias: moderate to serious.
 
 ========================================================================
-SYNTHESIS
+SYNTHESIS — honest assessment
 ========================================================================
 
-Three independent cohort/case-control studies report statin use
-associated with lower IPF mortality or slower progression:
+The observational evidence base for statins and IPF is suggestive but
+mixed and limited by study design:
 
-  Kreuter 2016: HR 0.57 [0.36–0.91] for all-cause mortality
-  Lee 2015:     OR 0.69 [0.56–0.85] for IPF diagnosis
-  Baumgartner 2009: FVC decline attenuated ~2.3%/yr
+  PMID 27708114: Kreuter Thorax 2017 — post-hoc (not pre-specified);
+    statin users older and sicker at baseline despite adjustment.
+  PMID 38565856: Korean NHIS 2024 — largest study; OR 0.847 protective.
+  PMID 37202155: Korean NHIS-HSC 2023 — dose-response pattern,
+    suggestive but confounding by healthy-user bias likely.
+  PMID 34091200: Meta-analysis 2021 — fixed-effect significant
+    (RR 0.80); random-effects NOT significant (RR 0.87 [0.68–1.12]).
+    5 studies, moderate-to-serious risk of bias.
 
-Convergent with TRACE prediction: atorvastatin ranks 30th
-by combined score, 6th by Net-TRACE (score = 0.111).
-
-Limitations of the published evidence:
-  - All studies are observational; confounding by indication
-    (healthier patients more likely to receive statins) is possible.
-  - Study populations are heterogeneous (Taiwan, Germany, USA).
-  - Effect sizes are modest to moderate; larger powered studies needed.
-  - Direct patient-level analysis (All of Us) remains the planned
-    next step for triangulation.
-
-STATUS: All of Us access is the rate-limiting step for individual-level
-analysis. This report summarizes the available real published evidence.
+BOTTOM LINE: Modest, mixed observational support — convergent with
+the TRACE prediction (atorvastatin FDR-significant, emp. p=0.0006)
+but not definitive. Individual-level pharmacoepidemiology in All of
+Us (propensity-matched new-user cohort, Cox PH) is the next step.
