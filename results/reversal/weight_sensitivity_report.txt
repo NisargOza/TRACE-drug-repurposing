@@ -1,0 +1,28 @@
+Combined-model weight sensitivity analysis
+============================================================
+
+Baseline weights: reversal=0.5, genetic=0.3, reproducibility=0.2
+Grid: each weight 0.2–0.6 (step 0.1), renormalized; 125 combinations
+Stability metric: Jaccard overlap of top-10 candidate set
+
+Jaccard overlap with baseline top-10:
+  Mean:   0.759
+  Median: 0.818
+  10th pct: 0.667
+  Min:    0.667
+
+Spearman rank correlation with baseline ranking (all 1,768 drugs):
+  Mean:   1.000
+  Median: 1.000
+  Min:    1.000
+
+Baseline top-10 drugs: AEE-788, JNJ-26481585, STA-5326, cediranib, cepharanthine, dasatinib, nintedanib, romidepsin, rufinamide, valdecoxib
+
+INTERPRETATION:
+  Strong stability. Mean Jaccard 0.76 (10th pct 0.67):
+  the top-10 candidate set is largely invariant to weight choices.
+  The 50/30/20 baseline is representative; results are not tuned to it.
+
+NOTE: Reversal score (Net-TRACE) is the primary metric and is
+weight-independent. The combined model is secondary corroboration.
+Weight sensitivity applies only to the combined ranking.
