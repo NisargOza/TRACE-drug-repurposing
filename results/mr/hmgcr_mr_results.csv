@@ -1,5 +1,5 @@
 id.exposure,id.outcome,outcome,exposure,method,nsnp,b,se,pval,n_snps
-hZyqVB,UVlqfl,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),Inverse variance weighted,3,-0.472602678029789,0.352495705608328,0.180007107251234,3
-hZyqVB,UVlqfl,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),MR Egger,3,-0.706289679937394,0.837896406393021,0.554126549717754,3
-hZyqVB,UVlqfl,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),Weighted median,3,-0.500177345067357,0.361677273012067,0.166683792147542,3
-hZyqVB,UVlqfl,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),Weighted mode,3,-0.496905317292851,0.961429886847649,0.656743761546415,3
+hmgcr_combined,IPF_FinnGen_R10,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),Inverse variance weighted,4,-0.166869082191255,0.468000289321503,0.721422988420821,4
+hmgcr_combined,IPF_FinnGen_R10,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),MR Egger,4,-1.5317411958588,1.55658043904853,0.428840981710784,4
+hmgcr_combined,IPF_FinnGen_R10,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),Weighted median,4,-0.401119347775416,0.447237850166369,0.369782160128,4
+hmgcr_combined,IPF_FinnGen_R10,IPF_FinnGen_R10,HMGCR→IPF (statin proxy),Weighted mode,4,-0.575706901140927,1.52530919192532,0.730969034935673,4

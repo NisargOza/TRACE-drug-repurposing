@@ -15,6 +15,32 @@
 #   results/mr/mr_report.txt
 #   results/figures/fig_mr_forest.png
 
+# Load .env if present (keeps token out of command-line args)
+local({
+  # Search: working dir, script dir, and two levels up from script dir
+  script_arg <- grep("--file=", commandArgs(FALSE), value=TRUE)
+  script_dir <- if (length(script_arg) > 0)
+    dirname(normalizePath(sub("--file=", "", script_arg[1]), mustWork=FALSE))
+  else getwd()
+  candidates <- c(
+    file.path(getwd(), ".env"),
+    file.path(script_dir, ".env"),
+    file.path(script_dir, "../../.env")
+  )
+  env_file <- Filter(file.exists, candidates)[1]
+  if (!is.na(env_file) && length(env_file) > 0) {
+    for (line in readLines(env_file, warn=FALSE)) {
+      line <- trimws(line)
+      if (nchar(line) == 0 || startsWith(line, "#")) next
+      parts <- regmatches(line, regexpr("=", line, fixed=TRUE), invert=TRUE)[[1]]
+      if (length(parts) == 2)
+        do.call(Sys.setenv, setNames(list(gsub('^["\']|["\']$','',trimws(parts[2]))),
+                                     trimws(parts[1])))
+    }
+    message(".env loaded from: ", env_file)
+  }
+})
+
 suppressPackageStartupMessages({
   library(TwoSampleMR)
   library(ieugwasr)
@@ -48,15 +74,14 @@ HMGCR_END    <- 74657941   # hg19 gene body end
 HMGCR_WINDOW <- 1e6        # ±1 Mb cis window
 
 # OpenGWAS authentication (required since May 2024)
-# Register free at https://api.opengwas.io/ then set:
-#   export OPENGWAS_JWT="your_token_here"   (shell) or
-#   OPENGWAS_JWT=... in ~/.Renviron          (R persistent)
+# Register free at https://api.opengwas.io/ then set token in .env:
+#   OPENGWAS_JWT=your_token_here
+# ieugwasr reads OPENGWAS_JWT from the environment automatically.
 jwt <- Sys.getenv("OPENGWAS_JWT")
 if (nchar(jwt) > 0) {
-  ieugwasr::set_opengwas_jwt(jwt)
-  message("OpenGWAS JWT token set from OPENGWAS_JWT env variable.")
+  message("OpenGWAS JWT token found.")
 } else {
-  message("NOTE: OPENGWAS_JWT not set. Will use GWAS Catalog fallback for instruments.")
+  message("NOTE: OPENGWAS_JWT not set. Will use published fallback instruments.")
   message("      Register free at https://api.opengwas.io/ for full OpenGWAS access.")
 }
 
@@ -123,25 +148,32 @@ read_finngen_region <- function(chr, start_hg38, end_hg38,
 
 # ── Helper: format FinnGen as TwoSampleMR outcome ────────────────────────────
 finngen_to_outcome <- function(fg, snps = NULL, outcome_name = "IPF_FinnGen_R10") {
-  # rsids may be comma-separated; take first
-  fg$rsid <- sub(",.*", "", fg$rsids)
-  fg$rsid <- sub("^$", NA, fg$rsid)
-  if (!is.null(snps)) fg <- fg[fg$rsid %in% snps, ]
-  fg <- fg[!is.na(fg$rsid) & !is.na(fg$beta) & !is.na(fg$sebeta), ]
-  format_data(
-    fg,
-    type          = "outcome",
-    snp_col       = "rsid",
-    beta_col      = "beta",
-    se_col        = "sebeta",
-    effect_allele_col = "alt",
-    other_allele_col  = "ref",
-    eaf_col       = "af_alt",
-    pval_col      = "pval",
-    phenotype_col = "outcome",
-    chr_col       = "chrom",
-    pos_col       = "pos"
-  ) %>% mutate(outcome = outcome_name)
+  # Convert to plain data.frame to avoid data.table subsetting edge cases
+  fg <- as.data.frame(fg, stringsAsFactors = FALSE)
+  fg$rsid <- trimws(sub(",.*", "", as.character(fg$rsids)))  # first rsID, strip whitespace
+  fg$rsid[fg$rsid == "" | fg$rsid == "NA"] <- NA_character_
+  if (!is.null(snps)) fg <- fg[!is.na(fg$rsid) & fg$rsid %in% snps, , drop=FALSE]
+  keep <- !is.na(fg$rsid) & !is.na(fg$beta) & !is.na(fg$sebeta)
+  fg   <- fg[keep, , drop=FALSE]
+  if (nrow(fg) == 0) return(data.frame())
+
+  # Build TwoSampleMR outcome data frame directly, preserving rsIDs as SNP names
+  # Use [[ ]] for exact column access (avoids partial matching with rsids column)
+  data.frame(
+    SNP                    = fg[["rsid"]],
+    beta.outcome           = as.numeric(fg$beta),
+    se.outcome             = as.numeric(fg$sebeta),
+    effect_allele.outcome  = toupper(fg$alt),
+    other_allele.outcome   = toupper(fg$ref),
+    eaf.outcome            = as.numeric(fg$af_alt),
+    pval.outcome           = as.numeric(fg$pval),
+    outcome                = outcome_name,
+    id.outcome             = outcome_name,
+    chr.outcome            = as.character(fg$chrom),
+    pos.outcome            = as.integer(fg$pos),
+    mr_keep.outcome        = TRUE,
+    stringsAsFactors       = FALSE
+  )
 }
 
 # ── Helper: run full MR pipeline ─────────────────────────────────────────────
@@ -162,7 +194,8 @@ run_mr_pipeline <- function(exp_dat, out_dat, label) {
   # Main MR estimates
   methods <- c("mr_ivw", "mr_egger_regression",
                 "mr_weighted_median", "mr_weighted_mode")
-  if (n < 3) methods <- "mr_wald_ratio"
+  if (n == 1) methods <- "mr_wald_ratio"
+  else if (n == 2) methods <- c("mr_ivw", "mr_weighted_median")
   res <- mr(dat, method_list = methods)
   res$exposure <- label
   res$n_snps   <- n
@@ -241,11 +274,21 @@ get_eqtl_instruments <- function(ensembl_id, gene_name,
     opengwas_id <- sprintf("eqtl-a-%s", ensembl_id)
     message(sprintf("  Trying OpenGWAS eQTL dataset: %s", opengwas_id))
     res <- tryCatch(
-      extract_instruments(opengwas_id, p1 = pval_thresh, clump = TRUE,
-                          r2 = 0.001, kb = 500),
-      error = function(e) { message("  OpenGWAS eQTL error: ", e$message); NULL }
+      withCallingHandlers(
+        extract_instruments(opengwas_id, p1 = pval_thresh, clump = TRUE,
+                            r2 = 0.001, kb = 500),
+        warning = function(w) invokeRestart("muffleWarning")
+      ),
+      error = function(e) {
+        msg <- conditionMessage(e)
+        if (grepl("timed out|timeout|300", msg, ignore.case=TRUE))
+          message(sprintf("  OpenGWAS eQTL timeout for %s — dataset likely absent", gene_name))
+        else
+          message("  OpenGWAS eQTL error: ", msg)
+        NULL
+      }
     )
-    if (!is.null(res) && nrow(res) > 0) return(res)
+    if (!is.null(res) && is.data.frame(res) && nrow(res) > 0) return(res)
     message(sprintf("  OpenGWAS eQTL not found for %s — dataset may not exist", gene_name))
   }
 
@@ -367,6 +410,30 @@ if (nchar(jwt) > 0) {
   }
 }
 
+# Supplement or replace with published canonical instruments if OpenGWAS < 3
+# (rs12916, rs17238484, rs5909 are the validated HMGCR instruments used in 100s of papers)
+fallback_formatted <- format_data(
+  HMGCR_FALLBACK,
+  type = "exposure", snp_col = "SNP",
+  beta_col = "beta.exposure", se_col = "se.exposure", pval_col = "pval.exposure",
+  eaf_col = "eaf.exposure", effect_allele_col = "effect_allele.exposure",
+  other_allele_col = "other_allele.exposure", chr_col = "chr.exposure", pos_col = "pos.exposure"
+)
+fallback_formatted$exposure <- "LDL-C (HMGCR cis — Swerdlow 2015/GLGC 2013)"
+if (!is.null(ldl_hmgcr) && nrow(ldl_hmgcr) > 0 && nrow(ldl_hmgcr) < 3) {
+  message(sprintf("  OpenGWAS returned %d instruments — supplementing with canonical fallback to reach 3",
+                  nrow(ldl_hmgcr)))
+  missing <- fallback_formatted[!fallback_formatted$SNP %in% ldl_hmgcr$SNP, ]
+  # Coerce chr.exposure to same type before binding
+  if ("chr.exposure" %in% colnames(ldl_hmgcr))
+    ldl_hmgcr$chr.exposure <- as.character(ldl_hmgcr$chr.exposure)
+  if ("chr.exposure" %in% colnames(missing))
+    missing$chr.exposure <- as.character(missing$chr.exposure)
+  ldl_hmgcr <- bind_rows(ldl_hmgcr, missing)
+  ldl_hmgcr$exposure  <- "LDL-C (HMGCR cis, OpenGWAS + Swerdlow/GLGC supplement)"
+  ldl_hmgcr$id.exposure <- "hmgcr_combined"   # unify so harmonise_data runs once
+}
+
 # Tier 3 fallback: published instruments (always available)
 if (is.null(ldl_hmgcr) || nrow(ldl_hmgcr) < 1) {
   message("  Tier 3: Using published HMGCR fallback instruments (rs12916, rs17238484, rs5909)")
@@ -466,13 +533,7 @@ if (!is.null(ldl_region_full) && nrow(ldl_region_full) > 50) {
 message("\n=== COMPONENT 2: Systematic MR across TRACE candidate targets ===\n")
 
 # Load full FinnGen for SNP lookup (read once, reuse)
-message("Loading FinnGen R10 for extended analysis (this may take a minute)...")
-fg_full <- tryCatch(
-  fread(FINNGEN_LOCAL, sep = "\t", header = TRUE,
-        select = c("#chrom","pos","ref","alt","rsids","beta","sebeta","pval","af_alt")),
-  error = function(e) { message("Could not read FinnGen: ", e$message); NULL }
-)
-if (!is.null(fg_full)) colnames(fg_full)[1] <- "chrom"
+message("FinnGen will be read per-region for each target gene.")
 
 extended_results <- list()
 
@@ -488,63 +549,95 @@ for (gene_name in names(TARGETS)) {
     next
   }
 
-  # Format as TwoSampleMR exposure
-  # Clump by p-value (take lowest p per 500kb window as simple LD proxy)
-  eqtl_df <- eqtl_df[order(eqtl_df$pValue), ]
-  eqtl_exp <- tryCatch(
-    format_data(
-      eqtl_df,
-      type              = "exposure",
-      snp_col           = "variantId",
-      beta_col          = "slope",
-      se_col            = "slopeStdErr",
-      pval_col          = "pValue",
-      eaf_col           = "maf",
-      chr_col           = "CHR",
-      pos_col           = "POS",
-      effect_allele_col = "A1",
-      other_allele_col  = "A2",
-      phenotype_col     = "gene"
-    ) %>% mutate(exposure = sprintf("%s expression (GTEx lung)", gene_name)),
-    error = function(e) { message("  Format error: ", e$message); NULL }
-  )
-  if (is.null(eqtl_exp)) next
+  # Check if data is already TwoSampleMR-formatted (from OpenGWAS extract_instruments)
+  # vs. raw GTEx/eQTL API output (has pValue, slope, variantId columns)
+  already_formatted <- "pval.exposure" %in% colnames(eqtl_df)
 
-  # Clump if > 3 instruments
-  if (nrow(eqtl_exp) > 3) {
+  if (already_formatted) {
+    # OpenGWAS path: restrict to cis-eQTLs (same chromosome as gene)
+    # Trans-eQTLs on other chromosomes are invalid drug-target MR instruments
+    n_before <- nrow(eqtl_df)
+    eqtl_df  <- eqtl_df %>%
+      filter(!is.na(chr.exposure),
+             as.integer(chr.exposure) == tgt$chr)
+    message(sprintf("  Cis-filter: %d → %d instruments (removed %d trans on other chr)",
+                    n_before, nrow(eqtl_df), n_before - nrow(eqtl_df)))
+    if (nrow(eqtl_df) == 0) {
+      message(sprintf("  No cis-eQTL instruments on chr%d for %s", tgt$chr, gene_name))
+      next
+    }
+    eqtl_exp <- eqtl_df %>%
+      mutate(exposure = sprintf("%s expression (OpenGWAS cis-eQTL)", gene_name))
+    message(sprintf("  Instrument SNPs: %s", paste(head(eqtl_exp$SNP, 4), collapse=", ")))
+  } else {
+    # GTEx/raw path: format and clump
+    eqtl_df <- eqtl_df[order(eqtl_df$pValue), ]
+    eqtl_exp <- tryCatch(
+      format_data(
+        eqtl_df,
+        type              = "exposure",
+        snp_col           = "variantId",
+        beta_col          = "slope",
+        se_col            = "slopeStdErr",
+        pval_col          = "pValue",
+        eaf_col           = "maf",
+        chr_col           = "CHR",
+        pos_col           = "POS",
+        effect_allele_col = "A1",
+        other_allele_col  = "A2",
+        phenotype_col     = "gene"
+      ) %>% mutate(exposure = sprintf("%s expression (GTEx lung)", gene_name)),
+      error = function(e) { message("  Format error: ", e$message); NULL }
+    )
+    if (is.null(eqtl_exp)) next
+  }
+
+  # Clump if > 3 instruments and not already clumped
+  if (nrow(eqtl_exp) > 3 && !already_formatted) {
     eqtl_exp <- tryCatch(
       clump_data(eqtl_exp, clump_r2 = 0.001, clump_kb = 500),
-      error = function(e) head(eqtl_exp, 5)  # fallback: top 5
+      error = function(e) head(eqtl_exp, 5)
     )
   }
   message(sprintf("  Instruments after clumping: %d", nrow(eqtl_exp)))
 
   # 2b. Extract outcome from FinnGen (match by variantId rsid-like or position)
-  if (is.null(fg_full)) {
-    message("  FinnGen not loaded — skipping ", gene_name)
-    next
-  }
-  # Try to match by position (hg38) since GTEx and FinnGen are both hg38
-  fg_region <- as.data.frame(fg_full) %>%
-    filter(chrom == tgt$chr,
-           pos >= tgt$start_hg38 - 1e6,
-           pos <= tgt$end_hg38   + 1e6)
-  ipf_out <- finngen_to_outcome(
-    fg_region,
-    outcome_name = sprintf("IPF_FinnGen_R10_%s", gene_name)
+  # Direct rsID lookup: grep FinnGen for the specific instrument rsIDs
+  # This bypasses region filtering + format_data issues entirely
+  snp_pattern <- paste(eqtl_exp$SNP, collapse="|")
+  fg_hits <- tryCatch(
+    fread(cmd = sprintf("gunzip -c %s | grep -E '^[0-9]|^#chrom' | grep -E '%s'",
+                        FINNGEN_LOCAL, snp_pattern),
+          sep="\t", header=FALSE, data.table=FALSE,
+          col.names=c("chrom","pos","ref","alt","rsids","nearest_genes","pval",
+                      "mlogp","beta","sebeta","af_alt","af_alt_cases","af_alt_controls")),
+    error=function(e){message("  FinnGen grep failed: ",e$message); NULL}
   )
+  message(sprintf("  Direct grep found %d FinnGen rows for %d instruments",
+                  if(is.null(fg_hits)) 0 else nrow(fg_hits), nrow(eqtl_exp)))
 
-  if (nrow(ipf_out) == 0) {
-    message(sprintf("  No IPF variants found for %s region", gene_name))
+  if (is.null(fg_hits) || nrow(fg_hits) == 0) {
+    message(sprintf("  No FinnGen rows matched for %s instruments — skipping", gene_name))
     next
   }
 
-  # 2c. Harmonize on variantId position match rather than rsID
-  # Map eQTL variantIds to FinnGen positions for harmonization
-  eqtl_exp$SNP <- eqtl_exp$SNP  # variantId like chr5_74640000_A_G_b38
-  # For harmonization, we need matching rsIDs; use position-based match
-  ipf_out$SNP <- paste0("chr", ipf_out$chr.outcome, "_",
-                        ipf_out$pos.outcome, "_b38")
+  # Keep only rows where rsids exactly matches an instrument rsID
+  fg_hits$rsid <- trimws(sub(",.*","",as.character(fg_hits$rsids)))
+  fg_hits <- fg_hits[fg_hits$rsid %in% eqtl_exp$SNP, , drop=FALSE]
+  message(sprintf("  Exact rsID matches: %d", nrow(fg_hits)))
+
+  if (nrow(fg_hits) == 0) {
+    message(sprintf("  No exact rsID matches for %s — skipping", gene_name))
+    next
+  }
+
+  ipf_out <- finngen_to_outcome(fg_hits, snps = eqtl_exp$SNP,
+                                outcome_name = sprintf("IPF_FinnGen_R10_%s", gene_name))
+
+  if (is.null(ipf_out) || !is.data.frame(ipf_out) || nrow(ipf_out) == 0) {
+    message(sprintf("  No IPF outcome variants matched for %s", gene_name))
+    next
+  }
 
   # 2d. MR
   mr_res <- run_mr_pipeline(eqtl_exp, ipf_out,

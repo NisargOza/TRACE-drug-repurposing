@@ -6,15 +6,17 @@ COMPONENT 1: HMGCR → IPF (statin drug-target MR)
 Instrument: LDL-C cis-variants at HMGCR (OpenGWAS ieu-b-110)
 Outcome:    FinnGen R10 IPF (2,189 cases / 407,609 controls)
 
-  Inverse variance weighted       OR=0.623  [0.312-1.244]  p=0.1800  nSNP=3
-  MR Egger                        OR=0.493  [0.096-2.550]  p=0.5541  nSNP=3
-  Weighted median                 OR=0.606  [0.298-1.232]  p=0.1667  nSNP=3
-  Weighted mode                   OR=0.608  [0.092-4.005]  p=0.6567  nSNP=3
+  Inverse variance weighted       OR=0.846  [0.338-2.118]  p=0.7214  nSNP=4
+  MR Egger                        OR=0.216  [0.010-4.568]  p=0.4288  nSNP=4
+  Weighted median                 OR=0.670  [0.279-1.609]  p=0.3698  nSNP=4
+  Weighted mode                   OR=0.562  [0.028-11.177]  p=0.7310  nSNP=4
 
-  MR-Egger intercept: 0.01530 (p=0.8101) — no evidence of directional pleiotropy
+  MR-Egger intercept: 0.06663 (p=0.4539) — no evidence of directional pleiotropy
 
 COMPONENT 2: Systematic eQTL-MR across TRACE candidate targets
 --------------------------------------------------------------
   Targets attempted: PDGFRB, FLT1, KDR, JAK1, JAK2, HDAC1, HDAC2
-  Targets with results: 
+  Targets with results: FLT1, JAK1, JAK2, HDAC1
 
+  FLT1      OR=0.916 [0.754-1.113]  p=0.3759  nSNP=3  drugs: cediranib (VEGFR1)
+  JAK2      OR=1.131 [0.945-1.354]  p=0.1791  nSNP=2  drugs: baricitinib
