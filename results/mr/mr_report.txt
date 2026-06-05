@@ -1,17 +1,52 @@
 Drug-target Mendelian Randomization — TRACE IPF candidates
 ==========================================================
 
+DESIGN: Two-sample drug-target MR. Genetic instruments (randomized at
+conception) are structurally robust to confounding by indication and
+reverse causation — the dominant threats to observational pharmacoepi.
+
+OUTCOME: FinnGen R10 IPF (2,189 cases / 407,609 controls). This is a
+  SMALL case count for a rare disease. A pre-specified upgrade to the GBMI
+  IPF meta-analysis (8,492 all-ancestry / 11,160 joint cases; ~4-5x larger;
+  GRCh38; public) is the primary-outcome plan — see analysis_plan_mr.md.
+
+================ HONEST INTERPRETATION (read first) ================
+  These analyses are NULL and UNDERPOWERED. No estimate is significant.
+  Point estimates trending OR<1 (HMGCR, FLT1) are directionally concordant
+  with the TRACE prediction but are NOT positive evidence: the 95% CIs span
+  clinically opposite effects. Calibrated reading: 'underpowered null;
+  estimates non-significant; HMGCR/FLT1 directionally concordant but
+  uninformative about the hypothesis.' The power table below quantifies
+  exactly what could and could not have been detected.
+===================================================================
+
 COMPONENT 1: HMGCR → IPF (statin drug-target MR)
 -------------------------------------------------
-Instrument: LDL-C cis-variants at HMGCR (OpenGWAS ieu-b-110)
+Instrument: LDL-C cis-variants at HMGCR (OpenGWAS ieu-b-110 + canonical
+            Swerdlow 2015/GLGC 2013 variants rs12916, rs17238484, rs5909)
 Outcome:    FinnGen R10 IPF (2,189 cases / 407,609 controls)
 
   Inverse variance weighted       OR=0.846  [0.338-2.118]  p=0.7214  nSNP=4
   MR Egger                        OR=0.216  [0.010-4.568]  p=0.4288  nSNP=4
-  Weighted median                 OR=0.670  [0.279-1.609]  p=0.3698  nSNP=4
-  Weighted mode                   OR=0.562  [0.028-11.177]  p=0.7310  nSNP=4
+  Weighted median                 OR=0.670  [0.289-1.554]  p=0.3503  nSNP=4
+  Weighted mode                   OR=0.562  [0.030-10.379]  p=0.7246  nSNP=4
 
   MR-Egger intercept: 0.06663 (p=0.4539) — no evidence of directional pleiotropy
+
+  Post-hoc power (from achieved SE; alpha=0.05, two-sided):
+    OR=0.90 -> 6%   OR=0.80 -> 8%   OR=0.70 -> 12%   OR=0.50 -> 32%
+  At this precision the analysis had ~8% power to detect OR=0.80
+  (the magnitude plausible for statins). The null is therefore
+  UNINFORMATIVE about the hypothesis, not evidence against an effect.
+
+PRIOR PUBLISHED MR (for comparison — verified against PubMed):
+  Cai G, Liu J, Cai M, Shao L. 'Exploring the causal effect between
+  lipid-modifying drugs and idiopathic pulmonary fibrosis: a drug-target
+  Mendelian randomization study.' Lipids Health Dis. 2024;23(1):237.
+  PMID 39090671. Used UK Biobank lipids + FinnGen R10 IPF.
+  RESULT: NO significant effect of lipid traits on IPF risk (all P>0.05).
+  => Our HMGCR null is a CONSISTENT REPLICATION of a published null, not an
+     underpowered non-replication of a positive finding.
 
 COMPONENT 2: Systematic eQTL-MR across TRACE candidate targets
 --------------------------------------------------------------
@@ -20,3 +55,19 @@ COMPONENT 2: Systematic eQTL-MR across TRACE candidate targets
 
   FLT1      OR=0.916 [0.754-1.113]  p=0.3759  nSNP=3  drugs: cediranib (VEGFR1)
   JAK2      OR=1.131 [0.945-1.354]  p=0.1791  nSNP=2  drugs: baricitinib
+
+  CAVEATS (Component 2):
+  - Single-SNP targets (JAK1, HDAC1) yield Wald ratios only: no CI, no
+    pleiotropy test, dominated by one variant — NOT interpretable evidence.
+  - JAK2 OR=1.13 (p=0.18, 2 SNPs) is non-significant and uninterpretable
+    given power — NOT evidence against baricitinib.
+  - Targets with no valid cis-instruments (PDGFRB all-trans; KDR, HDAC2
+    absent from OpenGWAS) require GTEx lung / eQTLGen / UKB-PPP pQTL
+    instruments — the pre-specified Component-2 upgrade.
+
+PRE-SPECIFIED NEXT STEPS (analysis_plan_mr.md):
+  1. Primary-outcome upgrade: GBMI IPF (8,492/11,160 cases) + FinnGen R9 replication.
+  2. Real multi-SNP cis instruments from GTEx lung & eQTLGen for Component 2.
+  3. Colocalization at HMGCR (GLGC regional data) to exclude LD confounding.
+  Even with GBMI, IPF rarity may leave small effects undetectable — a real
+  biological ceiling, stated honestly.

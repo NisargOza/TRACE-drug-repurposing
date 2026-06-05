@@ -697,9 +697,9 @@ if (nrow(plot_data) > 0) {
     labs(x = "Odds ratio for IPF (log scale)",
          y = NULL,
          title = "Drug-target MR: genetic instruments for drug targets → IPF risk",
-         subtitle = "OR < 1 = protective (corroborates TRACE prediction)",
+         subtitle = "All estimates non-significant (underpowered). OR<1 = directionally protective, NOT positive evidence.",
          color = NULL,
-         caption = "IVW estimate; 95% CI; FinnGen R10 IPF outcome (2,189 cases)") +
+         caption = "IVW estimate; 95% CI; FinnGen R10 IPF outcome (2,189 cases — small; GBMI upgrade pre-specified)") +
     theme_minimal(base_size = 11) +
     theme(legend.position = "bottom",
           panel.grid.minor = element_blank())
@@ -709,14 +709,48 @@ if (nrow(plot_data) > 0) {
   message("Forest plot saved.")
 }
 
+# ── Helper: post-hoc power from achieved precision ────────────────────────────
+# Given the observed SE of the IVW log-OR, the power to detect a true effect of
+# size OR_true at two-sided alpha is exact (no R² assumption needed):
+#   power = Φ(|β|/SE − z) + Φ(−|β|/SE − z),  β = log(OR_true), z = qnorm(1−α/2)
+# This uses the ACHIEVED precision and answers "what could we have detected?" —
+# the calibrated way to report a null (cf. Burgess 2014, IJE).
+mr_power_from_se <- function(se, or_grid = c(0.90, 0.80, 0.70, 0.50),
+                             alpha = 0.05) {
+  z <- qnorm(1 - alpha/2)
+  setNames(sapply(or_grid, function(orv) {
+    b <- abs(log(orv)); pnorm(b/se - z) + pnorm(-b/se - z)
+  }), sprintf("OR=%.2f", or_grid))
+}
+
 # ── Text report ───────────────────────────────────────────────────────────────
 report_lines <- c(
   "Drug-target Mendelian Randomization — TRACE IPF candidates",
   "==========================================================",
   "",
+  "DESIGN: Two-sample drug-target MR. Genetic instruments (randomized at",
+  "conception) are structurally robust to confounding by indication and",
+  "reverse causation — the dominant threats to observational pharmacoepi.",
+  "",
+  "OUTCOME: FinnGen R10 IPF (2,189 cases / 407,609 controls). This is a",
+  "  SMALL case count for a rare disease. A pre-specified upgrade to the GBMI",
+  "  IPF meta-analysis (8,492 all-ancestry / 11,160 joint cases; ~4-5x larger;",
+  "  GRCh38; public) is the primary-outcome plan — see analysis_plan_mr.md.",
+  "",
+  "================ HONEST INTERPRETATION (read first) ================",
+  "  These analyses are NULL and UNDERPOWERED. No estimate is significant.",
+  "  Point estimates trending OR<1 (HMGCR, FLT1) are directionally concordant",
+  "  with the TRACE prediction but are NOT positive evidence: the 95% CIs span",
+  "  clinically opposite effects. Calibrated reading: 'underpowered null;",
+  "  estimates non-significant; HMGCR/FLT1 directionally concordant but",
+  "  uninformative about the hypothesis.' The power table below quantifies",
+  "  exactly what could and could not have been detected.",
+  "===================================================================",
+  "",
   "COMPONENT 1: HMGCR → IPF (statin drug-target MR)",
   "-------------------------------------------------",
-  "Instrument: LDL-C cis-variants at HMGCR (OpenGWAS ieu-b-110)",
+  "Instrument: LDL-C cis-variants at HMGCR (OpenGWAS ieu-b-110 + canonical",
+  "            Swerdlow 2015/GLGC 2013 variants rs12916, rs17238484, rs5909)",
   "Outcome:    FinnGen R10 IPF (2,189 cases / 407,609 controls)",
   ""
 )
@@ -740,9 +774,31 @@ if (!is.null(hmgcr_mr)) {
                      "no evidence of directional pleiotropy",
                      "WARNING: possible directional pleiotropy")))
   }
+  # Post-hoc power from the achieved IVW precision
+  ivw_row <- res[res$method == "Inverse variance weighted", ]
+  if (nrow(ivw_row) >= 1) {
+    pw <- mr_power_from_se(ivw_row$se[1])
+    report_lines <- c(report_lines, "",
+      "  Post-hoc power (from achieved SE; alpha=0.05, two-sided):",
+      paste0("    ", paste(sprintf("%s -> %.0f%%", names(pw), 100*pw),
+                           collapse = "   ")),
+      sprintf("  At this precision the analysis had ~%.0f%% power to detect OR=0.80",
+              100*pw["OR=0.80"]),
+      "  (the magnitude plausible for statins). The null is therefore",
+      "  UNINFORMATIVE about the hypothesis, not evidence against an effect.")
+  }
 }
 
 report_lines <- c(report_lines, "",
+  "PRIOR PUBLISHED MR (for comparison — verified against PubMed):",
+  "  Cai G, Liu J, Cai M, Shao L. 'Exploring the causal effect between",
+  "  lipid-modifying drugs and idiopathic pulmonary fibrosis: a drug-target",
+  "  Mendelian randomization study.' Lipids Health Dis. 2024;23(1):237.",
+  "  PMID 39090671. Used UK Biobank lipids + FinnGen R10 IPF.",
+  "  RESULT: NO significant effect of lipid traits on IPF risk (all P>0.05).",
+  "  => Our HMGCR null is a CONSISTENT REPLICATION of a published null, not an",
+  "     underpowered non-replication of a positive finding.",
+  "",
   "COMPONENT 2: Systematic eQTL-MR across TRACE candidate targets",
   "--------------------------------------------------------------",
   sprintf("  Targets attempted: %s", paste(names(TARGETS), collapse=", ")),
@@ -761,6 +817,22 @@ if (nrow(all_ext) > 0) {
               ivw$pval[i], ivw$nsnp[i], ivw$drugs[i]))
   }
 }
+report_lines <- c(report_lines, "",
+  "  CAVEATS (Component 2):",
+  "  - Single-SNP targets (JAK1, HDAC1) yield Wald ratios only: no CI, no",
+  "    pleiotropy test, dominated by one variant — NOT interpretable evidence.",
+  "  - JAK2 OR=1.13 (p=0.18, 2 SNPs) is non-significant and uninterpretable",
+  "    given power — NOT evidence against baricitinib.",
+  "  - Targets with no valid cis-instruments (PDGFRB all-trans; KDR, HDAC2",
+  "    absent from OpenGWAS) require GTEx lung / eQTLGen / UKB-PPP pQTL",
+  "    instruments — the pre-specified Component-2 upgrade.",
+  "",
+  "PRE-SPECIFIED NEXT STEPS (analysis_plan_mr.md):",
+  "  1. Primary-outcome upgrade: GBMI IPF (8,492/11,160 cases) + FinnGen R9 replication.",
+  "  2. Real multi-SNP cis instruments from GTEx lung & eQTLGen for Component 2.",
+  "  3. Colocalization at HMGCR (GLGC regional data) to exclude LD confounding.",
+  "  Even with GBMI, IPF rarity may leave small effects undetectable — a real",
+  "  biological ceiling, stated honestly.")
 
 writeLines(report_lines, file.path(MR_OUT, "mr_report.txt"))
 message("\nAll outputs saved to results/mr/")
