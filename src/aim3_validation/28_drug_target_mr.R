@@ -67,6 +67,25 @@ FINNGEN_R10_URL <- paste0(
 )
 FINNGEN_LOCAL   <- file.path(DATA, "finngen_R10_IPF.gz")
 
+# ── GBMI IPF — primary outcome upgrade (pre-specified in analysis_plan_mr.md §1.3) ──
+# ~8,492 all-ancestry / ~11,160 joint cases; ~4-5x more power than FinnGen R10
+# Verify current URL at: https://www.globalbiobankmeta.org/resources
+# GCS bucket: gs://gbmi-public/  (public, no authentication required)
+GBMI_IPF_URL  <- paste0(
+  "https://storage.googleapis.com/gbmi-public/",
+  "IPF/META_ANALYSIS_Mbatchou_IPF_ALL.tsv.bgz"
+)
+GBMI_LOCAL    <- file.path(DATA, "gbmi_IPF_all.tsv.bgz")
+
+# OpenGWAS IDs to try for a larger IPF GWAS (tried in order; first hit wins)
+# Covers GBMI imports, FinnGen B-series, and GWAS Catalog EBI entries
+LARGER_IPF_OPENGWAS_IDS <- c(
+  "gbmi-b-IPF",
+  "gbmi-a-IPF_noUKBB",
+  "ebi-a-GCST90399726",
+  "ebi-a-GCST009619"
+)
+
 # HMGCR coordinates
 HMGCR_CHR    <- 5
 HMGCR_START  <- 74632154   # hg19 gene body start
@@ -126,6 +145,116 @@ download_finngen <- function() {
     error = function(e) stop("Download failed: ", conditionMessage(e))
   )
   FINNGEN_LOCAL
+}
+
+# ── Helper: download GBMI IPF if not cached ──────────────────────────────────
+download_gbmi <- function() {
+  if (file.exists(GBMI_LOCAL)) {
+    message("GBMI IPF already cached: ", GBMI_LOCAL)
+    return(GBMI_LOCAL)
+  }
+  message("Downloading GBMI IPF summary stats...")
+  message("  URL: ", GBMI_IPF_URL)
+  message("  If this fails, verify the filename at https://www.globalbiobankmeta.org/resources")
+  result <- tryCatch(
+    download.file(GBMI_IPF_URL, GBMI_LOCAL, method = "curl", quiet = FALSE),
+    error = function(e) {
+      message("  GBMI download failed: ", conditionMessage(e))
+      if (file.exists(GBMI_LOCAL)) unlink(GBMI_LOCAL)
+      -1L
+    }
+  )
+  if (!is.null(result) && result == 0 && file.exists(GBMI_LOCAL)) GBMI_LOCAL else NULL
+}
+
+# ── Helper: read GBMI regional subset ────────────────────────────────────────
+# GBMI format: tab-separated; columns vary by release but typically include
+# CHROM/CHR, POS/GENPOS, ID/SNP, REF/ALLELE0, ALT/ALLELE1, af_meta, beta_meta,
+# se_meta, pval_meta (all GRCh38)
+read_gbmi_region <- function(chr, start, end, window = 1e6, local = GBMI_LOCAL) {
+  if (!file.exists(local)) stop("GBMI file not found: ", local)
+  message(sprintf("  Reading GBMI region chr%d:%d-%d (±%g Mb)...", chr, start, end, window/1e6))
+  decomp_cmd <- if (grepl("\\.bgz$|\\.gz$", local)) {
+    tryCatch({ system("which bgzip", intern=TRUE, ignore.stderr=TRUE); "bgzip -c -d" },
+             error = function(e) "zcat")
+  } else "cat"
+  gb <- tryCatch(
+    fread(
+      cmd = sprintf(
+        "%s %s | awk -v c=%d -v s=%d -v e=%d 'NR==1 || ($1==c && $2>=(s-%d) && $2<=(e+%d))'",
+        decomp_cmd, local, chr, start, end, as.integer(window), as.integer(window)
+      ),
+      sep = "\t", header = TRUE, data.table = FALSE
+    ),
+    error = function(e) {
+      message("  GBMI region read failed: ", e$message); NULL
+    }
+  )
+  gb
+}
+
+# ── Helper: scan GBMI for specific rsIDs (fallback when region read fails) ───
+scan_gbmi_snps <- function(snps, local = GBMI_LOCAL) {
+  if (!file.exists(local)) return(NULL)
+  pattern <- paste(snps, collapse = "|")
+  decomp_cmd <- if (grepl("\\.bgz$|\\.gz$", local)) "bgzip -c -d" else "cat"
+  tryCatch(
+    fread(
+      cmd = sprintf("%s %s | grep -E 'CHROM|CHR|#|%s'", decomp_cmd, local, pattern),
+      sep = "\t", header = FALSE, data.table = FALSE,
+      fill = TRUE
+    ),
+    error = function(e) { message("  GBMI snp scan failed: ", e$message); NULL }
+  )
+}
+
+# ── Helper: format GBMI as TwoSampleMR outcome ───────────────────────────────
+# Handles multiple GBMI column-name conventions across releases
+gbmi_to_outcome <- function(gb, snps = NULL, outcome_name = "IPF_GBMI_ALL") {
+  if (is.null(gb) || nrow(gb) == 0) return(data.frame())
+  gb <- as.data.frame(gb, stringsAsFactors = FALSE)
+  cn <- tolower(colnames(gb))
+  colnames(gb) <- cn
+
+  get_col <- function(keys) { for (k in keys) if (k %in% cn) return(k); NULL }
+
+  snp_col  <- get_col(c("id", "snp", "rsid", "variant_id", "rs_id", "markername"))
+  beta_col <- get_col(c("beta_meta", "beta", "effect"))
+  se_col   <- get_col(c("se_meta", "se", "standard_error", "stderr"))
+  pval_col <- get_col(c("pval_meta", "p.value", "p_value", "pval", "p"))
+  eaf_col  <- get_col(c("af_meta", "af_alt", "effect_allele_freq", "eaf", "freq1"))
+  ea_col   <- get_col(c("alt", "a1", "effect_allele", "allele1", "allele_b"))
+  oa_col   <- get_col(c("ref", "a2", "other_allele", "allele0", "allele_a"))
+  chr_col  <- get_col(c("chrom", "chr", "#chrom", "chromosome", "ch"))
+  pos_col  <- get_col(c("genpos", "pos", "position", "bp"))
+
+  if (is.null(snp_col) || is.null(beta_col) || is.null(se_col)) {
+    message("  GBMI column mapping failed. Columns: ", paste(cn, collapse=", "))
+    return(data.frame())
+  }
+
+  gb$rsid_clean <- trimws(as.character(gb[[snp_col]]))
+  if (!is.null(snps)) gb <- gb[gb$rsid_clean %in% snps, , drop=FALSE]
+  keep <- !is.na(gb$rsid_clean) & gb$rsid_clean != "" &
+          !is.na(gb[[beta_col]]) & !is.na(gb[[se_col]])
+  gb <- gb[keep, , drop=FALSE]
+  if (nrow(gb) == 0) return(data.frame())
+
+  data.frame(
+    SNP                   = gb$rsid_clean,
+    beta.outcome          = as.numeric(gb[[beta_col]]),
+    se.outcome            = as.numeric(gb[[se_col]]),
+    effect_allele.outcome = if (!is.null(ea_col)) toupper(gb[[ea_col]]) else NA_character_,
+    other_allele.outcome  = if (!is.null(oa_col)) toupper(gb[[oa_col]]) else NA_character_,
+    eaf.outcome           = if (!is.null(eaf_col)) as.numeric(gb[[eaf_col]]) else NA_real_,
+    pval.outcome          = if (!is.null(pval_col)) as.numeric(gb[[pval_col]]) else NA_real_,
+    outcome               = outcome_name,
+    id.outcome            = outcome_name,
+    chr.outcome           = if (!is.null(chr_col)) as.character(gb[[chr_col]]) else NA_character_,
+    pos.outcome           = if (!is.null(pos_col)) as.integer(gb[[pos_col]]) else NA_integer_,
+    mr_keep.outcome       = TRUE,
+    stringsAsFactors      = FALSE
+  )
 }
 
 # ── Helper: read FinnGen regional subset ─────────────────────────────────────
@@ -338,6 +467,15 @@ get_gtex_api_eqtls_deprecated <- function(ensembl_id, gene_name,
   })
 }
 
+# ── Helper: post-hoc power from achieved precision ────────────────────────────
+mr_power_from_se <- function(se, or_grid = c(0.90, 0.80, 0.70, 0.50),
+                             alpha = 0.05) {
+  z <- qnorm(1 - alpha/2)
+  setNames(sapply(or_grid, function(orv) {
+    b <- abs(log(orv)); pnorm(b/se - z) + pnorm(-b/se - z)
+  }), sprintf("OR=%.2f", or_grid))
+}
+
 # ── COMPONENT 1: HMGCR drug-target MR ─────────────────────────────────────────
 message("\n=== COMPONENT 1: HMGCR drug-target MR (statin → IPF) ===\n")
 
@@ -501,7 +639,93 @@ if (!is.null(hmgcr_mr)) {
   }
 }
 
-# 1f. Colocalization at HMGCR
+# ── 1f. GBMI primary-outcome upgrade ─────────────────────────────────────────
+# Pre-specified in analysis_plan_mr.md §1.3: run GBMI (~8,492 cases) as
+# the primary outcome; FinnGen R10 above becomes the sensitivity/replication arm.
+# Two-tier approach: OpenGWAS first (no URL needed), direct download as fallback.
+message("\n=== GBMI PRIMARY OUTCOME UPGRADE (pre-specified in analysis_plan_mr.md) ===\n")
+
+gbmi_mr    <- NULL
+gbmi_label <- NULL
+
+# Tier 1: OpenGWAS search for a larger IPF GWAS (requires JWT)
+if (nchar(jwt) > 0) {
+  message("Searching OpenGWAS for larger IPF GWAS...")
+  for (oid in LARGER_IPF_OPENGWAS_IDS) {
+    message(sprintf("  Trying OpenGWAS ID: %s", oid))
+    oc <- tryCatch(
+      extract_outcome_data(
+        snps     = ldl_hmgcr$SNP,
+        outcomes = oid,
+        proxies  = TRUE,
+        rsq      = 0.8,
+        align_alleles = 1
+      ),
+      error = function(e) { message("  ", oid, ": ", e$message); NULL }
+    )
+    if (!is.null(oc) && is.data.frame(oc) && nrow(oc) > 0) {
+      message(sprintf("  SUCCESS: %d variants found for %s", nrow(oc), oid))
+      gbmi_mr    <- run_mr_pipeline(ldl_hmgcr, oc, sprintf("HMGCR→IPF (%s)", oid))
+      gbmi_label <- oid
+      if (!is.null(gbmi_mr)) break
+    }
+  }
+}
+
+# Tier 2: direct GBMI download
+if (is.null(gbmi_mr)) {
+  message("\nOpenGWAS route unavailable — attempting direct GBMI download...")
+  gbmi_path <- download_gbmi()
+  if (!is.null(gbmi_path)) {
+    gbmi_region <- read_gbmi_region(
+      chr    = HMGCR_CHR,
+      start  = 74523876,   # HMGCR hg38 start
+      end    = 74598685,   # HMGCR hg38 end
+      window = HMGCR_WINDOW,
+      local  = gbmi_path
+    )
+    if (!is.null(gbmi_region) && nrow(gbmi_region) > 0) {
+      ipf_gbmi <- gbmi_to_outcome(gbmi_region, snps = ldl_hmgcr$SNP,
+                                   outcome_name = "IPF_GBMI_ALL")
+      if (nrow(ipf_gbmi) == 0) {
+        message("  Region-based lookup returned 0 rows — scanning full GBMI for rsIDs...")
+        gb_hits  <- scan_gbmi_snps(ldl_hmgcr$SNP, local = gbmi_path)
+        ipf_gbmi <- gbmi_to_outcome(gb_hits, snps = ldl_hmgcr$SNP,
+                                     outcome_name = "IPF_GBMI_ALL")
+      }
+      if (nrow(ipf_gbmi) > 0) {
+        gbmi_mr    <- run_mr_pipeline(ldl_hmgcr, ipf_gbmi, "HMGCR→IPF (GBMI ALL)")
+        gbmi_label <- "GBMI_IPF_ALL"
+      }
+    }
+  }
+}
+
+# Save & report
+if (!is.null(gbmi_mr)) {
+  fwrite(gbmi_mr$results, file.path(MR_OUT, "gbmi_mr_results.csv"))
+  message("\nGBMI MR results (PRIMARY outcome — pre-specified upgrade):")
+  print(gbmi_mr$results[, c("method","nsnp","b","se","pval")])
+  if (!is.null(gbmi_mr$pleiotropy)) {
+    message(sprintf("  MR-Egger intercept: %.5f (p=%.4f)",
+                    gbmi_mr$pleiotropy$egger_intercept,
+                    gbmi_mr$pleiotropy$pval))
+  }
+  ivw_gbmi <- gbmi_mr$results[gbmi_mr$results$method == "Inverse variance weighted", ]
+  if (nrow(ivw_gbmi) >= 1) {
+    pw_gbmi <- mr_power_from_se(ivw_gbmi$se[1])
+    message(sprintf("  Post-hoc power (GBMI): OR=0.80 → %.0f%%  OR=0.70 → %.0f%%",
+                    100*pw_gbmi["OR=0.80"], 100*pw_gbmi["OR=0.70"]))
+  }
+} else {
+  message("\nGBMI outcome unavailable — FinnGen R10 is the sole primary outcome.")
+  message("To complete the GBMI upgrade:")
+  message("  1. Verify download URL at https://www.globalbiobankmeta.org/resources")
+  message("  2. Update GBMI_IPF_URL in this script if the path has changed")
+  message("  3. Re-run: Rscript src/aim3_validation/28_drug_target_mr.R")
+}
+
+# 1g. Colocalization at HMGCR
 message("\nRunning colocalization at HMGCR...")
 # Get full LDL regional data from OpenGWAS for coloc
 ldl_region_full <- tryCatch(
@@ -666,61 +890,91 @@ all_ext <- if (length(extended_results) > 0)
 fwrite(all_ext, file.path(MR_OUT, "extended_mr_results.csv"))
 
 # ── Forest plot ───────────────────────────────────────────────────────────────
+# HMGCR rows: show GBMI (primary) and FinnGen R10 (replication) side-by-side
+# when both are available; otherwise single-outcome rows.
+hmgcr_finngen_row <- if (!is.null(hmgcr_mr)) {
+  hmgcr_mr$results %>%
+    filter(method == "Inverse variance weighted") %>%
+    mutate(gene = "HMGCR (statin proxy)", drugs = "atorvastatin",
+           OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
+           outcome_label = "FinnGen R10 (2,189 cases — sensitivity)",
+           component = "Component 1: HMGCR")
+} else data.frame()
+
+hmgcr_gbmi_row <- if (!is.null(gbmi_mr)) {
+  gbmi_mr$results %>%
+    filter(method == "Inverse variance weighted") %>%
+    mutate(gene = "HMGCR (statin proxy)", drugs = "atorvastatin",
+           OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
+           outcome_label = sprintf("GBMI ALL (~8,492 cases — PRIMARY; %s)", gbmi_label),
+           component = "Component 1: HMGCR")
+} else data.frame()
+
+ext_rows <- if (nrow(all_ext) > 0) {
+  all_ext %>%
+    filter(method == "Inverse variance weighted") %>%
+    mutate(OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
+           outcome_label = "FinnGen R10",
+           component = "Component 2: TRACE target extension") %>%
+    select(gene, drugs, OR, CI_lo, CI_hi, pval, nsnp, component, outcome_label)
+} else data.frame()
+
 plot_data <- bind_rows(
-  # HMGCR row
-  if (!is.null(hmgcr_mr)) {
-    hmgcr_mr$results %>%
-      filter(method == "Inverse variance weighted") %>%
-      mutate(gene = "HMGCR (statin proxy)", drugs = "atorvastatin",
-             OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
-             component = "Component 1: HMGCR replication")
-  } else data.frame(),
-  # Extended rows
-  if (nrow(all_ext) > 0) {
-    all_ext %>%
-      filter(method == "Inverse variance weighted") %>%
-      mutate(OR = exp(b), CI_lo = exp(b - 1.96*se), CI_hi = exp(b + 1.96*se),
-             component = "Component 2: TRACE target extension") %>%
-      select(gene, drugs, OR, CI_lo, CI_hi, pval, nsnp, component)
-  } else data.frame()
+  hmgcr_gbmi_row,
+  hmgcr_finngen_row,
+  ext_rows
 )
 
 if (nrow(plot_data) > 0) {
+  # Jitter HMGCR rows slightly on y-axis when both outcomes present
+  has_both_hmgcr <- !is.null(gbmi_mr) && !is.null(hmgcr_mr)
+  y_col <- if ("outcome_label" %in% colnames(plot_data)) "outcome_label" else "gene"
+
+  # Use shape to distinguish primary (GBMI, filled) vs replication (FinnGen, open)
+  plot_data$shape_flag <- ifelse(
+    grepl("GBMI|PRIMARY", ifelse(is.na(plot_data$outcome_label), "", plot_data$outcome_label)), "Primary (GBMI)", "Sensitivity (FinnGen R10)"
+  )
+
+  # Build y-axis label: "HMGCR — GBMI" vs "HMGCR — FinnGen R10"
+  plot_data$y_label <- if (has_both_hmgcr && "outcome_label" %in% colnames(plot_data)) {
+    ifelse(plot_data$component == "Component 1: HMGCR",
+           paste0(plot_data$gene, "\n(", plot_data$outcome_label, ")"),
+           plot_data$gene)
+  } else {
+    plot_data$gene
+  }
+
+  caption_text <- if (!is.null(gbmi_mr)) {
+    sprintf("IVW estimate; 95%% CI. GBMI ALL = primary outcome (pre-specified upgrade); FinnGen R10 = sensitivity.\n%s = GBMI dataset used.", gbmi_label)
+  } else {
+    "IVW estimate; 95%% CI; FinnGen R10 IPF outcome (2,189 cases — underpowered). GBMI upgrade pre-specified."
+  }
+
   p <- ggplot(plot_data,
-              aes(x = OR, y = reorder(gene, OR),
-                  xmin = CI_lo, xmax = CI_hi, color = component)) +
+              aes(x = OR, y = reorder(y_label, OR),
+                  xmin = CI_lo, xmax = CI_hi,
+                  color = component, shape = shape_flag)) +
     geom_point(size = 3) +
     geom_errorbarh(height = 0.2) +
     geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
     scale_x_log10() +
-    scale_color_manual(values = c("#2166ac", "#d6604d")) +
+    scale_color_manual(values = c("Component 1: HMGCR" = "#2166ac",
+                                  "Component 2: TRACE target extension" = "#d6604d")) +
+    scale_shape_manual(values = c("Primary (GBMI)" = 16, "Sensitivity (FinnGen R10)" = 1),
+                       na.value = 16) +
     labs(x = "Odds ratio for IPF (log scale)",
          y = NULL,
          title = "Drug-target MR: genetic instruments for drug targets → IPF risk",
          subtitle = "All estimates non-significant (underpowered). OR<1 = directionally protective, NOT positive evidence.",
-         color = NULL,
-         caption = "IVW estimate; 95% CI; FinnGen R10 IPF outcome (2,189 cases — small; GBMI upgrade pre-specified)") +
+         color = NULL, shape = NULL,
+         caption = caption_text) +
     theme_minimal(base_size = 11) +
     theme(legend.position = "bottom",
           panel.grid.minor = element_blank())
   ggsave(file.path(FIG_OUT, "fig_mr_forest.png"), p,
-         width = 9, height = max(4, nrow(plot_data) * 0.6 + 2),
+         width = 10, height = max(4, nrow(plot_data) * 0.7 + 2),
          dpi = 300)
   message("Forest plot saved.")
-}
-
-# ── Helper: post-hoc power from achieved precision ────────────────────────────
-# Given the observed SE of the IVW log-OR, the power to detect a true effect of
-# size OR_true at two-sided alpha is exact (no R² assumption needed):
-#   power = Φ(|β|/SE − z) + Φ(−|β|/SE − z),  β = log(OR_true), z = qnorm(1−α/2)
-# This uses the ACHIEVED precision and answers "what could we have detected?" —
-# the calibrated way to report a null (cf. Burgess 2014, IJE).
-mr_power_from_se <- function(se, or_grid = c(0.90, 0.80, 0.70, 0.50),
-                             alpha = 0.05) {
-  z <- qnorm(1 - alpha/2)
-  setNames(sapply(or_grid, function(orv) {
-    b <- abs(log(orv)); pnorm(b/se - z) + pnorm(-b/se - z)
-  }), sprintf("OR=%.2f", or_grid))
 }
 
 # ── Text report ───────────────────────────────────────────────────────────────
