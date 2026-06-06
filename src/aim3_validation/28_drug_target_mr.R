@@ -68,14 +68,14 @@ FINNGEN_R10_URL <- paste0(
 FINNGEN_LOCAL   <- file.path(DATA, "finngen_R10_IPF.gz")
 
 # ── GBMI IPF — primary outcome upgrade (pre-specified in analysis_plan_mr.md §1.3) ──
-# ~8,492 all-ancestry / ~11,160 joint cases; ~4-5x more power than FinnGen R10
-# Verify current URL at: https://www.globalbiobankmeta.org/resources
-# GCS bucket: gs://gbmi-public/  (public, no authentication required)
+# All-ancestry meta-analysis: BBJ,BioMe,BioVU,CCPM,CKB,ESTBB,FinnGen,GNH,HUNT,MGB,MGI,UCLA,UKBB
+# Manifest: data/raw/manifest_GBMI_summary_statistics.xlsx - Sheet1.tsv
+# S3 bucket: gbmi-sumstats.s3.amazonaws.com  (public)
 GBMI_IPF_URL  <- paste0(
-  "https://storage.googleapis.com/gbmi-public/",
-  "IPF/META_ANALYSIS_Mbatchou_IPF_ALL.tsv.bgz"
+  "https://gbmi-sumstats.s3.amazonaws.com/",
+  "IPF_Bothsex_inv_var_meta_GBMI_052021_nbbkgt1.txt.gz"
 )
-GBMI_LOCAL    <- file.path(DATA, "gbmi_IPF_all.tsv.bgz")
+GBMI_LOCAL    <- file.path(DATA, "gbmi_IPF_all.txt.gz")
 
 # OpenGWAS IDs to try for a larger IPF GWAS (tried in order; first hit wins)
 # Covers GBMI imports, FinnGen B-series, and GWAS Catalog EBI entries
@@ -174,10 +174,9 @@ download_gbmi <- function() {
 read_gbmi_region <- function(chr, start, end, window = 1e6, local = GBMI_LOCAL) {
   if (!file.exists(local)) stop("GBMI file not found: ", local)
   message(sprintf("  Reading GBMI region chr%d:%d-%d (±%g Mb)...", chr, start, end, window/1e6))
-  decomp_cmd <- if (grepl("\\.bgz$|\\.gz$", local)) {
-    tryCatch({ system("which bgzip", intern=TRUE, ignore.stderr=TRUE); "bgzip -c -d" },
-             error = function(e) "zcat")
-  } else "cat"
+  decomp_cmd <- if (grepl("\\.bgz$", local)) {
+    if (nchar(system("which bgzip", intern=TRUE, ignore.stderr=TRUE)) > 0) "bgzip -c -d" else "zcat"
+  } else if (grepl("\\.gz$", local)) "gunzip -c" else "cat"
   gb <- tryCatch(
     fread(
       cmd = sprintf(
@@ -197,7 +196,7 @@ read_gbmi_region <- function(chr, start, end, window = 1e6, local = GBMI_LOCAL) 
 scan_gbmi_snps <- function(snps, local = GBMI_LOCAL) {
   if (!file.exists(local)) return(NULL)
   pattern <- paste(snps, collapse = "|")
-  decomp_cmd <- if (grepl("\\.bgz$|\\.gz$", local)) "bgzip -c -d" else "cat"
+  decomp_cmd <- if (grepl("\\.bgz$", local)) "bgzip -c -d" else if (grepl("\\.gz$", local)) "gunzip -c" else "cat"
   tryCatch(
     fread(
       cmd = sprintf("%s %s | grep -E 'CHROM|CHR|#|%s'", decomp_cmd, local, pattern),
@@ -218,15 +217,15 @@ gbmi_to_outcome <- function(gb, snps = NULL, outcome_name = "IPF_GBMI_ALL") {
 
   get_col <- function(keys) { for (k in keys) if (k %in% cn) return(k); NULL }
 
-  snp_col  <- get_col(c("id", "snp", "rsid", "variant_id", "rs_id", "markername"))
-  beta_col <- get_col(c("beta_meta", "beta", "effect"))
-  se_col   <- get_col(c("se_meta", "se", "standard_error", "stderr"))
-  pval_col <- get_col(c("pval_meta", "p.value", "p_value", "pval", "p"))
-  eaf_col  <- get_col(c("af_meta", "af_alt", "effect_allele_freq", "eaf", "freq1"))
+  snp_col  <- get_col(c("rsid", "id", "snp", "variant_id", "rs_id", "markername"))
+  beta_col <- get_col(c("inv_var_meta_beta", "beta_meta", "beta", "effect"))
+  se_col   <- get_col(c("inv_var_meta_sebeta", "se_meta", "se", "standard_error", "stderr"))
+  pval_col <- get_col(c("inv_var_meta_p", "pval_meta", "p.value", "p_value", "pval", "p"))
+  eaf_col  <- get_col(c("all_meta_af", "af_meta", "af_alt", "effect_allele_freq", "eaf", "freq1"))
   ea_col   <- get_col(c("alt", "a1", "effect_allele", "allele1", "allele_b"))
   oa_col   <- get_col(c("ref", "a2", "other_allele", "allele0", "allele_a"))
-  chr_col  <- get_col(c("chrom", "chr", "#chrom", "chromosome", "ch"))
-  pos_col  <- get_col(c("genpos", "pos", "position", "bp"))
+  chr_col  <- get_col(c("#chr", "chrom", "chr", "#chrom", "chromosome", "ch"))
+  pos_col  <- get_col(c("pos", "genpos", "position", "bp"))
 
   if (is.null(snp_col) || is.null(beta_col) || is.null(se_col)) {
     message("  GBMI column mapping failed. Columns: ", paste(cn, collapse=", "))

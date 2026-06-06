@@ -28,8 +28,8 @@ Outcome:    FinnGen R10 IPF (2,189 cases / 407,609 controls)
 
   Inverse variance weighted       OR=0.846  [0.338-2.118]  p=0.7214  nSNP=4
   MR Egger                        OR=0.216  [0.010-4.568]  p=0.4288  nSNP=4
-  Weighted median                 OR=0.670  [0.282-1.587]  p=0.3623  nSNP=4
-  Weighted mode                   OR=0.562  [0.033-9.656]  p=0.7180  nSNP=4
+  Weighted median                 OR=0.670  [0.284-1.576]  p=0.3584  nSNP=4
+  Weighted mode                   OR=0.562  [0.033-9.547]  p=0.7170  nSNP=4
 
   MR-Egger intercept: 0.06663 (p=0.4539) — no evidence of directional pleiotropy
 
