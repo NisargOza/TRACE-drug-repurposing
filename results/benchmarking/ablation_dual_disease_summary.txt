@@ -1,0 +1,12 @@
+Dual-Disease Ablation — Median Rank of Known Actives
+==============================================================
+Disease Arm               Median rank    %ile  Actives
+--------------------------------------------------------------
+IPF    skip_network              369/1768   20.9%     2 found
+IPF    skip_vae                  428/1768   24.2%     2 found
+IPF    full                      399/1768   22.6%     2 found
+IPF    baseline                  637/1768   36.1%     2 found
+RA     skip_network             1343/1768   76.0%     3 found
+RA     skip_vae                  590/1768   33.4%     3 found
+RA     full                      590/1768   33.4%     3 found
+RA     baseline                  755/1768   42.7%     3 found

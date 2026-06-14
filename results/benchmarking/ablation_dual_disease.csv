@@ -1,0 +1,9 @@
+disease,arm,median_rank_actives,pct_rank,n_actives_found,n_drugs
+IPF,skip_network,369.0,20.9,2,1768
+IPF,skip_vae,428.5,24.2,2,1768
+IPF,full,399.0,22.6,2,1768
+IPF,baseline,637.5,36.1,2,1768
+RA,skip_network,1343.0,76.0,3,1768
+RA,skip_vae,590.0,33.4,3,1768
+RA,full,590.0,33.4,3,1768
+RA,baseline,755.0,42.7,3,1768

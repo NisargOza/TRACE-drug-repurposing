@@ -1,0 +1,3 @@
+disease,arm,observed_auroc,emp_pvalue,n_perm,n_actives,n_drugs
+IPF,Pearson (network),0.7324,0.126,1000,2,1768
+RA,Pearson (network),0.6032,0.272,1000,3,1768
