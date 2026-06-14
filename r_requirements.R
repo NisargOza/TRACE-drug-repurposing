@@ -19,5 +19,5 @@ if (!require("remotes", quietly = TRUE))
 remotes::install_github("MRCIEU/TwoSampleMR")
 remotes::install_github("mrcieu/ieugwasr")
 
-install.packages(c("coloc", "data.table", "jsonlite", "dplyr", "ggplot2"),
+install.packages(c("coloc", "data.table", "jsonlite", "readr", "dplyr", "ggplot2"),
                  repos = CRAN)
