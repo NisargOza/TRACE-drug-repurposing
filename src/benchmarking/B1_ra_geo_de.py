@@ -35,39 +35,57 @@ DATA.mkdir(parents=True, exist_ok=True)
 DE_OUT.mkdir(parents=True, exist_ok=True)
 
 # ── Dataset registry ──────────────────────────────────────────────────────────
-# Each entry: (accession, matrix_url, gpl_url, ra_keyword, ctrl_keyword)
+# Each entry: (accession, matrix_url, gpl_id, ra_keyword, ctrl_keyword)
+# Keywords are matched as SUBSTRINGS (case-insensitive) anywhere in the title.
+# RA keyword is applied first; control keyword is applied to remaining samples
+# so there is no risk of overlap.
+#   GSE55457: titles are "Rheumatoid Arthritis synovium N" / "Normal synovium N"
+#   GSE36700: titles are "Synovial tissue from patient with Rheumatoid Arthritis N" / "OA N" / "Normal N"
+#   GSE77298: titles are "Rheumatoid Arthritis-N" / "Healthy Control-N"
+# Each entry: (accession, matrix_url, gpl_id, ra_keyword, ctrl_keyword, use_startswith)
+# use_startswith=True  -> keyword must be at the START of the title (short-code datasets)
+# use_startswith=False -> keyword matched anywhere as substring (descriptive-title datasets)
+#
+# Confirmed title formats (from diagnostic run):
+#   GSE55457: "Rheumatoid Arthritis synovium N" / "Normal synovium N"  -> substring
+#   GSE36700: "RA1".."RA7" / "OA1".."OA5"                             -> startswith
+#   GSE77298: "RA-1".."RA-16" / "HC-1".."HC-7"                        -> startswith
 DATASETS = [
     (
         "GSE55457",
         "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE55nnn/GSE55457/matrix/"
         "GSE55457_series_matrix.txt.gz",
         "GPL96",
-        "rheumatoid",
+        "rheumatoid",   # substring match — titles are descriptive
         "normal",
+        False,
     ),
     (
         "GSE36700",
         "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE36nnn/GSE36700/matrix/"
         "GSE36700_series_matrix.txt.gz",
         "GPL570",
-        "rheumatoid arthritis",
-        "normal",
+        "RA",           # startswith — confirmed titles: RA1..RA7
+        "OA",           # startswith — confirmed titles: OA1..OA5
+        True,
     ),
     (
         "GSE77298",
         "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE77nnn/GSE77298/matrix/"
         "GSE77298_series_matrix.txt.gz",
-        "GPL16791",
-        "rheumatoid arthritis",
-        "osteoarthritis",   # OA used as control per published design
+        "GPL570",       # Affymetrix HG-U133Plus2 — same platform as GSE36700
+        "RA-",          # startswith — confirmed titles: RA-1..RA-16
+        "HC-",          # startswith — confirmed titles: HC-1..HC-7
+        True,
     ),
 ]
 
-# Entrez maps for common platforms cached as CSVs to avoid repeated downloads
+# Entrez maps for common platforms.
+# Using .annot.gz files (clean probe->Entrez TSVs, ~5 MB each) instead of
+# _family.soft.gz files (multi-section family files, ~200 MB, require special parsing).
 GPL_ENTREZ_URLS = {
-    "GPL96":    "https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPLnnn/GPL96/soft/GPL96_family.soft.gz",
-    "GPL570":   "https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPLnnn/GPL570/soft/GPL570_family.soft.gz",
-    "GPL16791": None,  # Illumina: gene-level counts, no probe map needed
+    "GPL96":  "https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPLnnn/GPL96/annot/GPL96.annot.gz",
+    "GPL570": "https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPLnnn/GPL570/annot/GPL570.annot.gz",
 }
 
 
@@ -119,44 +137,81 @@ def parse_matrix(path: Path) -> tuple[pd.DataFrame, list[str]]:
     return df, titles
 
 
-def parse_gpl_soft(gpl_id: str) -> dict[str, int]:
-    """Return probe_id → Entrez mapping for array platforms."""
+def parse_gpl_annot(gpl_id: str) -> dict[str, int]:
+    """
+    Return probe_id -> Entrez mapping by parsing a GEO .annot.gz file.
+
+    GEO .annot.gz files use SOFT format: metadata lines prefixed with ^ or !,
+    then the probe table delimited by:
+        !platform_table_begin  ...header row...  data rows  !platform_table_end
+    This is the same marker-based structure as _family.soft.gz, but .annot.gz
+    files contain only a SINGLE platform section so the parser always finds
+    exactly one table.
+
+    The parsed table is cached as a CSV so subsequent runs skip re-parsing.
+    If the cache exists but is empty (from a previously failed parse), it is
+    deleted and re-parsed automatically.
+    """
     cache = DATA / f"{gpl_id}_entrez.csv"
+
+    # Guard: delete empty/corrupt cache files from previous failed runs
+    if cache.exists() and cache.stat().st_size < 100:
+        print(f"  Removing empty cache {cache.name} and re-parsing ...")
+        cache.unlink()
+
     if cache.exists():
         gpl_df = pd.read_csv(cache, dtype=str)
+        print(f"  [cached] {cache.name} ({len(gpl_df):,} probes)")
     else:
         url = GPL_ENTREZ_URLS.get(gpl_id)
         if url is None:
             return {}
-        soft_path = DATA / f"{gpl_id}_family.soft.gz"
-        if not download_file(url, soft_path):
+        annot_path = DATA / f"{gpl_id}.annot.gz"
+        if not download_file(url, annot_path):
             return {}
-        records, header_r, in_tab = [], [], False
-        with gzip.open(soft_path, "rt", encoding="utf-8", errors="replace") as fh:
+
+        # Parse SOFT-format table between !platform_table_begin/end markers
+        rows, header_r, in_tab = [], [], False
+        with gzip.open(annot_path, "rt", encoding="utf-8", errors="replace") as fh:
             for line in fh:
                 line = line.rstrip("\n")
-                if "platform_table_begin" in line:
+                if "platform_table_begin" in line.lower():
                     in_tab = True
                     continue
-                if "platform_table_end" in line:
+                if "platform_table_end" in line.lower():
                     break
                 if not in_tab:
                     continue
-                if not header_r:
-                    header_r = line.split("\t")
-                    continue
                 parts = line.split("\t")
+                if not header_r:
+                    header_r = parts
+                    continue
                 if len(parts) >= len(header_r):
-                    records.append(dict(zip(header_r, parts)))
-        gpl_df = pd.DataFrame(records)
-        gpl_df.to_csv(cache, index=False)
+                    rows.append(dict(zip(header_r, parts)))
 
-    col_up = {c.upper(): c for c in gpl_df.columns}
-    id_col = col_up.get("ID") or col_up.get("PROBE_ID")
-    e_col  = (col_up.get("ENTREZ_GENE_ID") or col_up.get("GENE_ID")
-               or col_up.get("GENE"))
+        if not rows:
+            print(f"  ERROR: {gpl_id}.annot.gz parsed 0 rows — table markers not found")
+            print(f"  Delete {annot_path.name} and re-run to re-download")
+            return {}
+
+        gpl_df = pd.DataFrame(rows)
+        gpl_df.to_csv(cache, index=False)
+        print(f"  Parsed {len(gpl_df):,} probes from {gpl_id}.annot.gz -> cached")
+
+    # Normalise column lookup (case-insensitive, strip whitespace)
+    col_up = {c.upper().strip(): c for c in gpl_df.columns}
+
+    # ID column — GPL96/GPL570 annot files use "ID" (same as SOFT)
+    id_col = (col_up.get("ID") or col_up.get("PROBE SET ID")
+              or col_up.get("PROBE_SET_ID") or col_up.get("PROBE ID"))
+    # Entrez column — GPL96/GPL570 annot files use "ENTREZ_GENE_ID"
+    e_col  = (col_up.get("ENTREZ_GENE_ID") or col_up.get("ENTREZ GENE")
+              or col_up.get("ENTREZ_GENE") or col_up.get("GENE_ID")
+              or col_up.get("GENE ID") or col_up.get("GENE"))
+
     if not id_col or not e_col:
-        print(f"  WARNING: could not find ID/Entrez columns in {gpl_id}")
+        print(f"  WARNING: could not find Probe/Entrez columns in {gpl_id}")
+        print(f"  Available columns: {list(gpl_df.columns)[:10]}")
         return {}
 
     probe2e: dict[str, int] = {}
@@ -167,7 +222,62 @@ def parse_gpl_soft(gpl_id: str) -> dict[str, int]:
             )
         except (ValueError, TypeError):
             pass
+    print(f"  {gpl_id}: {len(probe2e):,} probe->Entrez mappings loaded")
     return probe2e
+
+
+def load_ensembl_to_entrez() -> dict[str, int]:
+    """
+    Build Ensembl gene ID -> Entrez ID map for human genes.
+
+    Downloads NCBI gene2ensembl.gz (all species, ~150 MB compressed),
+    filters to Homo sapiens (tax_id=9606), and caches the human-only
+    mapping as data/raw/ra/ensembl_to_entrez_human.csv (~30k rows, ~1 MB).
+
+    gene2ensembl columns (tab-separated, no header line — first line IS data):
+      0: tax_id
+      1: GeneID  (Entrez)
+      2: Ensembl_gene_identifier  (ENSG...)
+      3: RNA_nucleotide_accession
+      4: Ensembl_rna_identifier
+      5: protein_accession
+      6: Ensembl_protein_identifier
+    """
+    cache = DATA / "ensembl_to_entrez_human.csv"
+
+    if cache.exists() and cache.stat().st_size > 1000:
+        df = pd.read_csv(cache, dtype=str)
+        mapping = dict(zip(df["ensembl_id"], df["entrez_id"].astype(int)))
+        print(f"  [cached] ensembl_to_entrez_human.csv ({len(mapping):,} genes)")
+        return mapping
+
+    url = "https://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2ensembl.gz"
+    raw = DATA / "gene2ensembl.gz"
+    if not download_file(url, raw):
+        print("  ERROR: could not download gene2ensembl.gz")
+        return {}
+
+    print("  Filtering gene2ensembl.gz to human (tax_id=9606) ...")
+    rows = []
+    with gzip.open(raw, "rt", encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            if line.startswith("#"):
+                continue
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3:
+                continue
+            if parts[0] != "9606":          # human only
+                continue
+            ensembl = parts[2].strip()
+            entrez  = parts[1].strip()
+            if ensembl.startswith("ENSG") and entrez.isdigit():
+                rows.append({"ensembl_id": ensembl, "entrez_id": entrez})
+
+    df = pd.DataFrame(rows).drop_duplicates(subset="ensembl_id")
+    df.to_csv(cache, index=False)
+    mapping = dict(zip(df["ensembl_id"], df["entrez_id"].astype(int)))
+    print(f"  Parsed {len(mapping):,} human Ensembl->Entrez mappings -> cached")
+    return mapping
 
 
 def run_de(expr: pd.DataFrame, ra_idx: list[int],
@@ -202,17 +312,12 @@ def run_de(expr: pd.DataFrame, ra_idx: list[int],
     })
 
     # Map probes → Entrez
-    if gpl_id == "GPL16791":
-        # RNA-seq from Illumina: row index is already HGNC symbol or Ensembl
-        # Attempt to use the index directly as Entrez (if numeric) or skip mapping
-        de["entrez"] = pd.to_numeric(de["probe"], errors="coerce")
-    else:
-        probe2e = parse_gpl_soft(gpl_id)
-        if not probe2e:
-            print(f"  WARNING {acc}: no probe map; saving unmapped DE")
-            de.to_csv(DE_OUT / f"{acc}_ra_de_unmapped.csv", index=False)
-            return pd.DataFrame()
-        de["entrez"] = de["probe"].map(probe2e)
+    probe2e = parse_gpl_annot(gpl_id)
+    if not probe2e:
+        print(f"  WARNING {acc}: no probe map; saving unmapped DE")
+        de.to_csv(DE_OUT / f"{acc}_ra_de_unmapped.csv", index=False)
+        return pd.DataFrame()
+    de["entrez"] = de["probe"].map(probe2e)
 
     de = de.dropna(subset=["entrez"]).copy()
     de["entrez"] = de["entrez"].astype(int)
@@ -231,7 +336,7 @@ def run_de(expr: pd.DataFrame, ra_idx: list[int],
 
 
 def main() -> None:
-    for acc, matrix_url, gpl_id, ra_kw, ctrl_kw in DATASETS:
+    for acc, matrix_url, gpl_id, ra_kw, ctrl_kw, use_startswith in DATASETS:
         print(f"\n{'='*60}")
         print(f"Processing {acc} (platform {gpl_id})")
         out_path = DE_OUT / f"{acc}_ra_de_entrez.csv"
@@ -250,14 +355,26 @@ def main() -> None:
         expr, titles = parse_matrix(local)
         print(f"  Expression: {expr.shape}, {len(titles)} titles")
 
-        ra_idx   = [i for i, t in enumerate(titles)
-                    if ra_kw.lower() in t.lower()]
-        ctrl_idx = [i for i, t in enumerate(titles)
-                    if ctrl_kw.lower() in t.lower()]
+        # Classify RA samples first, then controls from remaining samples.
+        # Short-code datasets (use_startswith=True): match at title start only,
+        # so "RA" doesn't accidentally match inside longer words.
+        # Descriptive-title datasets (use_startswith=False): substring match.
+        def matches(title: str, keyword: str) -> bool:
+            if use_startswith:
+                return title.lower().startswith(keyword.lower())
+            return keyword.lower() in title.lower()
+
+        ra_idx   = [i for i, t in enumerate(titles) if matches(t, ra_kw)]
+        non_ra   = [i for i in range(len(titles)) if i not in set(ra_idx)]
+        ctrl_idx = [i for i in non_ra if matches(titles[i], ctrl_kw)]
+
         print(f"  RA samples: {len(ra_idx)},  Control samples: {len(ctrl_idx)}")
 
         if not ra_idx or not ctrl_idx:
-            print(f"  WARNING: sample classification failed — check titles: {titles[:5]}")
+            print(f"  WARNING: sample classification failed")
+            print(f"  ALL {len(titles)} titles:")
+            for _i, _t in enumerate(titles):
+                print(f"    [{_i}] {_t!r}")
             continue
 
         de = run_de(expr, ra_idx, ctrl_idx, gpl_id, acc)
