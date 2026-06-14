@@ -1,0 +1,8 @@
+CMD=Scripts\Rscript.exe C:\Users\pares\Documents\GitHub\ipf-drug-repurposing\src\benchmarking\ra_meta_analysis.R
+RC=3221225781
+
+STDOUT:
+
+
+STDERR:
+
