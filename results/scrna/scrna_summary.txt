@@ -1,1 +1,30 @@
-AT2→AT1 signature: no expression data available.
+Spearman r (scRNA vs bulk Net-TRACE): 0.015  p=5.267e-01
+
+Top-20 scRNA Pearson reversers:
+    1. sofalcone (0.1439)
+    2. KIN001-043 (0.1393)
+    3. levalbuterol (0.1381)
+    4. BIX-02189 (0.1321)
+    5. amoxapine (0.1283)
+    6. TG-100801 (0.1267)
+    7. forskolin (0.1240)
+    8. apabetalone (0.1235)
+    9. quinapril (0.1220)
+   10. SB-525334 (0.1191)
+   11. ibrutinib (0.1175)
+   12. ritonavir (0.1154)
+   13. vortioxetine (0.1137)
+   14. histamine (0.1132)
+   15. GDC-0879 (0.1130)
+   16. mibefradil (0.1120)
+   17. candesartan (0.1119)
+   18. CO-102862 (0.1118)
+   19. VE-821 (0.1112)
+   20. KD-023 (0.1098)
+
+Priority candidates in scRNA arm:
+  romidepsin: rank 721/1768
+  JNJ-26481585: rank 692/1768
+  dasatinib: rank 144/1768
+  atorvastatin: rank 708/1768
+  nintedanib: rank 1301/1768
