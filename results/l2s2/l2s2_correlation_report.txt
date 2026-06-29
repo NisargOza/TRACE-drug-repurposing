@@ -1,0 +1,4 @@
+Spearman (Enrichr/L2S2 rank vs Net-TRACE rank)
+  n_common: 457
+  rho: 0.1577
+  p: 7.182e-04

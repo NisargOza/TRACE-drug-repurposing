@@ -1,0 +1,8 @@
+Priority candidate ranks in Enrichr/L2S2 (out of 2,834 drugs):
+  romidepsin                     not found
+  JNJ-26481585                   not found
+  dasatinib                      rank=32  score=217.15
+  atorvastatin                   rank=1328  score=10.57
+  pitavastatin                   not found
+  trametinib                     rank=45  score=197.75
+  nintedanib                     rank=12  score=297.62

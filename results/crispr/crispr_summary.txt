@@ -1,0 +1,15 @@
+CRISPR KO reversal targets — priority candidates:
+  Total KO genes scored: 5208
+  Druggable (small molecule): 0
+
+Top-10 priority targets:
+  SAMHD1          score=336.5  []
+  FNIP1           score=318.5  []
+  LIPT1           score=316.6  []
+  TMEM255A        score=283.7  []
+  PILRA           score=277.0  []
+  DGKQ            score=276.0  []
+  PRKAR2A         score=264.9  []
+  DMPK            score=255.9  []
+  SDSL            score=249.2  []
+  CCDC121         score=244.7  []

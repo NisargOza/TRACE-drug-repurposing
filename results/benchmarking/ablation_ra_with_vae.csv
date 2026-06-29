@@ -1,0 +1,4 @@
+arm,auroc,auprc,auprc_fold_over_random
+Pearson (RA),0.6032,0.002945,1.74
+CMap-KS (RA),0.5165,0.002062,1.22
+VAE-RA (fine-tuned),0.038,0.001168,0.69
