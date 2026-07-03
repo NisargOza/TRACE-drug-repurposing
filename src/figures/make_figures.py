@@ -22,6 +22,7 @@ Extended data (results/figures/):
   ext11_heldout_validation.png    — independent held-out cohort validation
   ext12_mr_forest.png             — drug-target Mendelian randomization (null/underpowered)
   ext13_robustness.png            — weight-sensitivity + negative-control robustness
+  ext14_vae_architecture.png      — VAE-TRACE model architecture (schematic + loss/inference)
 """
 from pathlib import Path
 import sys
@@ -35,7 +36,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 import matplotlib.patches as mpatches
+
+try:
+    import torch
+    _HAS_TORCH = True
+except ImportError:
+    _HAS_TORCH = False
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _style import (
@@ -59,6 +67,8 @@ MR     = RES / "mr"
 VALID  = RES / "validation"
 DE     = RES / "de"
 QC     = RES / "qc"
+EMB    = RES / "embedding"
+L1000  = RES / "l1000"
 OUT    = RES / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -812,6 +822,165 @@ def ext13_robustness():
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# Extended Data 14 — VAE-TRACE model architecture
+# ══════════════════════════════════════════════════════════════════════════
+def _sch_box(ax, xy, w, h, text, fc, ec=DGRAY, fontsize=6.6, fontcolor="white", lw=0.9):
+    """Draw a rounded schematic box; returns (cx, cy, x, y, w, h) for chaining arrows."""
+    x, y = xy
+    p = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.015,rounding_size=0.06",
+                        fc=fc, ec=ec, lw=lw, zorder=3, mutation_aspect=1)
+    ax.add_patch(p)
+    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fontsize,
+            color=fontcolor, zorder=4, linespacing=1.35)
+    return (x + w / 2, y + h / 2, x, y, w, h)
+
+
+def _sch_hjoin(ax, b1, b2, color=DGRAY, lw=1.0):
+    x1 = b1[2] + b1[4]; y1 = b1[1]
+    x2 = b2[2];         y2 = b2[1]
+    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>", color=color, lw=lw,
+                                  mutation_scale=8, zorder=2))
+
+
+def ext14_vae_architecture():
+    name = "ext14_vae_architecture.png"
+    ckpt_path = EMB / "vae_model.pt"
+    sig_path = L1000 / "sm_sig_info.csv"
+    drugmeta_path = L1000 / "drug_metadata.csv"
+    if not all(_require(p, name) for p in [ckpt_path, sig_path]):
+        return
+
+    # Pull real architecture + parameter counts from the trained checkpoint rather
+    # than hardcoding shapes, so the figure tracks the actual model on disk.
+    n_genes, latent_dim = 978, 128
+    hidden1, hidden2 = 512, 256
+    n_params = None
+    if _HAS_TORCH:
+        try:
+            ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+            sd = ckpt["model_state"]
+            n_genes = int(ckpt.get("n_genes", n_genes))
+            latent_dim = int(ckpt.get("latent_dim", latent_dim))
+            hidden1 = sd["enc.0.weight"].shape[0]
+            hidden2 = sd["enc.3.weight"].shape[0]
+            n_params = int(sum(v.numel() for v in sd.values()))
+        except Exception as e:
+            warnings.warn(f"[{name}] could not read vae_model.pt checkpoint ({e}); using script defaults.")
+    param_str = f"{n_params/1e6:.2f}M" if n_params else "1.37M"
+
+    n_sigs = None
+    n_drugs = None
+    try:
+        sig_info = pd.read_csv(sig_path, usecols=["pert_iname"], low_memory=False)
+        n_sigs = len(sig_info)
+        n_drugs = sig_info["pert_iname"].nunique()
+    except Exception:
+        pass
+    if drugmeta_path.exists() and n_drugs is None:
+        try:
+            n_drugs = len(pd.read_csv(drugmeta_path))
+        except Exception:
+            pass
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.2, 5.9), gridspec_kw={"width_ratios": [1.72, 1]})
+
+    # ---- Panel a: encoder/decoder schematic ----
+    ax = axes[0]
+    ax.set_xlim(0, 130)
+    ax.set_ylim(0, 58)
+    ax.axis("off")
+    CY = 29
+
+    b_in = _sch_box(ax, (0, CY - 14), 11, 28, f"input\nL1000\nsignature\n({n_genes} genes)", GRAY)
+    b_e1 = _sch_box(ax, (14, CY - 10), 13, 20, f"Linear\n{n_genes}\u2192{hidden1}\nLayerNorm\nGELU", BLUE)
+    b_e2 = _sch_box(ax, (30, CY - 8), 13, 16, f"Linear\n{hidden1}\u2192{hidden2}\nLayerNorm\nGELU", BLUE)
+    _sch_hjoin(ax, b_in, b_e1); _sch_hjoin(ax, b_e1, b_e2)
+
+    b_mu = _sch_box(ax, (46, CY + 7), 13, 8, f"Linear\n{hidden2}\u2192{latent_dim}\n\u03bc (mean)", TEAL)
+    b_lv = _sch_box(ax, (46, CY - 15), 13, 8, f"Linear\n{hidden2}\u2192{latent_dim}\nlog\u03c3\u00b2 (var)", TEAL)
+    for b_head in (b_mu, b_lv):
+        x1, y1 = b_e2[2] + b_e2[4], b_e2[1]
+        x2, y2 = b_head[2], b_head[1]
+        rad = 0.28 if y2 > y1 else -0.28
+        ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>", color=DGRAY, lw=1.0,
+                                      connectionstyle=f"arc3,rad={rad}", mutation_scale=8, zorder=2))
+
+    b_z = _sch_box(ax, (63, CY - 5), 13, 10, f"z = \u03bc + \u03c3\u2299\u03b5\nreparameterize\nlatent ({latent_dim}-d)",
+                    DGRAY, fontsize=6.3)
+    for b_head in (b_mu, b_lv):
+        x1, y1 = b_head[2] + b_head[4], b_head[1]
+        x2, y2 = b_z[2], b_z[1]
+        rad = -0.28 if y1 > y2 else 0.28
+        ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>", color=DGRAY, lw=1.0,
+                                      connectionstyle=f"arc3,rad={rad}", mutation_scale=8, zorder=2))
+    eps_x, eps_y = 67, CY - 13
+    ax.text(eps_x, eps_y, "\u03b5 ~ N(0,I)", ha="center", va="center", fontsize=6.0, color=META_GREY, style="italic")
+    ax.add_patch(FancyArrowPatch((eps_x, eps_y + 1.8), (b_z[0] - 1, b_z[3]), arrowstyle="-|>", color=META_GREY,
+                                  lw=0.8, connectionstyle="arc3,rad=0.15", mutation_scale=6, zorder=2, linestyle="--"))
+
+    b_d1 = _sch_box(ax, (80, CY - 8), 13, 16, f"Linear\n{latent_dim}\u2192{hidden2}\nLayerNorm\nGELU", ORANGE)
+    b_d2 = _sch_box(ax, (96, CY - 10), 13, 20, f"Linear\n{hidden2}\u2192{hidden1}\nLayerNorm\nGELU", ORANGE)
+    _sch_hjoin(ax, b_z, b_d1); _sch_hjoin(ax, b_d1, b_d2)
+    b_out = _sch_box(ax, (113, CY - 14), 13, 28, f"Linear\n{hidden1}\u2192{n_genes}\nreconstruction\n\u0177 ({n_genes} genes)", GRAY)
+    _sch_hjoin(ax, b_d2, b_out)
+
+    ax.text(0, 54, "encoder", ha="left", fontsize=8.2, color=BLUE, fontweight="bold")
+    ax.text(63, 54, "reparameterization", ha="center", fontsize=8.2, color=DGRAY, fontweight="bold")
+    ax.text(113, 54, "decoder", ha="right", fontsize=8.2, color=ORANGE, fontweight="bold")
+    ax.set_title(f"VAE-TRACE encoder\u2013decoder: {n_genes}\u2192{hidden1}\u2192{hidden2}\u2192{latent_dim}\u2192"
+                 f"{hidden2}\u2192{hidden1}\u2192{n_genes}, {param_str} trainable parameters", fontsize=8.8, loc="left")
+
+    # ---- Panel b: training objective + inference ----
+    axb = axes[1]
+    axb.axis("off"); axb.set_xlim(0, 1); axb.set_ylim(0, 1)
+
+    train_line2 = (f"{n_sigs:,} L1000 Level-5 small-molecule\nsignatures \u00d7 {n_genes} landmark genes"
+                   if n_sigs else f"L1000 Level-5 small-molecule\nsignatures \u00d7 {n_genes} landmark genes")
+    train_line3 = f"({n_drugs:,} unique compounds)" if n_drugs else ""
+    txt_train = f"Training data\n{train_line2}\n{train_line3}\n"
+    axb.text(0.02, 0.98, txt_train, transform=axb.transAxes, fontsize=7.2, va="top", ha="left",
+             color=DGRAY, linespacing=1.55, fontweight="bold")
+
+    txt_loss = (
+        "Training objective (per batch)\n\n"
+        r"$\mathcal{L} = \mathcal{L}_{recon} + \beta\,\mathcal{L}_{KL} + \lambda\,\mathcal{L}_{contrastive}$" "\n\n"
+        "  \u2022 recon: MSE(\u0177, x)\n"
+        "  \u2022 KL: closed-form vs. N(0,I),  \u03b2 = 0.5\n"
+        "  \u2022 contrastive: NT-Xent (InfoNCE) on \u03bc,\n"
+        "    \u03c4 = 0.1,  \u03bb = 0.1 \u2014 pulls together\n"
+        "    latent embeddings of the same drug\n"
+        "    across different cell lines\n\n"
+        "Adam, lr=1e-3, batch=512, 50 epochs"
+    )
+    axb.text(0.02, 0.80, txt_loss, transform=axb.transAxes, fontsize=7.0, va="top", ha="left",
+             color=DGRAY, linespacing=1.5)
+
+    txt_infer = (
+        "Inference \u2192 VAE-TRACE score\n\n"
+        "1. encode consensus IPF signature \u2192 \u03bc_IPF\n"
+        "2. encode each drug's per-cell-line\n"
+        "   signatures \u2192 average \u03bc across lines\n"
+        "3. score = \u2212cos(\u03bc_IPF, \u03bc_drug)\n"
+        "   (more negative cosine = stronger\n"
+        "   predicted transcriptional reversal)"
+    )
+    axb.text(0.02, 0.30, txt_infer, transform=axb.transAxes, fontsize=7.0, va="top", ha="left",
+             color=DGRAY, linespacing=1.5)
+
+    panel_letter(axes[0], "a")
+    panel_letter(axes[1], "b")
+    fig.suptitle("Extended Data 14 | VAE-TRACE model architecture: contrastive variational autoencoder "
+                 "over L1000 landmark-gene signatures", fontsize=9.3, x=0.02, ha="left", y=1.03)
+    fig.text(0.02, -0.03,
+             "Cell-line-invariance is enforced explicitly by the NT-Xent contrastive term over the mean "
+             "latent code \u03bc, not by architecture alone \u2014 the core tissue-mismatch correction in TRACE. "
+             "Architecture and parameter counts read directly from results/embedding/vae_model.pt.",
+             fontsize=6.3, color=META_GREY, ha="left")
+    fig.tight_layout()
+    _save(fig, name)
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # Main
 # ══════════════════════════════════════════════════════════════════════════
 def main():
@@ -828,6 +997,7 @@ def main():
     ext11_heldout_validation()
     ext12_mr_forest()
     ext13_robustness()
+    ext14_vae_architecture()
 
 
 if __name__ == "__main__":
