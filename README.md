@@ -164,9 +164,3 @@ results/
 ```
 
 ---
-
-## Citation
-
-If you use TRACE, please cite:
-
-> Oza N. *Transcriptomic Reversal and Convergence Engine (TRACE): a continuous-membership drug repurposing framework applied to idiopathic pulmonary fibrosis.* 2025.
