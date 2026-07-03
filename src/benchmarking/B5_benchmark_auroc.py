@@ -1,20 +1,3 @@
-"""
-AUROC + AUPRC benchmark — Step B5.
-
-Computes AUROC (Hanley-McNeil 95% CI) and AUPRC (average_precision_score) for
-each scoring arm × disease against the known-actives reference lists.
-
-With only 2–3 positives in 1,768 drugs, AUPRC is preferred over AUROC because
-it is more sensitive to class imbalance. Random AUPRC baseline = n_pos/n_total
-(0.00113 for IPF, 0.00170 for RA). Fold-over-random quantifies enrichment.
-
-Outputs:
-  results/benchmarking/auroc_summary.csv   (AUROC + AUPRC columns)
-  results/benchmarking/roc_pr_curves.png   (ROC left, PR right, one row per disease)
-
-Usage:
-    python src/benchmarking/B5_benchmark_auroc.py
-"""
 
 from pathlib import Path
 
@@ -44,7 +27,6 @@ def load_actives(disease: str) -> set[str]:
 def hanley_mcneil_ci(y_true: np.ndarray,
                      y_score: np.ndarray,
                      alpha: float = 0.05) -> tuple[float, float, float]:
-    """AUROC with 95% CI via Hanley & McNeil (1982) normal approximation."""
     n1  = int(y_true.sum())
     n2  = int((1 - y_true).sum())
     if n1 < 2 or n2 < 2:
@@ -62,41 +44,29 @@ def hanley_mcneil_ci(y_true: np.ndarray,
 
 
 def load_arms_for_disease(disease: str) -> dict[str, pd.Series]:
-    """
-    Load all available scoring arms for a disease.
-    Returns dict: arm_label -> Series(index=drug_name, values=score)
-    Higher score = stronger reversal candidate in all arms.
-    """
     arms = {}
 
     if disease == "IPF":
-        # Net-TRACE
         f = REV / "trace_scores.csv"
         if f.exists():
             df = pd.read_csv(f)
             arms["Net-TRACE"] = df.set_index("drug")["trace_score"]
 
-        # VAE-TRACE
         f = EMB / "vae_trace_scores.csv"
         if f.exists():
             df = pd.read_csv(f)
             arms["VAE-TRACE"] = df.set_index("drug")["vae_score"]
 
-        # Baseline KS (negated: baseline_score is already negative for reversals)
         f = REV / "baseline_scores.csv"
         if f.exists():
             df = pd.read_csv(f)
-            # baseline_score: more negative = stronger KS reversal
-            # negate so higher = better reversal, consistent with other arms
             arms["Baseline-KS"] = -df.set_index("drug")["baseline_score"]
 
-    # Pearson + CMap from B3 (both diseases)
     label = disease.lower()
     f = BENCH / f"{label}_drug_scores.csv"
     if f.exists():
         df = pd.read_csv(f)
         arms[f"Pearson ({disease})"]  = df.set_index("drug")["pearson"]
-        # CMap: negative score = reversal → negate for consistent direction
         arms[f"CMap-KS ({disease})"]  = -df.set_index("drug")["cmap"]
 
     return arms
@@ -106,7 +76,6 @@ def main() -> None:
     diseases = ["IPF", "RA"]
     records  = []
 
-    # Two columns: ROC (left) and PR (right), one row per disease
     fig, all_axes = plt.subplots(len(diseases), 2,
                                   figsize=(14, 6 * len(diseases)))
 
@@ -141,7 +110,6 @@ def main() -> None:
                 print(f"  {arm_name}: AUROC failed ({exc})")
                 continue
 
-            # AUPRC — more appropriate than AUROC for heavy class imbalance
             ap         = float(average_precision_score(labels, score_vals))
             rand_base  = n_pos / len(drugs)
 
@@ -164,7 +132,6 @@ def main() -> None:
                 "n_total":                len(drugs),
             })
 
-        # Draw random PR baseline
         n_all = len(next(iter(arms.values())))
         n_act = sum(1 for d in next(iter(arms.values())).index if d.lower() in actives)
         ax_pr.axhline(n_act / n_all, ls="--", lw=0.8, color="k",

@@ -1,19 +1,3 @@
-"""
-QC for downloaded IPF datasets — RESEARCH.md §8.
-
-Per-dataset checks:
-  1. Library-size distribution (RNA-seq) / expression distribution (array)
-  2. PCA coloured by condition — spot batch effects and outliers
-  3. Sample-level outlier flagging (> 3 SD from mean PC1/PC2)
-
-Outputs per dataset:
-  results/qc/{acc}_libsize.png
-  results/qc/{acc}_pca.png
-  results/qc/qc_summary.csv   — outlier flags for all samples
-
-Usage:
-    python src/04_qc.py
-"""
 
 import warnings
 from pathlib import Path
@@ -49,12 +33,7 @@ DATASETS = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Loaders
-# ---------------------------------------------------------------------------
-
 def load_expression(acc: str, dtype: str) -> pd.DataFrame:
-    """Return expression DataFrame (genes/probes × samples), log1p-transformed."""
     proc = DATA_PROC / acc
     if dtype == "rnaseq":
         f = proc / "counts_raw.csv.gz"
@@ -67,32 +46,22 @@ def load_expression(acc: str, dtype: str) -> pd.DataFrame:
         raise FileNotFoundError(f"No expression file for {acc}: {f}")
 
     df = pd.read_csv(f, index_col=0, low_memory=False)
-    # Keep only numeric columns (some datasets include gene-symbol annotation cols)
     df = df.select_dtypes(include=[np.number])
-    # log1p-transform counts; arrays are already log-scale but log1p is idempotent
-    # for values >> 0
     if dtype == "rnaseq":
         df = np.log1p(df)
     return df
 
 
 def load_metadata(acc: str, expr_cols: pd.Index | None = None) -> pd.DataFrame:
-    """
-    Load sample metadata. If expr_cols are provided and don't match the
-    metadata GSM index, attempt to re-index via Sample_title (short IDs
-    used in some supplementary count files).
-    """
     f = DATA_PROC / acc / "metadata.csv"
     meta = pd.read_csv(f, index_col=0, low_memory=False)
 
     if expr_cols is None:
         return meta
 
-    # Check if expr columns already align with metadata index
     if set(expr_cols) & set(meta.index):
         return meta
 
-    # Try aligning via Sample_title (short IDs like 'chp_1', 'ipf_23')
     title_col = next((c for c in meta.columns if "title" in c.lower()), None)
     if title_col is not None:
         title_to_gsm = dict(zip(meta[title_col], meta.index))
@@ -104,15 +73,10 @@ def load_metadata(acc: str, expr_cols: pd.Index | None = None) -> pd.DataFrame:
     return meta
 
 
-# ---------------------------------------------------------------------------
-# QC plots
-# ---------------------------------------------------------------------------
-
 def plot_libsize(expr: pd.DataFrame, meta: pd.DataFrame,
                  acc: str, dtype: str) -> None:
-    """Barplot of per-sample total counts (RNA-seq) or median expression (array)."""
     if dtype == "rnaseq":
-        sizes = np.expm1(expr).sum(axis=0)  # back to raw counts for interpretability
+        sizes = np.expm1(expr).sum(axis=0)
         ylabel = "Total counts"
     else:
         sizes = expr.median(axis=0)
@@ -137,16 +101,10 @@ def plot_libsize(expr: pd.DataFrame, meta: pd.DataFrame,
 
 
 def plot_pca(expr: pd.DataFrame, meta: pd.DataFrame, acc: str) -> pd.DataFrame:
-    """
-    PCA on top-5000 variable genes/probes.
-    Returns DataFrame with PC1, PC2, outlier flag per sample.
-    """
-    # Top variable features
     var = expr.var(axis=1)
     top = var.nlargest(min(5000, len(var))).index
-    X = expr.loc[top].T  # samples × features
+    X = expr.loc[top].T
 
-    # Standardise and PCA
     Xs = StandardScaler().fit_transform(X)
     pca = PCA(n_components=min(10, X.shape[0] - 1), random_state=42)
     coords = pca.fit_transform(Xs)
@@ -160,20 +118,17 @@ def plot_pca(expr: pd.DataFrame, meta: pd.DataFrame, acc: str) -> pd.DataFrame:
         "condition", pd.Series("other", index=pc_df.index)
     )
 
-    # Outlier flag: > 3 SD on PC1 or PC2
     for pc in ["PC1", "PC2"]:
         mu, sd = pc_df[pc].mean(), pc_df[pc].std()
         pc_df[f"{pc}_zscore"] = (pc_df[pc] - mu) / sd
     pc_df["outlier"] = (pc_df["PC1_zscore"].abs() > 3) | (pc_df["PC2_zscore"].abs() > 3)
     pc_df["condition"] = conditions.values
 
-    # Plot
     fig, ax = plt.subplots(figsize=(7, 5))
     for cond, grp in pc_df.groupby("condition"):
         color = CONDITION_COLORS.get(cond, "#aaaaaa")
         ax.scatter(grp["PC1"], grp["PC2"], c=color, label=cond,
                    alpha=0.75, s=25, edgecolors="none")
-    # Mark outliers
     out = pc_df[pc_df["outlier"]]
     if not out.empty:
         ax.scatter(out["PC1"], out["PC2"], s=80, facecolors="none",
@@ -192,10 +147,6 @@ def plot_pca(expr: pd.DataFrame, meta: pd.DataFrame, acc: str) -> pd.DataFrame:
 
     return pc_df[["PC1", "PC2", "PC1_zscore", "PC2_zscore", "outlier", "condition"]]
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main() -> None:
     all_flags = []

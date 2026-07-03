@@ -1,26 +1,3 @@
-"""
-Cell-line tissue-similarity weighting using real DMSO baselines — RESEARCH.md §2a.
-
-Replaces the heuristic weights in 18_cellline_weighting.py with
-correlation-based weights derived from actual expression data:
-
-  Lung reference: GSE213001 normal lung controls (73 samples)
-                  Ensembl → Entrez mapped; subsetted to 978 L1000 landmark genes.
-
-  Cell-line baselines: median DMSO/vehicle-control signatures for each of the
-                       30 L1000 cell lines (from the all_signatures_landmark.parquet).
-
-  Weight per cell line: Spearman correlation with lung reference, clipped to ≥ 0,
-                        then L1-normalised so weights sum to 1.
-
-Outputs (overwrite earlier heuristic files):
-  results/embedding/cellline_lung_similarity.csv   — per-cell-line weight
-  results/l1000/drug_signatures_weighted.csv.gz    — weighted drug signatures
-  results/reversal/weighted_trace_scores.csv       — updated TRACE scores
-
-Usage:
-    python src/embedding/20_dmso_weights.py
-"""
 
 from pathlib import Path
 
@@ -37,15 +14,7 @@ DATA_RAW  = Path("data/raw")
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
 
-# ---------------------------------------------------------------------------
-# 1. Lung reference: GSE213001 normal controls mapped to landmark Entrez IDs
-# ---------------------------------------------------------------------------
-
 def build_lung_reference(landmark_entrez: list[int]) -> pd.Series:
-    """
-    Returns log1p-transformed median expression per landmark gene,
-    indexed by Entrez gene ID (as str), from GSE213001 normal lung controls.
-    """
     cache = DATA_RAW / "lung_reference_landmark.csv"
     if cache.exists():
         ref = pd.read_csv(cache, index_col=0).squeeze()
@@ -64,17 +33,14 @@ def build_lung_reference(landmark_entrez: list[int]) -> pd.Series:
 
     meta = pd.read_csv(meta_path, index_col=0)
     ctrl_accessions = meta[meta["condition"] == "control"].index.tolist()
-    # counts_raw.csv.gz uses Sample_title as column names, not GEO accessions
     ctrl = meta.loc[ctrl_accessions, "Sample_title"].tolist()
     print(f"  Normal lung controls: {len(ctrl)}")
 
-    # Load all counts then subset to control samples
     counts = pd.read_csv(counts_path, index_col=0)
     ctrl = [c for c in ctrl if c in counts.columns]
     counts = counts[ctrl]
     print(f"  Counts shape: {counts.shape}")
 
-    # Ensembl → Entrez mapping (drop duplicates on both sides)
     e2g = pd.read_csv(e2g_path)
     e2g.columns = ["ensembl", "entrez"]
     e2g = e2g.dropna().drop_duplicates("ensembl").drop_duplicates("entrez")
@@ -85,14 +51,11 @@ def build_lung_reference(landmark_entrez: list[int]) -> pd.Series:
     sub = counts.loc[shared_ens.values].copy()
     sub.index = e2g.set_index("ensembl").loc[shared_ens.values, "entrez"].values
 
-    # Drop any remaining Entrez duplicates (take first occurrence)
     sub = sub[~sub.index.duplicated(keep="first")]
 
-    # Keep only landmark genes present in sub
     lm_str = [str(g) for g in landmark_entrez]
     sub = sub.reindex([g for g in lm_str if g in sub.index])
 
-    # log1p median across controls; ensure string index for consistent joining
     ref = np.log1p(sub).median(axis=1)
     ref.index = ref.index.astype(str)
     ref.name = "lung_log_median"
@@ -101,36 +64,19 @@ def build_lung_reference(landmark_entrez: list[int]) -> pd.Series:
     return ref
 
 
-# ---------------------------------------------------------------------------
-# 2. Cell-line DMSO baselines (median landmark-gene expression per cell line)
-# ---------------------------------------------------------------------------
-
 def build_cell_baselines(sig_info: pd.DataFrame,
                          drug_sig_path: Path) -> pd.DataFrame:
-    """
-    Returns DataFrame (cell_lines × landmark_genes) of per-cell-line expression proxy.
-
-    DMSO control sigs are absent from the trt_cp parquet, so we use the mean
-    LFC drug signature per cell line as a cellular-state proxy.  The rationale:
-    the average LFC across many structurally diverse drugs approximates the
-    cell-specific deviation from a common baseline, capturing each cell line's
-    characteristic biology relative to others.
-    """
     cache = DATA_RAW / "l1000_cell_baselines_landmark.csv"
     if cache.exists():
         print(f"  [cache] {cache.name}")
         return pd.read_csv(cache, index_col=0)
 
     print("  Computing per-cell-line mean LFC profile as baseline proxy…")
-    # Load all per-signature data from sm_sig_info
-    # drug_sig_path is the per-drug-consensus file; we need per-cell-line profiles.
-    # Use the full parquet (trt_cp signatures only).
     parquet_path = DATA_RAW / "l1000/all_signatures_landmark.parquet"
     if not parquet_path.exists():
         print(f"  [WARN] Parquet not found")
         return pd.DataFrame()
 
-    # Load all trt_cp sig_ids from sm_sig_info and subset to parquet
     import pyarrow.parquet as pq
     parquet_cols = set(pq.ParquetFile(parquet_path).schema_arrow.names)
     cl_sig_map = sig_info.set_index("sig_id")["cell_id"]
@@ -151,22 +97,14 @@ def build_cell_baselines(sig_info: pd.DataFrame,
         print("  [WARN] No baselines computed")
         return pd.DataFrame()
 
-    result = pd.DataFrame(baselines, index=all_sigs.index).T  # cell_lines × genes
+    result = pd.DataFrame(baselines, index=all_sigs.index).T
     result.to_csv(cache)
     print(f"  Cell-line baselines: {result.shape} → {cache.name}")
     return result
 
 
-# ---------------------------------------------------------------------------
-# 3. Spearman correlation weights
-# ---------------------------------------------------------------------------
-
 def compute_weights(lung_ref: pd.Series,
                     cell_baselines: pd.DataFrame) -> pd.Series:
-    """
-    Spearman r (lung_ref vs. each cell line DMSO baseline), clipped to ≥ 0,
-    L1-normalised. Falls back to literature heuristics if data is insufficient.
-    """
     if lung_ref.empty or lung_ref.notna().sum() < 50 or cell_baselines.empty:
         print("  [WARN] Insufficient data — using lung-adjacency heuristics")
         heur = {
@@ -193,24 +131,16 @@ def compute_weights(lung_ref: pd.Series,
 
     w = pd.Series(corrs)
     w = w.clip(lower=0)
-    # Ensure a small floor so no cell line is completely ignored
     w = w + 0.05
     w = (w / w.sum()).rename("lung_weight")
     return w
 
 
-# ---------------------------------------------------------------------------
-# 4. Weighted drug signatures
-# ---------------------------------------------------------------------------
-
 def weighted_drug_signatures(sig_info: pd.DataFrame,
                               parquet_path: Path,
                               weights: pd.Series) -> pd.DataFrame:
-    """
-    For each drug, compute cell-line-weighted average across all its L1000 sigs.
-    """
     print("  Loading full parquet for drug signature weighting…")
-    all_sigs = pd.read_parquet(parquet_path)  # genes × all_sigs
+    all_sigs = pd.read_parquet(parquet_path)
     all_sigs.index = all_sigs.index.astype(str)
 
     drug_groups = sig_info.groupby("pert_iname")["sig_id"].apply(list)
@@ -227,10 +157,6 @@ def weighted_drug_signatures(sig_info: pd.DataFrame,
 
     return pd.DataFrame(weighted, index=all_sigs.index)
 
-
-# ---------------------------------------------------------------------------
-# 5. Weighted TRACE scores
-# ---------------------------------------------------------------------------
 
 def compute_weighted_trace(weighted_sigs: pd.DataFrame,
                            network: pd.DataFrame) -> pd.DataFrame:
@@ -249,10 +175,6 @@ def compute_weighted_trace(weighted_sigs: pd.DataFrame,
     return df
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main() -> None:
     parquet_path = DATA_RAW / "l1000/all_signatures_landmark.parquet"
     if not parquet_path.exists():
@@ -265,15 +187,12 @@ def main() -> None:
     lg = pd.read_csv(L1000_DIR / "landmark_genes.csv")
     landmark_entrez = lg["pr_gene_id"].tolist()
 
-    # 1. Lung reference
     print("\n1. Building lung tissue reference (GSE213001 normal controls)…")
     lung_ref = build_lung_reference(landmark_entrez)
 
-    # 2. Cell-line baselines (mean drug LFC profile per cell line as proxy)
     print("\n2. Computing L1000 cell-line expression baselines…")
     cell_baselines = build_cell_baselines(sig_info, L1000_DIR / "drug_signatures_landmark.csv.gz")
 
-    # 3. Weights
     print("\n3. Computing Spearman lung-similarity weights…")
     weights = compute_weights(lung_ref, cell_baselines)
     weights.to_csv(EMB_DIR / "cellline_lung_similarity.csv")
@@ -282,20 +201,17 @@ def main() -> None:
     for cl, w in weights.sort_values(ascending=False).head(15).items():
         print(f"    {cl:12}  {w:.4f}")
 
-    # 4. Weighted drug signatures
     print("\n4. Computing weighted drug signatures…")
     weighted_sigs = weighted_drug_signatures(sig_info, parquet_path, weights)
     out_sigs = L1000_DIR / "drug_signatures_weighted.csv.gz"
     weighted_sigs.to_csv(out_sigs, compression="gzip")
     print(f"  Saved {weighted_sigs.shape} → {out_sigs.name}")
 
-    # 5. Weighted TRACE scores
     print("\n5. Recomputing weighted TRACE scores…")
     wtrace = compute_weighted_trace(weighted_sigs, network)
     wtrace.to_csv(REV_DIR / "weighted_trace_scores.csv", index=False)
     print(f"  Saved {len(wtrace)} drugs → weighted_trace_scores.csv")
 
-    # Compare with unweighted TRACE
     n = len(wtrace)
     try:
         unweighted = pd.read_csv(REV_DIR / "trace_scores.csv")

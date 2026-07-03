@@ -1,18 +1,3 @@
-"""
-UMAP of the 978-gene L1000 landmark drug signatures.
-
-Each point = one drug (1,768 total). Axes are the UMAP embedding of the
-978-dimensional z-scored expression signature. Color = IPF net-TRACE
-reversal score (Pearson; red = strong reversal). Annotated landmarks:
-known IPF actives, RA actives, and top-scoring TRACE candidates.
-
-Outputs:
-  results/figures/umap_l1000_ipf.png
-  results/figures/umap_l1000_ipf.svg
-
-Usage:
-  python src/visualization/umap_l1000.py
-"""
 
 from pathlib import Path
 
@@ -36,7 +21,7 @@ FIG_DIR.mkdir(parents=True, exist_ok=True)
 def load_matrix() -> tuple[pd.DataFrame, np.ndarray]:
     df  = pd.read_csv(L1K / "drug_signatures_landmark.csv.gz", index_col=0)
     mat = df.values.astype(np.float32)
-    mat = RobustScaler().fit_transform(mat.T)   # shape: n_drugs × 978
+    mat = RobustScaler().fit_transform(mat.T)
     return df, mat
 
 
@@ -54,7 +39,7 @@ def load_actives() -> tuple[set, set]:
 def compute_umap(mat: np.ndarray, seed: int = 42) -> np.ndarray:
     reducer = umap.UMAP(
         n_neighbors=15,
-        min_dist=0.40,   # more spread → less crowding in hot cluster
+        min_dist=0.40,
         n_components=2,
         metric="cosine",
         random_state=seed,
@@ -68,11 +53,9 @@ def make_figure(embedding: np.ndarray, drug_names: list[str],
                 scores: pd.Series, ipf_actives: set, ra_actives: set) -> None:
     score_arr = scores.values
 
-    # ── Top TRACE candidates to label ────────────────────────────────────────
     top_n = pd.Series(score_arr, index=drug_names).nlargest(10).index.tolist()
     label_drugs = set(ipf_actives) | set(ra_actives) | set(d.lower() for d in top_n)
 
-    # ── Colour scale clipped at ±2 SD for visual clarity ──────────────────────
     vmax = np.percentile(np.abs(score_arr), 95)
     vmin = -vmax
 
@@ -82,7 +65,6 @@ def make_figure(embedding: np.ndarray, drug_names: list[str],
     fig.patch.set_facecolor(BG)
     ax.set_facecolor("#f7f7f9")
 
-    # Background scatter — all drugs
     name_lower = [d.lower() for d in drug_names]
     mask_neutral = ~np.isin(name_lower, list(ipf_actives | ra_actives))
     sc = ax.scatter(
@@ -92,7 +74,6 @@ def make_figure(embedding: np.ndarray, drug_names: list[str],
         s=16, alpha=0.80, linewidths=0, rasterized=True,
     )
 
-    # ── Draw markers for all labelled drugs first ─────────────────────────────
     for i, drug in enumerate(drug_names):
         if drug.lower() in ipf_actives:
             ax.scatter(embedding[i, 0], embedding[i, 1],
@@ -116,7 +97,6 @@ def make_figure(embedding: np.ndarray, drug_names: list[str],
                        s=90, marker="^", linewidths=0.8,
                        edgecolors="#333", zorder=4)
 
-    # ── Unified label pass — adjustText moves all texts together ─────────────
     try:
         from adjustText import adjust_text
         has_adjust = True
@@ -165,13 +145,11 @@ def make_figure(embedding: np.ndarray, drug_names: list[str],
             expand_points=(1.5, 1.5),
         )
 
-    # ── Colorbar ───────────────────────────────────────────────────────────────
     cbar = fig.colorbar(sc, ax=ax, fraction=0.03, pad=0.02, shrink=0.75)
     cbar.set_label("IPF reversal score (Pearson)", color=TEXT, fontsize=9)
     cbar.ax.yaxis.set_tick_params(color=TEXT, labelcolor=TEXT, labelsize=8)
     cbar.outline.set_edgecolor(SPINE)
 
-    # ── Legend ─────────────────────────────────────────────────────────────────
     from matplotlib.lines import Line2D
     legend_elements = [
         Line2D([0], [0], marker="*", color="w", markerfacecolor="gray",
@@ -185,7 +163,6 @@ def make_figure(embedding: np.ndarray, drug_names: list[str],
               framealpha=0.85, labelcolor=TEXT,
               facecolor="white", edgecolor=SPINE)
 
-    # ── Labels ────────────────────────────────────────────────────────────────
     ax.set_xlabel("UMAP 1", color=TEXT, fontsize=10)
     ax.set_ylabel("UMAP 2", color=TEXT, fontsize=10)
     ax.tick_params(colors=TEXT, labelsize=8)

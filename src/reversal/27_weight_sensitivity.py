@@ -1,20 +1,3 @@
-"""
-Part 2.1 — Combined-model weight sensitivity analysis.
-
-The combined score uses hand-set weights 50/30/20 (reversal / genetic / reproducibility).
-This script grids over all weight combinations and reports:
-  - Jaccard overlap of the top-10 candidate set with the baseline weighting
-  - Spearman rank correlation of the full 1,768-drug ranking vs. baseline
-  - Figure: heatmap of Jaccard overlap across the weight grid
-
-A high Jaccard and high rank correlation across the grid means the top candidates
-are robust to reasonable weight choices and closes the "why those weights?" question.
-
-Writes:
-  results/reversal/weight_sensitivity.csv
-  results/reversal/weight_sensitivity_report.txt
-  results/figures/fig_weight_sensitivity.png
-"""
 
 import itertools
 from pathlib import Path
@@ -31,10 +14,9 @@ REV  = ROOT / "results" / "reversal"
 OUT  = ROOT / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
-BASELINE_WEIGHTS = (0.5, 0.3, 0.2)  # reversal, genetic, reproducibility
+BASELINE_WEIGHTS = (0.5, 0.3, 0.2)
 TOP_K = 10
 
-# Weight grid: each component 0.2–0.6 in 0.1 steps, renormalized to sum = 1
 GRID_VALUES = [round(v, 1) for v in np.arange(0.2, 0.65, 0.1)]
 
 
@@ -49,12 +31,10 @@ def main():
     df = pd.read_csv(REV / "final_candidates_full.csv")
     print(f"Loaded {len(df)} drugs from final_candidates_full.csv")
 
-    # Baseline ranking
     base_score = combined_score(df, *BASELINE_WEIGHTS)
     base_rank  = base_score.rank(ascending=False)
     base_top10 = set(df.loc[base_score.nlargest(TOP_K).index, "drug"])
 
-    # Generate all (w1, w2, w3) triples from the grid where all > 0
     triples = [(w1, w2, w3)
                for w1, w2, w3 in itertools.product(GRID_VALUES, repeat=3)
                if w1 + w2 + w3 > 0]
@@ -78,22 +58,18 @@ def main():
     results.to_csv(REV / "weight_sensitivity.csv", index=False)
     print(f"Grid size: {len(results)} weight combinations")
 
-    # Summary statistics
     jac_mean = results["jaccard_top10"].mean()
     jac_min  = results["jaccard_top10"].min()
     jac_p10  = results["jaccard_top10"].quantile(0.10)
     rho_mean = results["spearman_rho"].mean()
     rho_min  = results["spearman_rho"].min()
 
-    # Baseline row (should be jaccard=1.0, rho=1.0)
     base_row = results[
         (results["w_reversal"].round(1) == 0.5) &
         (results["w_genetic"].round(1)  == 0.3) &
         (results["w_repro"].round(1)    == 0.2)
     ]
 
-    # ── Figure: heatmap of Jaccard across w_reversal × w_genetic ─────────────
-    # Marginalise over w_repro by taking the mean Jaccard for each (w_rev, w_gen) pair
     pivot = results.pivot_table(
         values="jaccard_top10",
         index="w_reversal",
@@ -104,7 +80,6 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
     fig.patch.set_facecolor("#f9f9f9")
 
-    # Left: Jaccard heatmap
     ax = axes[0]
     ax.set_facecolor("#f9f9f9")
     im = ax.imshow(pivot.values, vmin=0, vmax=1, cmap="RdYlGn", aspect="auto")
@@ -124,7 +99,6 @@ def main():
                         fontsize=7, color="black" if val > 0.4 else "white")
     plt.colorbar(im, ax=ax, label="Jaccard overlap")
 
-    # Right: distribution of Jaccard and Spearman across all weight combos
     ax2 = axes[1]
     ax2.set_facecolor("#f9f9f9")
     ax2.hist(results["jaccard_top10"], bins=20, color="#2166ac", alpha=0.7,
@@ -144,7 +118,6 @@ def main():
     fig.savefig(OUT / "fig_weight_sensitivity.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-    # ── Report ────────────────────────────────────────────────────────────────
     lines = [
         "Combined-model weight sensitivity analysis",
         "=" * 60,

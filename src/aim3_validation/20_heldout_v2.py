@@ -1,19 +1,3 @@
-"""
-IMPROVE item 3: Proper held-out case/control validation using GSE47460.
-
-GSE47460 = Lung Genomics Research Consortium (LGRC), 429 samples,
-whole-lung homogenate, Agilent GPL14550. Contains ILD subtypes including
-IPF/UIP, COPD, and other ILDs alongside healthy controls.
-
-This script runs two analyses:
-  (A) ALL ILD vs. controls (conservative)
-  (B) UIP/IPF-only subset vs. controls (closer match to training datasets)
-
-Writes:
-  results/aim3/heldout_v2_de.csv
-  results/aim3/heldout_v2_concordance.txt
-  results/figures/fig_heldout_v2.png
-"""
 
 from pathlib import Path
 import gzip, io, csv as csv_mod
@@ -88,7 +72,6 @@ def parse_matrix(path: Path):
 
 
 def get_uip_ipf_positions(path: Path) -> set[int]:
-    """Return column indices (0-based) of UIP/IPF-specific samples."""
     positions = set()
     with gzip.open(path, "rt", encoding="utf-8", errors="replace") as f:
         for line in f:
@@ -128,7 +111,6 @@ def build_probe_map(gpl_csv: Path) -> dict[str, int]:
 def run_concordance(expr: pd.DataFrame, case_idx: list[int],
                     ctrl_idx: list[int], de_mapped: pd.DataFrame,
                     cons: pd.DataFrame, label: str) -> tuple[float, int]:
-    """Compute direction concordance for case vs. ctrl subset."""
     case_mat = expr.iloc[:, case_idx].values.astype(float)
     ctrl_mat  = expr.iloc[:, ctrl_idx].values.astype(float)
     valid = (np.isnan(case_mat).mean(1) < 0.5) & (np.isnan(ctrl_mat).mean(1) < 0.5)
@@ -164,7 +146,6 @@ def run_concordance(expr: pd.DataFrame, case_idx: list[int],
     return pct, len(common)
 
 
-# Global probe→entrez map (populated in main)
 probe2entrez_global: dict[str, int] = {}
 
 
@@ -181,17 +162,14 @@ def main():
     expr, titles, meta_rows = parse_matrix(LOCAL)
     print(f"  Expression: {expr.shape}")
 
-    # Classify all ILD vs controls from titles
     ild_idx  = [i for i, t in enumerate(titles) if "_ild" in t.lower()]
     ctrl_idx = [i for i, t in enumerate(titles) if "_ctrl" in t.lower()]
     print(f"  All ILD: {len(ild_idx)},  Controls: {len(ctrl_idx)}")
 
-    # Identify UIP/IPF-specific samples from characteristics
     uip_positions = get_uip_ipf_positions(LOCAL)
     ipf_idx = sorted(uip_positions & set(ild_idx))
     print(f"  Confirmed UIP/IPF subset: {len(ipf_idx)}")
 
-    # Build probe→Entrez map
     gpl_csv = DATA / "GPL14550_annotation.csv"
     probe2entrez_global = build_probe_map(gpl_csv)
     print(f"  Probe→Entrez map: {len(probe2entrez_global)} entries")
@@ -202,10 +180,8 @@ def main():
         )
         return
 
-    # Load consensus
     cons = pd.read_csv(META / "consensus_signature.csv", index_col=0)
 
-    # DE for main report (all ILD)
     ild_mat  = expr.iloc[:, ild_idx].values.astype(float)
     ctrl_mat = expr.iloc[:, ctrl_idx].values.astype(float)
     valid    = (np.isnan(ild_mat).mean(1) < 0.5) & (np.isnan(ctrl_mat).mean(1) < 0.5)
@@ -218,7 +194,6 @@ def main():
     de.to_csv(AIM3 / "heldout_v2_de.csv", index=False)
     print(f"  DE (all ILD): {(padj < 0.05).sum()} sig probes")
 
-    # Map probes to Entrez for full de_mapped (used in concordance)
     de["eid"] = [probe2entrez_global.get(str(p)) for p in de["probe"]]
     de_mapped = de.dropna(subset=["eid"]).copy()
     de_mapped["eid"] = de_mapped["eid"].astype(int)
@@ -226,7 +201,6 @@ def main():
     de_mapped = de_mapped.loc[best_idx].copy()
     de_mapped.index = de_mapped["eid"]
 
-    # ── Run both concordance analyses ──────────────────────────────────────────
     pct_all, n_all = run_concordance(
         expr, ild_idx, ctrl_idx, de_mapped, cons, "All ILD vs. controls"
     )
@@ -237,7 +211,6 @@ def main():
             f"UIP/IPF subset (n={len(ipf_idx)}) vs. controls"
         )
 
-    # ── Write report ───────────────────────────────────────────────────────────
     lines = [
         "Held-out Validation v2 — GSE47460 (LGRC dataset)",
         "=" * 60,
@@ -271,8 +244,6 @@ def main():
     (AIM3 / "heldout_v2_concordance.txt").write_text("\n".join(lines))
     print("\n".join(lines))
 
-    # ── Figure: scatter with subset comparison ─────────────────────────────────
-    # Align for scatter
     overlap_genes_all = set(de_mapped.index.tolist()) & set(cons.index.tolist())
     common_all = list(overlap_genes_all)
     cons_lfc = cons.loc[common_all, "meta_log2FC"].values.astype(float)
@@ -296,7 +267,6 @@ def main():
     _scatter(axes[0], cons_lfc, held_lfc, "(A) All ILD vs. controls", pct_all, n_all)
 
     if n_ipf > 0:
-        # Recompute for IPF subset
         ipf_mat2  = expr.iloc[:, ipf_idx].values.astype(float)
         ctrl_mat2 = expr.iloc[:, ctrl_idx].values.astype(float)
         valid2    = (np.isnan(ipf_mat2).mean(1) < 0.5) & (np.isnan(ctrl_mat2).mean(1) < 0.5)

@@ -1,18 +1,3 @@
-"""
-ClinicalTrials.gov mining — RESEARCH.md §3a.
-
-For each top TRACE candidate, queries the ClinicalTrials.gov API (AACT) to
-find whether any trials exist testing that drug in IPF or pulmonary fibrosis.
-A candidate already in trials is strong external corroboration that the
-repurposing hypothesis is scientifically plausible.
-
-Outputs:
-  results/aim3/clinicaltrials_results.csv   — per-drug trial evidence
-  results/aim3/trial_evidence_report.txt    — human-readable summary
-
-Usage:
-    python src/aim3_validation/14_clinicaltrials.py
-"""
 
 import time
 from pathlib import Path
@@ -28,7 +13,6 @@ CT_API = "https://clinicaltrials.gov/api/v2/studies"
 
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
-# IPF-related search terms for condition filter
 IPF_TERMS = [
     "idiopathic pulmonary fibrosis",
     "IPF",
@@ -39,7 +23,6 @@ IPF_TERMS = [
 
 
 def search_trials(drug: str) -> list[dict]:
-    """Search ClinicalTrials.gov for trials involving a drug and IPF."""
     all_studies = []
     for condition in ["idiopathic pulmonary fibrosis", "pulmonary fibrosis"]:
         params = {
@@ -54,7 +37,6 @@ def search_trials(drug: str) -> list[dict]:
             r.raise_for_status()
             studies = r.json().get("studies", [])
             for s in studies:
-                # API v2 returns studies with protocolSection or directly
                 proto = s.get("protocolSection") or s
                 id_mod     = proto.get("identificationModule", {})
                 status_mod = proto.get("statusModule", {})
@@ -62,7 +44,7 @@ def search_trials(drug: str) -> list[dict]:
                 nct  = id_mod.get("nctId", "")
                 if any(s["protocolSection"]["identificationModule"].get("nctId") == nct
                        for s in all_studies):
-                    continue   # dedup across condition searches
+                    continue
                 all_studies.append({
                     "nct_id":          nct,
                     "title":           id_mod.get("briefTitle", "")[:100],
@@ -80,7 +62,6 @@ def search_trials(drug: str) -> list[dict]:
 
 
 def classify_trial(studies: list[dict]) -> dict:
-    """Summarise trial evidence for a drug into a structured record."""
     if not studies:
         return {
             "n_trials": 0,
@@ -100,13 +81,13 @@ def classify_trial(studies: list[dict]) -> dict:
     trial_ids  = "|".join(s["nct_id"] for s in studies[:5])
 
     if completed and any("3" in p or "4" in p for p in phases):
-        level = "strong"       # Phase 3/4 completed
+        level = "strong"
     elif completed:
-        level = "moderate"     # Phase 1/2 completed
+        level = "moderate"
     elif active:
-        level = "active"       # currently recruiting
+        level = "active"
     elif studies:
-        level = "weak"         # terminated / withdrawn / unknown
+        level = "weak"
     else:
         level = "none"
 
@@ -126,7 +107,6 @@ def classify_trial(studies: list[dict]) -> dict:
 
 
 def main() -> None:
-    # Load top candidates + positive controls
     final  = pd.read_csv(REV_DIR / "final_candidates.csv")
     top_drugs = final["drug"].head(20).tolist()
     all_drugs = POSITIVE_CONTROLS + [d for d in top_drugs if d not in POSITIVE_CONTROLS]
@@ -142,7 +122,6 @@ def main() -> None:
         record["is_positive_control"] = drug in POSITIVE_CONTROLS
         rows.append(record)
 
-        # Print brief result
         if record["n_trials"] > 0:
             print(f"{record['n_trials']} trials  [{record['evidence_level'].upper()}]  "
                   f"phases={record['phases']}  status={record['best_status']}")
@@ -152,7 +131,6 @@ def main() -> None:
     results = pd.DataFrame(rows)
     results.to_csv(AIM3_DIR / "clinicaltrials_results.csv", index=False)
 
-    # Evidence report
     lines = [
         "ClinicalTrials.gov evidence for top TRACE candidates",
         "=" * 60,

@@ -1,15 +1,3 @@
-"""
-Parse downloaded GEO datasets — RESEARCH.md §8.
-
-For each selected dataset:
-  - Extracts sample metadata from the series matrix header
-  - For RNA-seq: reads supplementary raw count matrices
-  - For microarray: reads expression values from the series matrix data block
-  - Writes to data/processed/{acc}/metadata.csv and expression.parquet
-
-Usage:
-    python src/03_parse_datasets.py
-"""
 
 import gzip
 import re
@@ -29,7 +17,6 @@ SELECTED = {
     "GSE53845":  "array",
 }
 
-# Supplementary count files to use (prefer raw counts for RNA-seq)
 SUPPL_COUNTS = {
     "GSE213001": "GSE213001_Entrez-IDs-Lung-IPF-GRCh38-p12-raw_counts.csv.gz",
     "GSE150910": "GSE150910_gene-level_count_file.csv.gz",
@@ -37,26 +24,9 @@ SUPPL_COUNTS = {
 }
 
 
-# ---------------------------------------------------------------------------
-# Series matrix parsing
-# ---------------------------------------------------------------------------
-
 def parse_series_matrix(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Parse a GEO series matrix file.
-
-    GEO series matrices can have the same key repeated multiple times
-    (e.g. !Sample_characteristics_ch1 once per characteristic per sample).
-    We handle this by concatenating all occurrences for the same key into
-    a single ' | '-joined string per sample, ensuring one row per sample.
-
-    Returns:
-        meta  — DataFrame (samples × metadata fields), index = GSM ID
-        expr  — DataFrame (genes/probes × samples), or empty DataFrame
-    """
     opener = gzip.open if str(path).endswith(".gz") else open
 
-    # occurrences[key] = list of per-line value lists (one inner list per line)
     occurrences: dict[str, list[list[str]]] = {}
     expr_lines: list[str] = []
     in_table = False
@@ -82,7 +52,6 @@ def parse_series_matrix(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     if not occurrences:
         return pd.DataFrame(), pd.DataFrame()
 
-    # Determine n_samples from geo_accession (appears exactly once)
     n_samples = len(occurrences.get("Sample_geo_accession", [[]])[0])
     if n_samples == 0:
         n_samples = max(len(lines[0]) for lines in occurrences.values())
@@ -92,7 +61,6 @@ def parse_series_matrix(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
         if len(lines) == 1:
             vals = lines[0]
         else:
-            # Join multiple occurrences per sample with ' | '
             vals = [
                 " | ".join(
                     ln[i].strip() if i < len(ln) else ""
@@ -107,7 +75,6 @@ def parse_series_matrix(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
         meta = meta.set_index("Sample_geo_accession")
         meta = meta[~meta.index.duplicated(keep="first")]
 
-    # Build expression DataFrame (microarray or fallback)
     if expr_lines:
         try:
             expr = pd.read_csv(
@@ -125,31 +92,16 @@ def parse_series_matrix(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     return meta, expr
 
 
-# ---------------------------------------------------------------------------
-# Supplementary count file readers
-# ---------------------------------------------------------------------------
-
 def read_count_file(path: Path) -> pd.DataFrame:
-    """Read a supplementary count matrix; return genes × samples DataFrame."""
     sep = "\t" if path.name.endswith((".txt.gz", ".txt")) else ","
     df = pd.read_csv(path, sep=sep, index_col=0, low_memory=False)
-    # Drop non-numeric columns (gene symbol annotations etc.)
     numeric_cols = df.columns[df.dtypes.apply(lambda t: pd.api.types.is_numeric_dtype(t))]
     df = df[numeric_cols]
     df.index.name = "gene_id"
     return df
 
 
-# ---------------------------------------------------------------------------
-# Metadata helpers
-# ---------------------------------------------------------------------------
-
 def extract_condition(meta: pd.DataFrame) -> pd.Series:
-    """
-    Best-effort extraction of IPF/control label from GEO sample metadata.
-    Returns a Series with values like 'IPF', 'control', 'CHP', 'other'.
-    """
-    # Candidate columns that describe disease/group
     candidate_cols = [
         c for c in meta.columns
         if any(kw in c.lower() for kw in
@@ -165,7 +117,6 @@ def extract_condition(meta: pd.DataFrame) -> pd.Series:
     def label(s: str) -> str:
         if any(kw in s for kw in ["ipf", "idiopathic pulmonary fibrosis", "usual interstitial"]):
             return "IPF"
-        # NDC = non-diseased control (used in GSE213001)
         if any(kw in s for kw in ["control", "normal", "donor", "healthy", "unaffected", "ndc"]):
             return "control"
         if "chronic hypersensitivity" in s or " chp" in s:
@@ -174,10 +125,6 @@ def extract_condition(meta: pd.DataFrame) -> pd.Series:
 
     return combined.apply(label).rename("condition")
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def process_dataset(acc: str, dtype: str) -> None:
     raw_dir = DATA_RAW / acc
@@ -213,7 +160,6 @@ def process_dataset(acc: str, dtype: str) -> None:
         print(f"  Expression matrix: {expr_matrix.shape[0]} probes × {expr_matrix.shape[1]} samples")
         expr_matrix.to_csv(proc_dir / "expression_array.csv.gz", compression="gzip")
     elif dtype == "rnaseq" and not expr_matrix.empty:
-        # Series matrix has expression values (no separate count file)
         print(f"  Using series matrix expression: {expr_matrix.shape}")
         expr_matrix.to_csv(proc_dir / "expression_rnaseq.csv.gz", compression="gzip")
 

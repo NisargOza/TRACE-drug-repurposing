@@ -1,20 +1,3 @@
-"""
-Consensus IPF signature via meta-analysis — RESEARCH.md §1c.
-
-Combines per-dataset DE results with inverse-variance-weighted meta-analysis
-(fixed + random effects). Keeps only genes that:
-  1. Are measured in >= 3 of 4 datasets
-  2. Replicate direction in a majority of datasets (sign concordance)
-  3. Pass meta-analysis FDR threshold (BH q < 0.05)
-
-Outputs:
-  results/meta/consensus_signature.csv  — ranked consensus gene list
-  results/meta/replication_stats.csv    — per-gene replication metrics (for report figure)
-  results/meta/meta_analysis_summary.png
-
-Usage:
-    python src/06_meta_analysis.py
-"""
 
 from pathlib import Path
 
@@ -31,12 +14,8 @@ META_DIR = Path("results/meta")
 META_DIR.mkdir(exist_ok=True)
 
 DATASETS = ["GSE213001", "GSE150910", "GSE38958", "GSE53845"]
-MIN_DATASETS = 3   # gene must appear in >= this many datasets
+MIN_DATASETS = 3
 
-
-# ---------------------------------------------------------------------------
-# Load and harmonise DE results
-# ---------------------------------------------------------------------------
 
 def load_de_results() -> dict[str, pd.DataFrame]:
     results = {}
@@ -44,11 +23,9 @@ def load_de_results() -> dict[str, pd.DataFrame]:
         f = DE_DIR / f"{acc}_de_entrez.csv"
         df = pd.read_csv(f, index_col=0)
         df.index = df.index.astype(str).str.strip()
-        # Ensure required columns exist
         for col in ("log2FoldChange", "pvalue", "padj"):
             if col not in df.columns:
                 raise ValueError(f"{acc}: missing column {col}")
-        # Convert pvalue = 0 to minimum float to avoid log(0)
         df["pvalue"] = df["pvalue"].replace(0, np.finfo(float).tiny)
         df["pvalue"] = df["pvalue"].clip(lower=np.finfo(float).tiny)
         results[acc] = df[["log2FoldChange", "pvalue", "padj"]].dropna(subset=["log2FoldChange", "pvalue"])
@@ -56,18 +33,7 @@ def load_de_results() -> dict[str, pd.DataFrame]:
     return results
 
 
-# ---------------------------------------------------------------------------
-# Inverse-variance weighted meta-analysis
-# ---------------------------------------------------------------------------
-
 def meta_analyse(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """
-    For each gene present in >= MIN_DATASETS datasets, compute:
-      - pooled log2FC (inverse-variance weighted mean)
-      - meta p-value (Stouffer's z-score method, variance-weighted)
-      - direction concordance across datasets
-    """
-    # Build gene × dataset matrices for LFC and SE
     all_genes = sorted(set().union(*[set(df.index) for df in results.values()]))
     lfc_mat   = pd.DataFrame(index=all_genes, columns=DATASETS, dtype=float)
     se_mat    = pd.DataFrame(index=all_genes, columns=DATASETS, dtype=float)
@@ -76,12 +42,10 @@ def meta_analyse(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
     for acc, df in results.items():
         lfc_mat.loc[df.index, acc]  = df["log2FoldChange"].values
         pval_mat.loc[df.index, acc] = df["pvalue"].values
-        # SE approximated from p-value and LFC: SE = |LFC| / |z|
         z = np.abs(stats.norm.ppf(df["pvalue"].clip(1e-300, 1 - 1e-10) / 2))
         z = np.where(z == 0, 1e-10, z)
         se_mat.loc[df.index, acc] = (df["log2FoldChange"].abs() / z).values
 
-    # Filter to genes in >= MIN_DATASETS datasets
     n_measured = lfc_mat.notna().sum(axis=1)
     keep = n_measured >= MIN_DATASETS
     lfc_mat  = lfc_mat[keep].astype(float)
@@ -89,24 +53,20 @@ def meta_analyse(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
     pval_mat = pval_mat[keep].astype(float)
     print(f"\n  Genes in >= {MIN_DATASETS} datasets: {keep.sum():,}")
 
-    # Inverse-variance weights: w = 1 / SE^2
     var_mat = se_mat ** 2
-    w_mat   = 1.0 / var_mat  # large SE → small weight
+    w_mat   = 1.0 / var_mat
 
-    # Pooled LFC (weighted mean)
     pooled_lfc = (lfc_mat * w_mat).sum(axis=1) / w_mat.sum(axis=1)
     pooled_se  = np.sqrt(1.0 / w_mat.sum(axis=1))
     pooled_z   = pooled_lfc / pooled_se
     meta_pval  = 2 * stats.norm.sf(np.abs(pooled_z))
 
-    # Direction concordance: fraction of datasets where sign matches pooled sign
     expected_sign = np.sign(pooled_lfc)
     sign_mat = np.sign(lfc_mat)
     concordant = (sign_mat == expected_sign.values[:, None]) & lfc_mat.notna()
     n_concordant = concordant.sum(axis=1)
     frac_concordant = n_concordant / n_measured[keep]
 
-    # FDR correction
     reject, padj, _, _ = multipletests(meta_pval, method="fdr_bh")
 
     result = pd.DataFrame({
@@ -120,15 +80,10 @@ def meta_analyse(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
         "frac_concordant":   frac_concordant,
     })
 
-    # Replication filter: majority concordance (> 50% of measured datasets)
     result["replicated"] = frac_concordant > 0.5
 
     return result.sort_values("meta_padj")
 
-
-# ---------------------------------------------------------------------------
-# Summary plot
-# ---------------------------------------------------------------------------
 
 def plot_summary(meta: pd.DataFrame) -> None:
     sig = meta[meta["meta_padj"] < 0.05]
@@ -136,7 +91,6 @@ def plot_summary(meta: pd.DataFrame) -> None:
 
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
-    # 1. Volcano plot
     ax = axes[0]
     non_sig = meta[meta["meta_padj"] >= 0.05]
     ax.scatter(non_sig["meta_log2FC"], -np.log10(non_sig["meta_pvalue"]),
@@ -151,7 +105,6 @@ def plot_summary(meta: pd.DataFrame) -> None:
     ax.set_ylabel("-log10(meta p-value)")
     ax.set_title("Meta-analysis volcano")
 
-    # 2. Replication rate by n_datasets
     ax = axes[1]
     for n in sorted(meta["n_datasets"].unique()):
         sub = meta[meta["n_datasets"] == n]
@@ -162,7 +115,6 @@ def plot_summary(meta: pd.DataFrame) -> None:
     ax.set_title("Replication rate by dataset coverage")
     ax.set_xticks(sorted(meta["n_datasets"].unique()))
 
-    # 3. LFC distribution: sig replicated vs all
     ax = axes[2]
     rep_sig = meta[(meta["meta_padj"] < 0.05) & meta["replicated"]]
     ax.hist(meta["meta_log2FC"], bins=80, color="#aaaaaa", alpha=0.5, label="All genes")
@@ -177,10 +129,6 @@ def plot_summary(meta: pd.DataFrame) -> None:
     plt.close(fig)
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main() -> None:
     print("Loading DE results...")
     results = load_de_results()
@@ -188,10 +136,8 @@ def main() -> None:
     print("\nRunning inverse-variance weighted meta-analysis...")
     meta = meta_analyse(results)
 
-    # Save full results
     meta.to_csv(META_DIR / "replication_stats.csv")
 
-    # Consensus signature: FDR < 0.05 AND direction replicated in majority
     consensus = meta[(meta["meta_padj"] < 0.05) & meta["replicated"]].copy()
     consensus = consensus.sort_values("meta_padj")
     consensus.to_csv(META_DIR / "consensus_signature.csv")
@@ -205,7 +151,6 @@ def main() -> None:
     print(f"    Up in IPF:   {up:,}")
     print(f"    Down in IPF: {down:,}")
 
-    # Replication rate: single-dataset hits vs consensus
     single_hits = sum((df["padj"] < 0.05).sum() for df in results.values())
     print(f"\n  Single-dataset sig genes (sum): {single_hits:,}")
     print(f"  Consensus (replicated):          {len(consensus):,}")

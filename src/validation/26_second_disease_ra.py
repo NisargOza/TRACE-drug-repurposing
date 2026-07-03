@@ -1,32 +1,3 @@
-"""
-Disease-specificity control: TRACE applied to Rheumatoid Arthritis (RA).
-
-Tests whether TRACE produces IPF-specific signal or generic expression artifacts
-by applying the identical pipeline to RA (synovial tissue) and showing:
-  (a) IPF-specific drugs (nintedanib, pirfenidone) do NOT score as RA reversers
-      — nintedanib ranks 97.9%ile for RA vs. 0.8%ile for IPF (120× rank shift)
-  (b) RA-approved drugs (tofacitinib, baricitinib) were NOT recovered
-      — consistent with same L1000 cell-line context mismatch seen for pirfenidone
-
-FRAMING: This is a SPECIFICITY CONTROL, not a generalizability demonstration.
-Generalizability would require recovering RA-approved drugs — which this analysis
-does not achieve. A proper generalizability run requires multi-dataset RA
-meta-signature through the full TRACE pipeline (out of scope for this study).
-
-Dataset: GSE55457 — synovial membrane RNA from 17 RA patients vs 10 controls
-(Alsalameh et al.; Affymetrix HG-U133A array; downloaded from NCBI GEO)
-
-The pipeline reuses:
-  - Same STRING network and RWR propagation
-  - Same L1000 drug signatures
-  - Same reversal scoring code
-
-Writes:
-  results/validation/ra_de.csv
-  results/validation/ra_trace_scores.csv
-  results/validation/ra_generalizability_report.txt
-  results/figures/fig_ra_generalizability.png
-"""
 
 import gzip
 import time
@@ -51,7 +22,6 @@ OUT   = ROOT / "results" / "figures"
 VAL.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 
-# GSE55457: RA synovial membrane vs. normal; GPL96 (Affymetrix HG-U133A)
 GSE_ID = "GSE55457"
 MATRIX_URL = (
     "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE55nnn/GSE55457/matrix/"
@@ -62,7 +32,6 @@ GPL_URL = (
     "GPL96_family.soft.gz"
 )
 
-# RA positive controls in L1000
 RA_POS_CTRL = {
     "tofacitinib":  "JAK1/3 inhibitor — approved for RA",
     "baricitinib":  "JAK1/2 inhibitor — approved for RA",
@@ -70,7 +39,6 @@ RA_POS_CTRL = {
     "leflunomide":  "DHODH inhibitor — approved for RA",
 }
 
-# IPF-specific controls — should NOT score for RA
 IPF_CTRL = {
     "nintedanib":  "IPF-approved, VEGFR/PDGFR — should NOT rank for RA",
     "pirfenidone": "IPF-approved, anti-fibrotic — should NOT rank for RA",
@@ -122,7 +90,6 @@ def parse_matrix(path: Path) -> tuple[pd.DataFrame, list[str]]:
 
 
 def build_probe_map(gpl_path: Path, csv_path: Path) -> dict[str, int]:
-    """Parse GPL soft file for probe→Entrez mapping (streaming)."""
     if csv_path.exists():
         gpl = pd.read_csv(csv_path, dtype=str)
     else:
@@ -153,7 +120,6 @@ def build_probe_map(gpl_path: Path, csv_path: Path) -> dict[str, int]:
         gpl.to_csv(csv_path, index=False)
         print(f"  Saved {len(gpl)} probe annotations")
 
-    # Find ID and Entrez columns
     col_up = {c.upper(): c for c in gpl.columns}
     id_col = col_up.get("ID") or col_up.get("PROBE_ID")
     entrez_col = (col_up.get("ENTREZ_GENE_ID") or col_up.get("GENE_ID")
@@ -175,7 +141,6 @@ def build_probe_map(gpl_path: Path, csv_path: Path) -> dict[str, int]:
 
 def network_propagation(sig_vector: pd.Series, G: nx.Graph,
                          alpha: float = 0.85) -> pd.Series:
-    """Signed RWR: propagate up and down genes separately."""
     nodes = list(G.nodes())
     idx = {n: i for i, n in enumerate(nodes)}
     A = nx.to_scipy_sparse_array(G, nodelist=nodes, format="csr",
@@ -194,7 +159,6 @@ def network_propagation(sig_vector: pd.Series, G: nx.Graph,
         if not np.isnan(v):
             f0[idx[n]] = v
 
-    # Power iteration
     f = f0.copy()
     for _ in range(50):
         f_new = (1 - alpha) * f0 + alpha * A.T.dot(f)
@@ -208,8 +172,6 @@ def network_propagation(sig_vector: pd.Series, G: nx.Graph,
 def compute_reversal_scores(disease_net: pd.Series,
                              drug_sigs: pd.DataFrame,
                              baseline_sig: pd.Series) -> pd.DataFrame:
-    """Compute Net-TRACE (network cosine) and baseline (gene-level cosine)."""
-    # Align to common genes
     common_net = [g for g in disease_net.index if g in drug_sigs.index]
     dis_net_v = disease_net.loc[common_net].values.astype(float)
     dis_net_n = dis_net_v / (np.linalg.norm(dis_net_v) + 1e-12)
@@ -236,7 +198,6 @@ def compute_reversal_scores(disease_net: pd.Series,
 
 
 def main():
-    # ── Download GSE55457 ──────────────────────────────────────────────────────
     local = DATA / f"{GSE_ID}_series_matrix.txt.gz"
     if not download(MATRIX_URL, local, "GSE55457"):
         print("Cannot proceed without data"); return
@@ -245,11 +206,8 @@ def main():
     expr, titles = parse_matrix(local)
     print(f"  Expression: {expr.shape}  |  titles: {len(titles)}")
 
-    # Classify: titles are "Rheumatoid arthritis, synovial membrane..."
-    #           "Normal, synovial membrane..." and "Osteoarthritis, ..."
     ra_idx   = [i for i, t in enumerate(titles)
                 if "rheumatoid" in t.lower()]
-    # Use normal (healthy) synovium as controls; treat OA as separate
     ctrl_idx = [i for i, t in enumerate(titles)
                 if t.lower().startswith("normal")]
 
@@ -262,9 +220,7 @@ def main():
         )
         return
 
-    # ── Differential expression ────────────────────────────────────────────────
-    # GSE55457 expression values are raw intensities — log2-transform
-    expr_log2 = np.log2(expr.clip(lower=1))  # clip at 1 before log to avoid -inf
+    expr_log2 = np.log2(expr.clip(lower=1))
     ra_mat   = expr_log2.iloc[:, ra_idx].values.astype(float)
     ctrl_mat = expr_log2.iloc[:, ctrl_idx].values.astype(float)
     valid    = (np.isnan(ra_mat).mean(1) < 0.5) & (np.isnan(ctrl_mat).mean(1) < 0.5)
@@ -279,10 +235,7 @@ def main():
     sig = (padj < 0.05) & (np.abs(logfc) > 0.5)
     print(f"  DE significant probes (padj<0.05, |LFC|>0.5): {sig.sum()}")
 
-    # ── Probe → Entrez mapping via GPL96 ──────────────────────────────────────
     gpl_csv  = DATA / "GPL96_annotation.csv"
-    # GPL96 is Affymetrix HG-U133A — probe IDs like "1007_s_at"
-    # Use biomaRt-style approach: try to download GPL annotation
     gpl_soft = DATA / "GPL96_family.soft.gz"
     if not gpl_soft.exists():
         download(GPL_URL, gpl_soft, "GPL96 annotation")
@@ -290,12 +243,7 @@ def main():
     print(f"  Probe→Entrez map: {len(probe2e)} entries")
 
     if not probe2e:
-        # Fallback: use Affymetrix probe ID pattern (e.g., "1007_s_at" → gene via biomaRt)
-        # Since we can't query biomaRt without R, use a simpler direct Entrez mapping
-        # from NCBI's Gene database for GPL96 probes
-        # As a best-effort: map the DE results using gene symbols from the GPL annotation
         print("  No probe map — reporting DE statistics only for RA")
-        # Save DE without mapping
         de.to_csv(VAL / "ra_de.csv", index=False)
         (VAL / "ra_generalizability_report.txt").write_text(
             f"GSE55457 ({len(ra_idx)} RA, {len(ctrl_idx)} controls)\n"
@@ -305,7 +253,6 @@ def main():
         )
         return
 
-    # Map probes to Entrez
     eid_list = [probe2e.get(str(p)) for p in de["probe"]]
     de["entrez"] = eid_list
     de_mapped = de.dropna(subset=["entrez"]).copy()
@@ -316,7 +263,6 @@ def main():
     de_mapped.to_csv(VAL / "ra_de.csv", index=False)
     print(f"  Mapped to {len(de_mapped)} unique Entrez genes")
 
-    # ── Load STRING network (Entrez-indexed, built by build_ra_network.R) ──────
     net_path = ROOT / "data" / "raw" / "string_entrez_edges_700.csv.gz"
     ra_net = None
 
@@ -343,7 +289,6 @@ def main():
         col_sums[col_sums == 0] = 1
         W = A.multiply(1.0 / col_sums)
 
-        # Build RA seed vector
         ra_lfc_ent = de_mapped["logFC"].copy()
         ra_lfc_ent.index = ra_lfc_ent.index.astype(int)
         seed = np.zeros(N, dtype=np.float32)
@@ -351,7 +296,6 @@ def main():
             if eid in node_idx and not np.isnan(lfc):
                 seed[node_idx[eid]] = lfc
 
-        # Signed RWR
         print("  Running signed RWR on RA signature (alpha=0.85)...")
         alpha = 0.85
         def _rwr(p0: np.ndarray) -> np.ndarray:
@@ -373,30 +317,24 @@ def main():
     else:
         print("  Entrez network not found — run build_ra_network.R first")
 
-    # ── Load L1000 drug signatures ─────────────────────────────────────────────
     print("  Loading L1000 drug signatures...")
     drug_sigs = pd.read_csv(L1K / "drug_signatures_landmark.csv.gz", index_col=0)
-    # drug_sigs: genes (rows) × drugs (columns); index = Entrez IDs
     print(f"  Drug signatures: {drug_sigs.shape}")
 
-    # Baseline: raw LFC cosine in landmark gene space
     ra_lfc_lm = de_mapped["logFC"].reindex(drug_sigs.index).fillna(0)
     ra_lfc_lm.index = ra_lfc_lm.index.astype(drug_sigs.index.dtype)
 
-    # Net-TRACE: network-propagated RA vector in landmark gene space
     if ra_net is not None:
         ra_net_lm = ra_net.reindex(drug_sigs.index).fillna(0)
         ra_net_lm.index = ra_net_lm.index.astype(drug_sigs.index.dtype)
     else:
         ra_net_lm = ra_lfc_lm
 
-    # Compute reversal scores
     print("  Computing reversal scores...")
     scores = compute_reversal_scores(ra_net_lm, drug_sigs, ra_lfc_lm)
     scores.to_csv(VAL / "ra_trace_scores.csv", index=False)
     n_drugs = len(scores)
 
-    # ── Report ─────────────────────────────────────────────────────────────────
     lines = [
         "TRACE Disease-Specificity Control — Rheumatoid Arthritis (GSE55457)",
         "=" * 65,
@@ -473,7 +411,6 @@ def main():
     report_path.write_text("\n".join(lines))
     print("\n".join(lines))
 
-    # ── Figure ─────────────────────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.patch.set_facecolor("#f9f9f9")
 

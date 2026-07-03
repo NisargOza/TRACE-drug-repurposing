@@ -1,34 +1,3 @@
-"""
-scRNA-seq AT2→AT1 alveolar transition signature arm (C1).
-
-Downloads two IPF single-cell atlases and computes the AT2→AT1 transition
-differential-expression signature, which captures the blocked alveolar
-epithelial differentiation step that drives IPF fibrosis.
-
-Datasets:
-  GSE135893  Habermann 2020, Sci Adv — IPF lung scRNA-seq (10x Chromium)
-             114,397 cells; AT1=771, AT2=9,311, KRT5-/KRT17+=485, transitional=1,160
-             celltype col: 'celltype'; donor col: 'Sample_Name'; disease: 'Diagnosis'
-  GSE136831  Adams 2020, Sci Adv — multi-tissue IPF lung scRNA-seq
-             celltype col: 'Manuscript_Identity' (ATI, ATII); donor: 'Subject_Identity'
-
-Method A (pseudo-bulk, preferred): per-donor mean of AT2 vs AT1, scipy t-test,
-  BH FDR correction. Used when >=3 donors have both AT1 and AT2 cells.
-Method B (fallback): per-cell t-test between AT1 and AT2 clusters.
-
-Note: MTX files are large (~1-2 GB compressed). First run takes ~30-60 min.
-Checkpoints in results/scrna/ allow fast reruns.
-
-Outputs:
-  results/scrna/at2_at1_transition_signature.csv
-  results/scrna/at2_at1_network_scores.csv
-  results/scrna/at2_at1_drug_scores.csv
-  results/scrna/scrna_vs_bulk_comparison.csv
-  results/scrna/scrna_summary.txt
-
-Usage:
-  python src/benchmarking/C1_scrna_signature.py
-"""
 
 import csv
 import gzip
@@ -53,7 +22,7 @@ BENCH  = ROOT / "results/benchmarking"
 RAW.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 
-ALPHA = 0.85; MAX_ITER = 100; TOL = 1e-6  # RWR params — match 07_network_propagation.py
+ALPHA = 0.85; MAX_ITER = 100; TOL = 1e-6
 
 BASE135 = "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE135nnn/GSE135893/suppl/"
 BASE136 = "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE136nnn/GSE136831/suppl/"
@@ -64,9 +33,9 @@ DATASETS = {
         "barcodes": (BASE135 + "GSE135893_barcodes.tsv.gz",             RAW / "GSE135893_barcodes.tsv.gz"),
         "genes":    (BASE135 + "GSE135893_genes.tsv.gz",                RAW / "GSE135893_genes.tsv.gz"),
         "metadata": (BASE135 + "GSE135893_IPF_metadata.csv.gz",         RAW / "GSE135893_metadata.csv.gz"),
-        "ct_col":   "celltype",     # column with cell type label
-        "donor_col":"Sample_Name",  # column with donor/patient ID
-        "disease_col": "Diagnosis", # column with disease label (IPF/Control)
+        "ct_col":   "celltype",
+        "donor_col":"Sample_Name",
+        "disease_col": "Diagnosis",
         "at2_label":   "AT2",
         "at1_label":   "AT1",
     },
@@ -113,12 +82,10 @@ def download(url: str, dest: Path) -> bool:
 
 def load_metadata(path: Path, ct_col: str, donor_col: str, disease_col: str,
                   at2_label: str, at1_label: str) -> pd.DataFrame:
-    """Load metadata CSV/TSV, return df with barcode index."""
     opener = gzip.open if str(path).endswith(".gz") else open
     sep = "\t" if "tsv" in str(path) or "txt" in str(path) else ","
     with opener(path, "rt", encoding="utf-8", errors="replace") as f:
         df = pd.read_csv(f, sep=sep, index_col=0, quoting=csv.QUOTE_ALL if sep=="," else csv.QUOTE_MINIMAL)
-    # Normalize index (strip quotes)
     df.index = df.index.str.strip('"')
     for col in [ct_col, donor_col, disease_col]:
         if col in df.columns:
@@ -131,22 +98,19 @@ def load_metadata(path: Path, ct_col: str, donor_col: str, disease_col: str,
 
 def stream_mtx_subset(mtx_path: Path, barcodes_path: Path, genes_path: Path,
                       target_barcodes: set) -> tuple[sp.csr_matrix, list, list]:
-    """Stream-read MTX.gz, keep only columns for target barcodes. Returns (mat, genes, sub_barcodes)."""
     barcodes = []
     opener = gzip.open if str(barcodes_path).endswith(".gz") else open
     with opener(barcodes_path, "rt") as f:
         for line in f:
             barcodes.append(line.strip().strip('"'))
-    # Map barcode → original col index
     bc_to_orig_idx = {b: i for i, b in enumerate(barcodes)}
-    # Map target barcodes to new (compact) column indices
     sub_barcodes = [b for b in barcodes if b in target_barcodes]
     orig_to_new  = {bc_to_orig_idx[b]: j for j, b in enumerate(sub_barcodes)}
 
     genes = []
     with opener(genes_path, "rt") as f:
         for line in f:
-            genes.append(line.strip().split("\t")[0].strip('"'))  # first field
+            genes.append(line.strip().split("\t")[0].strip('"'))
 
     print(f"    Streaming MTX ({mtx_path.stat().st_size/1e6:.0f} MB) → {len(sub_barcodes)} target cells ...")
     rows, cols, vals = [], [], []
@@ -158,10 +122,10 @@ def stream_mtx_subset(mtx_path: Path, barcodes_path: Path, genes_path: Path,
             if line.startswith("%"):
                 continue
             if not header_done:
-                header_done = True  # skip dims line
+                header_done = True
                 continue
             parts = line.split()
-            g_idx = int(parts[0]) - 1  # 1-indexed
+            g_idx = int(parts[0]) - 1
             c_idx = int(parts[1]) - 1
             if c_idx in orig_to_new:
                 rows.append(g_idx)
@@ -181,9 +145,7 @@ def compute_pseudobulk_de(mat: sp.csr_matrix, genes: list,
                           meta: pd.DataFrame, sub_barcodes: list,
                           ct_col: str, donor_col: str,
                           at2_label: str, at1_label: str) -> pd.DataFrame:
-    """Pseudo-bulk DE (AT1 vs AT2) using per-donor averages."""
     bc_to_j = {b: j for j, b in enumerate(sub_barcodes)}
-    # Group by donor × cell type, compute log1p mean
     pb: dict[tuple, np.ndarray] = {}
     for barcode, row in meta.iterrows():
         if barcode not in bc_to_j:
@@ -197,12 +159,10 @@ def compute_pseudobulk_de(mat: sp.csr_matrix, genes: list,
             pb[key] = []
         pb[key].append(j)
 
-    # Average per (donor, ct)
     donors_with_both = set(d for d, ct in pb if (d, at2_label) in pb and (d, at1_label) in pb)
     print(f"    Donors with both AT1+AT2: {len(donors_with_both)}")
 
     if len(donors_with_both) >= 2:
-        # Method A: pseudo-bulk
         mat_dense = mat.toarray().astype(np.float32)
         np.log1p(mat_dense, out=mat_dense)
         at2_means = np.array([mat_dense[:, pb[(d, at2_label)]].mean(axis=1)
@@ -214,7 +174,6 @@ def compute_pseudobulk_de(mat: sp.csr_matrix, genes: list,
         method = f"pseudo-bulk, {len(donors_with_both)} donors (Method A)"
         del mat_dense
     else:
-        # Method B: per-cell t-test
         print("    WARNING: <2 donors with both AT1+AT2; using per-cell t-test (Method B)")
         all_at2 = [j for (d, ct), jlist in pb.items() if ct == at2_label for j in jlist]
         all_at1 = [j for (d, ct), jlist in pb.items() if ct == at1_label for j in jlist]
@@ -289,7 +248,6 @@ def build_string_network() -> tuple[sp.csr_matrix, list]:
 
 
 def pearson_reversal(net_vec: np.ndarray, D: np.ndarray) -> np.ndarray:
-    """Negated Pearson correlation of disease net vector vs each drug column."""
     d = (net_vec - net_vec.mean()) / (net_vec.std() + 1e-12)
     D_c = D - D.mean(axis=0); D_s = D.std(axis=0) + 1e-12
     return -(d @ D_c) / (len(net_vec) * D_s)
@@ -316,7 +274,6 @@ def main() -> None:
         _report_candidates()
         return
 
-    # ── Steps 1-4: Per-dataset DE ─────────────────────────────────────────────
     all_de: list[pd.DataFrame] = []
     sig_path = OUT / "at2_at1_transition_signature.csv"
 
@@ -331,7 +288,6 @@ def main() -> None:
                 all_de.append(pd.read_csv(de_csv))
                 continue
 
-            # Download files
             ok = all(download(url, dest) for url, dest in [cfg["metadata"]])
             if not ok:
                 print(f"  WARNING: metadata download failed for {acc} — skipping")
@@ -343,7 +299,6 @@ def main() -> None:
                 [cfg["at2_label"], cfg["at1_label"]])].index)
             print(f"  Target cells (AT1+AT2): {len(target_barcodes):,}")
 
-            # Download MTX files
             for key in ("barcodes", "genes", "mtx"):
                 download(cfg[key][0], cfg[key][1])
 
@@ -357,7 +312,7 @@ def main() -> None:
             de.to_csv(de_csv, index=False)
             ck_acc.touch()
             all_de.append(de)
-            del mat  # free memory
+            del mat
 
         if not all_de:
             print("\nNo DE results — writing empty outputs.")
@@ -367,7 +322,6 @@ def main() -> None:
             (OUT / "scrna_summary.txt").write_text("No expression data available.\n")
             return
 
-        # IVW Z-score meta-analysis across datasets (same as IPF meta-analysis)
         combined = pd.concat(all_de, ignore_index=True)
         from scipy.special import ndtri
         from scipy.stats import norm
@@ -385,7 +339,6 @@ def main() -> None:
         _, padj, _, _ = multipletests(pooled["pvalue"].fillna(1).values, method="fdr_bh")
         pooled["padj"] = padj
 
-        # Map to Entrez
         print("\nMapping gene symbols → Entrez ...")
         sym2e = map_symbols_to_entrez(pooled["gene_symbol"].tolist())
         pooled["gene_id"] = pooled["gene_symbol"].map(sym2e)
@@ -399,7 +352,6 @@ def main() -> None:
         print(f"[cached] Transition signature ({sig_path.name})")
         pooled = pd.read_csv(sig_path, index_col=0)
 
-    # ── Step 7: RWR network propagation ───────────────────────────────────────
     net_path = OUT / "at2_at1_network_scores.csv"
     if not net_path.exists():
         print("\nRunning RWR network propagation ...")
@@ -419,7 +371,6 @@ def main() -> None:
 
     net_df = pd.read_csv(net_path, index_col=0)
 
-    # ── Step 8: Drug scoring ───────────────────────────────────────────────────
     drug_path = OUT / "at2_at1_drug_scores.csv"
     if not drug_path.exists():
         print("\nScoring L1000 drugs ...")
@@ -436,7 +387,6 @@ def main() -> None:
     else:
         drug_df = pd.read_csv(drug_path, index_col=0)
 
-    # ── Step 9: Compare to bulk ────────────────────────────────────────────────
     _report_candidates(drug_df, pooled)
     (OUT / ".at2_at1_computed").touch()
     print("\nC1 complete. Rerun B5 to include 'scRNA AT2→AT1 (Pearson)' arm.")

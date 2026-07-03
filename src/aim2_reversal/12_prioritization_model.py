@@ -1,33 +1,3 @@
-"""
-Learned prioritization model — RESEARCH.md §2b.
-
-With only 2 known positive drugs (pirfenidone, nintedanib), supervised
-XGBoost cannot learn — 2 positives is insufficient for any classifier.
-Instead this script:
-
-  1. Fetches genetic support for the top-200 TRACE candidates via Open Targets
-     (drug ChEMBL ID → target Ensembl IDs → overlap with IPF-associated targets)
-  2. Computes pathway concordance (fraction of drug targets in IPF pathways)
-  3. Produces a weighted rank combination score:
-       final_score = 0.5 * trace_rank_pct + 0.3 * genetic_support + 0.2 * repro
-  4. Runs the ablation as a sensitivity analysis (what changes when weights vary)
-  5. Reports positive control ranks at each stage
-
-Note: a supervised model requires ≥ 10-20 labelled positives. With only
-pirfenidone and nintedanib, we use these purely as positive controls to
-validate the pipeline (can TRACE recover them?), not to train on them.
-
-Outputs:
-  results/reversal/drug_targets_cache.json    — cached drug→target data
-  results/reversal/features.csv               — full feature matrix
-  results/reversal/model_scores.csv           — final ranked candidates
-  results/reversal/feature_importances.png    — score decomposition plot
-  results/reversal/final_candidates.csv       — top 50 novel candidates
-  results/reversal/ablation_summary.txt       — sensitivity to weight choices
-
-Usage:
-    python src/aim2_reversal/12_prioritization_model.py
-"""
 
 import json
 import time
@@ -46,31 +16,19 @@ META_DIR  = Path("results/meta")
 
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
-# IPF-relevant pathway gene sets (Entrez IDs) per RESEARCH.md
 IPF_PATHWAY_GENES = set([
-    # TGF-β signaling
     "7040","7042","7043","4087","4088","4089","4090","7048","7049","7050",
-    # ECM remodeling / MMPs
     "4312","4313","4314","4316","4317","4318","4319","4320","1277","1278",
-    # PI3K-AKT
     "5291","5290","5293","5294","207","208","10000","2475","7157",
-    # MAPK / ERK
     "5594","5595","5596","5597","5598","5599","1147","4217","4216",
-    # Wnt / β-catenin
     "1499","1950","6932","7471","7473","3725","4040","90","8321",
-    # Hedgehog
     "6608","6612","2735","5727","6649",
 ])
 
 OT_API = "https://api.platform.opentargets.org/api/v4/graphql"
 
 
-# ---------------------------------------------------------------------------
-# Open Targets: IPF-associated target scores
-# ---------------------------------------------------------------------------
-
 def fetch_ipf_targets(cache: Path) -> dict[str, float]:
-    """Returns {ensembl_id: genetic_association_score}."""
     if cache.exists():
         return json.loads(cache.read_text())
     print("  Fetching IPF target scores from Open Targets (EFO_0000768)...")
@@ -93,15 +51,10 @@ def fetch_ipf_targets(cache: Path) -> dict[str, float]:
         return {}
 
 
-# ---------------------------------------------------------------------------
-# Open Targets: drug → ChEMBL ID lookup via name search
-# ---------------------------------------------------------------------------
-
 CHEMBL_API = "https://www.ebi.ac.uk/chembl/api/data"
 
 
 def fetch_chembl_ids(drugs: list[str], cache: Path) -> dict[str, str]:
-    """Returns {drug_name: chembl_id} for matched drugs via ChEMBL REST API."""
     if cache.exists():
         return json.loads(cache.read_text())
     print(f"  Looking up ChEMBL IDs for {len(drugs)} drugs...")
@@ -110,7 +63,6 @@ def fetch_chembl_ids(drugs: list[str], cache: Path) -> dict[str, str]:
         if i % 25 == 0:
             print(f"    {i}/{len(drugs)}", end="\r", flush=True)
         try:
-            # Use search endpoint (case-insensitive)
             r = requests.get(
                 f"{CHEMBL_API}/molecule/search",
                 params={"q": drug, "format": "json", "limit": 1},
@@ -127,12 +79,7 @@ def fetch_chembl_ids(drugs: list[str], cache: Path) -> dict[str, str]:
     return chembl_map
 
 
-# ---------------------------------------------------------------------------
-# Open Targets: drug targets via ChEMBL ID
-# ---------------------------------------------------------------------------
-
 def fetch_drug_targets(chembl_ids: dict[str, str], cache: Path) -> dict[str, list[str]]:
-    """Returns {drug_name: [uniprot_target_id, ...]} via ChEMBL mechanism endpoint."""
     if cache.exists():
         return json.loads(cache.read_text())
     print(f"  Fetching targets for {len(chembl_ids)} drugs via ChEMBL...")
@@ -157,35 +104,20 @@ def fetch_drug_targets(chembl_ids: dict[str, str], cache: Path) -> dict[str, lis
     return drug_targets
 
 
-# ---------------------------------------------------------------------------
-# Compute genetic support + pathway concordance per drug
-# ---------------------------------------------------------------------------
-
 def compute_genetic_features(
     drugs: list[str],
     drug_targets: dict[str, list[str]],
     ipf_target_scores: dict[str, float],
     ipf_pathway_genes_entrez: set[str],
 ) -> pd.DataFrame:
-    # NOTE: drug_targets values are ChEMBL target IDs (e.g. CHEMBL2095182).
-    # ipf_target_scores keys are Ensembl gene IDs (e.g. ENSG00000...).
-    # These ID spaces don't overlap without a crosswalk table.
-    # Full implementation requires: ChEMBL target → UniProt → Ensembl mapping,
-    # which is available from UniProt ID mapping but adds a large download step.
-    # genetic_support = 0 for all drugs until this crosswalk is added.
-    # This is documented as a limitation — TRACE score alone drives the ranking.
     rows = []
     for drug in drugs:
         targets = set(drug_targets.get(drug, []))
         if not targets:
             rows.append({"drug": drug, "genetic_support": 0.0, "pathway_concordance": 0.0, "n_targets": 0})
             continue
-        # Genetic support: mean OT score for targets with IPF association
         gen_scores = [ipf_target_scores.get(t, 0.0) for t in targets]
-        genetic_support = max(gen_scores)     # best target score
-        # Pathway concordance: fraction of targets that hit IPF pathways
-        # Convert Ensembl targets to gene symbols via reverse lookup is hard;
-        # here we use the targets directly against the OT IPF set as proxy
+        genetic_support = max(gen_scores)
         ipf_target_set = set(ipf_target_scores.keys())
         pathway_frac = len(targets & ipf_target_set) / len(targets)
         rows.append({
@@ -197,32 +129,17 @@ def compute_genetic_features(
     return pd.DataFrame(rows).set_index("drug")
 
 
-# ---------------------------------------------------------------------------
-# Weighted rank combination (transparent, interpretable with small label set)
-# ---------------------------------------------------------------------------
-
 def weighted_rank_score(feat: pd.DataFrame,
                         w_trace: float = 0.5,
                         w_genetic: float = 0.3,
                         w_repro: float = 0.2) -> pd.Series:
-    """
-    Combine feature percentile ranks into a single score.
-    Higher = better reversal candidate.
-    """
     n = len(feat)
     pct = pd.DataFrame(index=feat.index)
-    # TRACE: higher is better (reversal)
     pct["trace"]   = feat["trace_score"].rank(ascending=True) / n
-    # Genetic support: higher is better
     pct["genetic"] = feat["genetic_support"].rank(ascending=True) / n
-    # Reproducibility: higher is better
     pct["repro"]   = feat["sig_reproducibility"].rank(ascending=True) / n
     return (w_trace * pct["trace"] + w_genetic * pct["genetic"] + w_repro * pct["repro"])
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main() -> None:
     scores   = pd.read_csv(REV_DIR / "combined_scores.csv")
@@ -230,7 +147,6 @@ def main() -> None:
     sig_info = pd.read_csv(L1000_DIR / "sm_sig_info.csv", low_memory=False)
     n_cells  = sig_info.groupby("pert_iname")["cell_id"].nunique().rename("n_cell_lines")
 
-    # Signature reproducibility (pre-computed if features.csv exists)
     feat_cache = REV_DIR / "features.csv"
     if feat_cache.exists():
         feat = pd.read_csv(feat_cache, index_col=0)
@@ -259,7 +175,6 @@ def main() -> None:
         feat["pathway_concordance"] = 0.0
         feat.to_csv(feat_cache)
 
-    # Fetch genetic support for top-100 TRACE candidates + positive controls
     trace_top100 = scores.nlargest(100, "trace_score")["drug"].tolist()
     query_drugs  = list(set(trace_top100 + POSITIVE_CONTROLS))
 
@@ -270,12 +185,10 @@ def main() -> None:
     gen_feat      = compute_genetic_features(query_drugs, drug_targets,
                                              ipf_targets, IPF_PATHWAY_GENES)
 
-    # Update feature matrix for these drugs
     for col in ["genetic_support", "pathway_concordance", "n_targets"]:
         feat.loc[gen_feat.index, col] = gen_feat[col]
     feat.to_csv(feat_cache)
 
-    # Summary of genetic support for positive controls
     print("\n=== Positive control genetic support ===")
     for pc in POSITIVE_CONTROLS:
         rows = feat[feat.index.str.lower().str.contains(pc.lower(), na=False)]
@@ -287,7 +200,6 @@ def main() -> None:
                   f"pathway_concordance={r['pathway_concordance']:.4f}  "
                   f"n_targets={int(r.get('n_targets',0))}  targets_sample={targets[:4]}")
 
-    # Weighted rank combination
     print("\nComputing weighted rank combination...")
     final_score = weighted_rank_score(feat)
     result = pd.DataFrame({
@@ -303,7 +215,6 @@ def main() -> None:
     result["final_rank"] = range(1, len(result) + 1)
     result.to_csv(REV_DIR / "model_scores.csv", index=False)
 
-    # Positive control summary
     n = len(result)
     print(f"\n=== Positive control final ranks ===")
     for pc in POSITIVE_CONTROLS:
@@ -315,7 +226,6 @@ def main() -> None:
                   f"score={r['final_score']:.4f}  "
                   f"trace={r['trace_score']:.4f}  genetic={r['genetic_support']:.4f}")
 
-    # Ablation: sensitivity to weight choices
     print("\n=== Ablation: sensitivity to weight changes ===")
     weight_configs = {
         "trace_only     (1.0, 0.0, 0.0)": (1.0, 0.0, 0.0),
@@ -337,7 +247,6 @@ def main() -> None:
     (REV_DIR / "ablation_summary.txt").write_text(abl_text)
     print(abl_text)
 
-    # Plot: TRACE score vs genetic support, coloured by final rank
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
     ax = axes[0]
     sc = ax.scatter(result["trace_score"], result["genetic_support"],
@@ -370,7 +279,6 @@ def main() -> None:
     fig.savefig(REV_DIR / "feature_importances.png", dpi=150)
     plt.close(fig)
 
-    # Final candidate list (exclude positive controls from novel candidates)
     is_pc = result["drug"].str.lower().apply(
         lambda d: any(pc.lower() in d for pc in POSITIVE_CONTROLS)
     )

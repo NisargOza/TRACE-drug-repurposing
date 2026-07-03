@@ -1,30 +1,3 @@
-"""
-IMPROVE item 4: Deep module-level analysis of best genuinely novel candidate.
-
-Not cediranib (too nintedanib-like), not dasatinib/romidepsin (already
-well-characterised in IPF). Best target: JNJ-26481585 (quisinostat) — a
-pan-HDAC inhibitor that ranks 8th combined, has no IPF trial, and is not
-mechanistically obvious from the existing literature.
-
-Analysis:
-1. Which IPF transcriptomic modules does JNJ-26481585 reverse?
-   (TGF-β, senescence, AT2 repair, ECM remodeling, immune/macrophage)
-2. How does it compare against romidepsin and vorinostat (same class)?
-3. What specific experiment would test the hypothesis?
-
-Gene module sets from IPF literature (Habermann 2019, Adams 2020):
-  - TGF-β signalling:  TGFB1, TGFBR1, SMAD2, SMAD3, ACTA2, FN1
-  - ECM remodeling:    COL1A1, COL3A1, MMP7, MMP2, TIMP1, LOX
-  - AT2 depletion:     SFTPC, SFTPB, ABCA3, LPCAT1, LAMP3
-  - Senescence:        CDKN1A, CDKN2A, TP53, GLB1, LMNB1
-  - Basal/KRT:         KRT5, KRT17, KRT19, TP63, S100A2
-  - Macrophage/inflam: MRC1, MARCO, SPP1, MERTK, IL6, CXCL10
-
-Writes:
-  results/aim3/deep_candidate_analysis.csv
-  results/aim3/deep_candidate_report.txt
-  results/figures/fig_deep_candidate.png
-"""
 
 from pathlib import Path
 import pandas as pd
@@ -43,78 +16,66 @@ OUT  = ROOT / "results" / "figures"
 AIM3.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 
-# ── Candidate drugs to compare ─────────────────────────────────────────────────
 FOCUS_DRUGS = ["JNJ-26481585", "romidepsin", "vorinostat", "nintedanib", "pirfenidone"]
 
-# ── IPF module gene sets (Entrez IDs) ─────────────────────────────────────────
-# Curated from Habermann et al. 2019, Adams et al. 2020, KEGG IPF pathways
 IPF_MODULES = {
     "TGF-β / fibrogenesis": [
-        7040, 7046, 7048,   # TGFB1, TGFBR1, TGFBR2
-        4087, 4088,         # SMAD2, SMAD3
-        59,                 # ACTA2
-        2202,               # FBN1
-        3371,               # TNC
-        1490,               # CCN2/CTGF
+        7040, 7046, 7048,
+        4087, 4088,
+        59,
+        2202,
+        3371,
+        1490,
     ],
     "ECM remodeling": [
-        1278, 1281,         # COL1A1, COL3A1
-        4316, 4313,         # MMP7, MMP2
-        7076,               # TIMP1
-        4015,               # LOX
-        2335, 2336,         # FN1
-        3371,               # TNC
+        1278, 1281,
+        4316, 4313,
+        7076,
+        4015,
+        2335, 2336,
+        3371,
     ],
     "AT2 cell depletion": [
-        6440, 6439,         # SFTPC, SFTPB
-        19,                 # ABCA3
-        56995,              # LAMP3
-        10026,              # LPCAT1
-        1178,               # CLC
+        6440, 6439,
+        19,
+        56995,
+        10026,
+        1178,
     ],
     "Senescence": [
-        1026, 1029,         # CDKN1A, CDKN2A
-        7157,               # TP53
-        2720,               # GLB1
-        84823,              # LMNB1
-        3725,               # JUN
+        1026, 1029,
+        7157,
+        2720,
+        84823,
+        3725,
     ],
     "Basal cell / KRT": [
-        3852, 3877, 3880,   # KRT5, KRT17, KRT19
-        8626,               # TP63
-        6278,               # S100A2
-        1277,               # COL1A2
+        3852, 3877, 3880,
+        8626,
+        6278,
+        1277,
     ],
     "Macrophage / inflammation": [
-        4360,               # MRC1
-        8685,               # MARCO
-        6696,               # SPP1
-        10461,              # MERTK
-        3569,               # IL6
-        3627,               # CXCL10
-        6347,               # CCL2
+        4360,
+        8685,
+        6696,
+        10461,
+        3569,
+        3627,
+        6347,
     ],
 }
 
 
 def module_reversal_score(drug_sig: pd.Series, consensus: pd.DataFrame,
                            module_genes: list[int]) -> tuple[float, int]:
-    """
-    Compute the reversal score for a specific gene module.
-    Returns (score, n_genes_in_landmark).
-    Positive score = drug opposes the consensus IPF direction in this module.
-    """
-    # drug_sig index = L1000 landmark Entrez IDs (integers)
-    # consensus index = all DE genes (Entrez integers)
     lm_genes = set(drug_sig.index.tolist())
     cons_genes = set(consensus.index.tolist())
-    # Genes in module that are both in consensus AND in landmark set
     common = [g for g in module_genes if g in lm_genes and g in cons_genes]
     if not common:
-        return np.nan, 0   # nan = not measurable
+        return np.nan, 0
     cons_vec  = consensus.loc[common, "meta_log2FC"].values.astype(float)
     drug_vec  = drug_sig.loc[common].values.astype(float)
-    # Normalize
     cn = np.linalg.norm(cons_vec); dn = np.linalg.norm(drug_vec)
     if cn == 0 or dn == 0:
         return np.nan, len(common)
@@ -122,27 +83,23 @@ def module_reversal_score(drug_sig: pd.Series, consensus: pd.DataFrame,
 
 
 def main():
-    # ── Load consensus signature ───────────────────────────────────────────────
     consensus = pd.read_csv(META / "consensus_signature.csv", index_col=0)
     consensus.index = consensus.index.astype(str)
 
-    # ── Load L1000 drug signatures ─────────────────────────────────────────────
     drug_sig_path = L1K / "drug_signatures_landmark.csv.gz"
     print("Loading L1000 drug signatures...")
     drug_sigs = pd.read_csv(drug_sig_path, index_col=0)
     drug_sigs.columns = drug_sigs.columns.astype(str)
     print(f"Drug signatures: {drug_sigs.shape}")
 
-    # ── Compute per-module reversal scores ─────────────────────────────────────
     results = []
     for drug in FOCUS_DRUGS:
-        # Case-insensitive match (drug_sigs is genes x drugs; columns = drugs)
-        drug_index = drug_sigs.columns  # drugs are columns
+        drug_index = drug_sigs.columns
         matches = [d for d in drug_index if str(d).lower() == drug.lower()]
         if not matches:
             print(f"  {drug}: not found in drug signatures")
             continue
-        drug_sig = drug_sigs[matches[0]]   # column lookup (genes x drugs)
+        drug_sig = drug_sigs[matches[0]]
 
         row = {"drug": drug}
         for module_name, gene_list in IPF_MODULES.items():
@@ -155,7 +112,6 @@ def main():
     df = pd.DataFrame(results).set_index("drug")
     df.to_csv(AIM3 / "deep_candidate_analysis.csv")
 
-    # ── Report ─────────────────────────────────────────────────────────────────
     focus = "JNJ-26481585"
     lines = [
         "Deep Candidate Analysis — JNJ-26481585 (Quisinostat)",
@@ -213,7 +169,6 @@ def main():
     report_path.write_text("\n".join(lines))
     print("\n".join(lines))
 
-    # ── Figure: gene-level reversal scatter for JNJ-26481585 ─────────────────
     focus_col = next((c for c in drug_sigs.columns if str(c).lower() == "jnj-26481585"), None)
     if focus_col is not None:
         common_genes = list(set(drug_sigs.index) & set(consensus.index))
@@ -264,7 +219,6 @@ def main():
         ax.plot(lims, [-x for x in lims], color="#555", lw=0.8, ls="--", label="Perfect reversal")
 
         from scipy.stats import pearsonr
-        # Recompute arrays independently to avoid any upstream mutation
         cg = list(set(drug_sigs.index) & set(consensus.index))
         x_arr = consensus.loc[cg, "meta_log2FC"].values.astype(float)
         y_arr = drug_sigs.loc[cg, focus_col].values.astype(float)

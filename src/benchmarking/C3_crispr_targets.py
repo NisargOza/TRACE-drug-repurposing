@@ -1,29 +1,3 @@
-"""
-CRISPR KO target identification arm (C3).
-
-Uses Enrichr LINCS_L1000_CRISPR_KO_Consensus_Sigs library to identify
-genes whose KO signature reverses the IPF transcriptomic signature. Cross-
-references with:
-  - Open Targets tractability API (druggable small-molecule targets)
-  - IPF consensus_signature.csv (direct DE targets)
-  - scRNA-seq data (from C1, if available)
-
-CRISPR KO reversal logic (same as C2 but for genetic KO):
-  - Submit IPF DOWN genes → CRISPR KO UP library → KOs that induce suppressed genes
-  - Submit IPF UP genes → CRISPR KO DOWN library → KOs that repress induced genes
-
-Outputs:
-  results/crispr/enrichr_ko_dn.json
-  results/crispr/enrichr_ko_up.json
-  results/crispr/crispr_reversal_scores.csv
-  results/crispr/crispr_druggable_targets.csv
-  results/crispr/crispr_open_targets.json
-  results/crispr/crispr_priority_targets.csv
-  results/crispr/crispr_summary.txt
-
-Usage:
-  python src/benchmarking/C3_crispr_targets.py
-"""
 
 import json
 import re
@@ -43,7 +17,7 @@ SCRNA = ROOT / "results/scrna"
 OUT.mkdir(parents=True, exist_ok=True)
 
 ENRICHR_URL   = "https://maayanlab.cloud/Enrichr"
-KO_UP_LIB     = "LINCS_L1000_CRISPR_KO_Consensus_Sigs"  # KO → gene UP (loss-of-function UP)
+KO_UP_LIB     = "LINCS_L1000_CRISPR_KO_Consensus_Sigs"
 OT_GQL_URL    = "https://api.platform.opentargets.org/api/v4/graphql"
 N_TOP         = 150
 
@@ -102,15 +76,10 @@ def enrichr_enrich(uid: str, library: str) -> list:
 
 
 def parse_ko_term(term: str) -> str:
-    """Extract gene name from CRISPR KO term like 'TP53 KO' or 'STAT3-KO-HELA'.
-    LINCS_L1000_CRISPR_KO_Consensus_Sigs terms are just gene symbols."""
-    # The library term is typically just the gene symbol (e.g. 'TP53')
-    # or 'GENE SYMBOL (DESC)' — take the first space-separated token
     return term.split()[0].strip().upper() if term else term
 
 
 def aggregate_ko_scores(dn_results: list, up_results: list) -> pd.DataFrame:
-    """Score each target gene by combined reversal evidence from both queries."""
     from scipy.stats import combine_pvalues
     records_dn, records_up = [], []
     for row in dn_results:
@@ -130,8 +99,6 @@ def aggregate_ko_scores(dn_results: list, up_results: list) -> pd.DataFrame:
 
 
 def query_open_targets(gene_symbols: list) -> dict:
-    """Query Open Targets v4 platform API for tractability of top CRISPR genes.
-    Uses targetByApprovedSymbol query (no search step needed in v4)."""
     gql = """
     query tractability($sym: String!) {
       targetByApprovedSymbol(symbol: $sym) {
@@ -156,7 +123,6 @@ def query_open_targets(gene_symbols: list) -> dict:
 
 
 def is_druggable(tractability: list) -> bool:
-    """Return True if target has at least 1 small-molecule tractability bucket."""
     for item in tractability:
         if (item.get("modality", "").lower() in ("small_molecule", "smallmolecule")
                 and item.get("value") is True):
@@ -168,11 +134,9 @@ def main() -> None:
     dn_cache = OUT / "enrichr_ko_dn.json"
     up_cache = OUT / "enrichr_ko_up.json"
 
-    # ── Step 1: Build query genes ─────────────────────────────────────────────
     print("Step 1: Building query genes ...")
     up_genes, dn_genes = build_query_genes()
 
-    # ── Step 2: Enrichr CRISPR KO library queries ─────────────────────────────
     if not dn_cache.exists():
         print(f"\nStep 2a: DOWN genes → Enrichr {KO_UP_LIB} ...")
         uid = enrichr_submit(dn_genes, "IPF_DN_for_KO")
@@ -209,7 +173,6 @@ def main() -> None:
             (OUT / f).write_text("gene,reversal_score\n")
         (OUT / "crispr_summary.txt").write_text("No CRISPR KO data.\n"); return
 
-    # ── Step 3: Aggregate ─────────────────────────────────────────────────────
     print("\nStep 3: Aggregating KO reversal scores ...")
     crispr_df = aggregate_ko_scores(dn_results, up_results)
     crispr_df.to_csv(OUT / "crispr_reversal_scores.csv", index=False)
@@ -218,7 +181,6 @@ def main() -> None:
     for _, row in crispr_df.head(20).iterrows():
         print(f"  {row['gene']:<15} score={row['reversal_score']:.2f}  dn={row.get('score_dn',0):.1f}  up={row.get('score_up',0):.1f}")
 
-    # ── Step 3: Open Targets druggability ─────────────────────────────────────
     print("\nStep 3: Querying Open Targets tractability ...")
     top_genes = crispr_df.head(50)["gene"].tolist()
     ot_cache  = OUT / "crispr_open_targets.json"
@@ -229,28 +191,24 @@ def main() -> None:
         print(f"  [cached] {ot_cache.name}")
         ot_data = json.loads(ot_cache.read_text())
 
-    # ── Step 4: Flag druggable targets ────────────────────────────────────────
     crispr_df["druggable"] = crispr_df["gene"].apply(
         lambda g: is_druggable(ot_data.get(g, {}).get("tractability", [])))
     druggable = crispr_df[crispr_df["druggable"]].copy()
     druggable.to_csv(OUT / "crispr_druggable_targets.csv", index=False)
     print(f"\n  Druggable targets (SM tractability): {len(druggable)}/{len(crispr_df)}")
 
-    # ── Step 5: Cross-reference with IPF consensus DE ─────────────────────────
     cons = pd.read_csv(META / "consensus_signature.csv", index_col=0)
-    # Convert Entrez IDs to gene symbols via L1000 gene info if available
     gene_info = ROOT / "data/raw/gene_info_human.tsv"
     if gene_info.exists():
         gi = pd.read_csv(gene_info, sep="\t", dtype=str, usecols=["GeneID", "Symbol"])
         gi = gi.set_index("GeneID")["Symbol"]
         cons_syms = cons.index.astype(str).map(gi).dropna()
     else:
-        cons_syms = pd.Series(dtype=str)  # no mapping available
+        cons_syms = pd.Series(dtype=str)
 
     in_consensus = crispr_df["gene"].isin(set(cons_syms.values))
     crispr_df["in_ipf_consensus"] = in_consensus
 
-    # ── Step 6: scRNA cross-reference ─────────────────────────────────────────
     scrna_sig = SCRNA / "at2_at1_transition_signature.csv"
     if scrna_sig.exists() and gene_info.exists():
         sc = pd.read_csv(scrna_sig)
@@ -259,8 +217,6 @@ def main() -> None:
     else:
         crispr_df["in_scrna_AT1_up"] = False
 
-    # ── Step 7: Priority ranking ───────────────────────────────────────────────
-    # Score: druggable + in consensus + high z + in scRNA
     crispr_df["priority_score"] = (
         crispr_df["druggable"].astype(int) * 3
         + crispr_df["in_ipf_consensus"].astype(int) * 2
@@ -270,7 +226,6 @@ def main() -> None:
     priority = crispr_df.sort_values("priority_score", ascending=False).head(20)
     priority.to_csv(OUT / "crispr_priority_targets.csv", index=False)
 
-    # ── Report ─────────────────────────────────────────────────────────────────
     lines = ["CRISPR KO reversal targets — priority candidates:",
              f"  Total KO genes scored: {len(crispr_df)}",
              f"  Druggable (small molecule): {len(druggable)}",

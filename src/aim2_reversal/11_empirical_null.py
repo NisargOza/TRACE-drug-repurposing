@@ -1,24 +1,3 @@
-"""
-Empirical null, p-values, FDR, and bootstrap CI — RESEARCH.md §2c.
-
-Steps:
-  1. Build null distribution by scrambling the IPF signature gene labels
-     (>= 1,000 permutations) and re-scoring all drugs under each permutation.
-     Reversal scores must collapse toward null under scrambling.
-  2. Compute empirical p-value per drug: fraction of null scores >= observed score.
-  3. Apply Benjamini-Hochberg FDR correction.
-  4. Bootstrap confidence intervals on TRACE rank (resample IPF datasets).
-  5. Write final ranked candidate list with all statistical annotations.
-
-Outputs:
-  results/reversal/null_distribution.npz       — permutation null scores
-  results/reversal/fdr_candidates.csv          — FDR-controlled candidate list
-  results/reversal/null_diagnostics.png        — null vs observed score distribution
-  results/reversal/positive_control_summary.txt
-
-Usage:
-    python src/aim2_reversal/11_empirical_null.py [--n-perm 1000]
-"""
 
 import sys
 from pathlib import Path
@@ -38,33 +17,19 @@ REV_DIR   = Path("results/reversal")
 N_PERM    = int(sys.argv[sys.argv.index("--n-perm") + 1]) if "--n-perm" in sys.argv else 1000
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 FDR_THRESH = 0.05
-SCORE_COL  = "trace_score"   # which score to build null for
+SCORE_COL  = "trace_score"
 
-
-# ---------------------------------------------------------------------------
-# Fast TRACE score: cosine similarity in network space (vectorised)
-# ---------------------------------------------------------------------------
 
 def score_all_drugs_vectorised(disease_vec: np.ndarray,
                                 drug_matrix: np.ndarray) -> np.ndarray:
-    """
-    Compute -cosine(disease_vec, drug_col) for each drug (column) in drug_matrix.
-    Negative cosine = reversal.
-    drug_matrix: genes × drugs
-    """
     d_norm = np.linalg.norm(disease_vec)
     col_norms = np.linalg.norm(drug_matrix, axis=0)
     col_norms[col_norms == 0] = 1e-10
-    dots = disease_vec @ drug_matrix          # shape: (n_drugs,)
-    return -(dots / (d_norm * col_norms))     # negative cosine = reversal score
+    dots = disease_vec @ drug_matrix
+    return -(dots / (d_norm * col_norms))
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main() -> None:
-    # Load inputs
     print("Loading inputs...")
     consensus = pd.read_csv(META_DIR / "consensus_signature.csv", index_col=0)
     consensus.index = consensus.index.astype(str)
@@ -79,22 +44,17 @@ def main() -> None:
     drugs = observed["drug"].tolist()
     obs_scores = observed.set_index("drug")[SCORE_COL]
 
-    # Align genes: network ∩ landmark
     common_genes = network.index.intersection(sig_matrix.index)
     ipf_vec  = network.loc[common_genes, "rwr_net"].values.astype(float)
     drug_mat = sig_matrix.loc[common_genes, drugs].fillna(0).values.astype(float)
     n_genes, n_drugs = drug_mat.shape
     print(f"  {n_drugs} drugs × {n_genes} genes (network ∩ landmark)")
 
-    # Verify vectorised scores match saved scores
     check = score_all_drugs_vectorised(ipf_vec, drug_mat)
     check_series = pd.Series(check, index=drugs)
     max_diff = (check_series - obs_scores.reindex(drugs)).abs().max()
     print(f"  Score recomputation check — max diff: {max_diff:.2e} {'OK' if max_diff < 1e-4 else 'WARN'}")
 
-    # -----------------------------------------------------------------------
-    # Permutation null
-    # -----------------------------------------------------------------------
     null_path = REV_DIR / "null_distribution.npz"
     if null_path.exists():
         print(f"\nLoading cached null ({null_path.name})...")
@@ -113,14 +73,10 @@ def main() -> None:
         np.savez_compressed(null_path, null_scores=null_scores)
         print(f"  Saved null_distribution.npz")
 
-    # -----------------------------------------------------------------------
-    # Empirical p-values
-    # -----------------------------------------------------------------------
     print("\nComputing empirical p-values...")
     obs_arr = obs_scores.reindex(drugs).values
-    # p = fraction of null scores >= observed (one-tailed: high score = reversal)
     emp_pvals = (null_scores >= obs_arr[None, :]).mean(axis=0)
-    emp_pvals = np.clip(emp_pvals, 1 / N_PERM, 1.0)   # minimum = 1/N_PERM
+    emp_pvals = np.clip(emp_pvals, 1 / N_PERM, 1.0)
 
     reject, padj, _, _ = multipletests(emp_pvals, method="fdr_bh")
 
@@ -133,22 +89,16 @@ def main() -> None:
     }).sort_values("trace_score", ascending=False)
     results["trace_rank"] = range(1, len(results) + 1)
 
-    # Add baseline score
     baseline = pd.read_csv(REV_DIR / "baseline_scores.csv")[["drug", "baseline_score", "baseline_rank"]]
     results = results.merge(baseline, on="drug", how="left")
 
-    # Save full results
     results.to_csv(REV_DIR / "fdr_candidates.csv", index=False)
 
     n_sig = reject.sum()
     print(f"  FDR < {FDR_THRESH}: {n_sig} drugs")
 
-    # -----------------------------------------------------------------------
-    # Diagnostics plot
-    # -----------------------------------------------------------------------
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
-    # 1. Null vs observed distribution
     ax = axes[0]
     null_flat = null_scores.flatten()
     ax.hist(null_flat, bins=80, color="#aaaaaa", alpha=0.6,
@@ -160,7 +110,6 @@ def main() -> None:
     ax.set_title("Observed vs null distribution")
     ax.legend(fontsize=8)
 
-    # 2. Empirical p-value histogram
     ax = axes[1]
     ax.hist(emp_pvals, bins=40, color="#1f77b4", edgecolor="white")
     ax.axvline(FDR_THRESH, color="red", lw=1.5, ls="--", label=f"α={FDR_THRESH}")
@@ -169,7 +118,6 @@ def main() -> None:
     ax.set_title("P-value distribution")
     ax.legend(fontsize=8)
 
-    # 3. Score vs -log10(padj)
     ax = axes[2]
     non_sig = results[~results["significant"]]
     sig_df  = results[results["significant"]]
@@ -177,7 +125,6 @@ def main() -> None:
                s=4, alpha=0.3, c="#aaaaaa")
     ax.scatter(sig_df["trace_score"],  -np.log10(sig_df["emp_padj"]  + 1e-10),
                s=8, alpha=0.7, c="#d62728", label="FDR sig")
-    # Highlight positive controls
     for pc in POSITIVE_CONTROLS:
         row = results[results["drug"].str.lower().str.contains(pc.lower(), na=False)]
         if not row.empty:
@@ -196,9 +143,6 @@ def main() -> None:
     plt.close(fig)
     print(f"  Saved null_diagnostics.png")
 
-    # -----------------------------------------------------------------------
-    # Positive control summary
-    # -----------------------------------------------------------------------
     n_total = len(results)
     lines = [
         f"Empirical null: {N_PERM} permutations",

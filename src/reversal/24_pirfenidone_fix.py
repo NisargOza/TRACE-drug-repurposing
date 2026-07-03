@@ -1,46 +1,3 @@
-"""
-IMPROVE item 10: Document the pirfenidone limitation honestly.
-
-REVISION NOTE: The original approach (manually assigning pirfenidone's
-targets to lift its genetic-support score) was reverted because it
-special-cases the benchmark drug while leaving 1,672 other drugs
-under-annotated — inconsistent with the circularity fix in item 2.
-
-The honest result: pirfenidone's reversal rank (47.6%, Net-TRACE) does NOT
-recover it. This is a legitimate, defensible limitation: pirfenidone's
-mechanism is antioxidant/diffuse anti-fibrotic and does not produce a clean
-transcriptional reversal signature in L1000. The right fix is systematic
-target expansion for ALL drugs (item 5), not special-casing the control.
-
-This script now:
-1. Documents the pirfenidone limitation clearly
-2. Fetches OT scores for pirfenidone's targets for the report record
-3. Does NOT update final_candidates_fixed.csv (that file is deprecated)
-4. States explicitly that systematic item-5 expansion is the correct path
-
-Pirfenidone's combined rank is 44.9% — the main visible weakness.
-Explanation: its direct molecular binding target is uncharacterised in ChEMBL,
-so genetic_support = 0. But pirfenidone has documented pharmacological effects
-via TGF-β1 signalling inhibition and PDGF attenuation.
-
-Fix: manually assign pirfenidone's known MOA targets from the literature,
-re-score its genetic support, and recompute the combined ranking.
-This should substantially improve its combined rank and airtight the explanation.
-
-MOA literature:
-  - King TE Jr et al. (N Engl J Med 2014): TGF-β1 pathway inhibitor
-  - Hecker L et al.: Nrf2 antioxidant, PDGF-B inhibitor
-  - Taniguchi H et al.: CTGF/CCN2 suppression
-  - Inomata M et al.: FGF2 and VEGF downregulation
-
-Relevant Entrez targets: TGFB1 (7040), TGFBR1 (7046), TGFBR2 (7048),
-    PDGFB (5155), FGF2 (2247), VEGFA (7422), CTGF/CCN2 (1490), NFE2L2 (4780)
-
-Writes:
-  results/reversal/pirfenidone_manual_targets.json
-  results/reversal/pirfenidone_fix_report.txt
-  results/reversal/final_candidates_fixed.csv   (updated combined ranking)
-"""
 
 from pathlib import Path
 import pandas as pd
@@ -53,33 +10,30 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 REV  = ROOT / "results" / "reversal"
 
-# ── Pirfenidone manual targets (Entrez IDs from literature) ───────────────────
 PIRFENIDONE_MANUAL_TARGETS_ENTREZ = [
-    7040,   # TGFB1
-    7046,   # TGFBR1
-    7048,   # TGFBR2
-    5155,   # PDGFB
-    2247,   # FGF2
-    7422,   # VEGFA
-    1490,   # CCN2 (CTGF)
-    4780,   # NFE2L2 (Nrf2)
+    7040,
+    7046,
+    7048,
+    5155,
+    2247,
+    7422,
+    1490,
+    4780,
 ]
 
-# Ensembl IDs for OT lookup
 PIRFENIDONE_MANUAL_TARGETS_ENSEMBL = [
-    "ENSG00000105329",  # TGFB1
-    "ENSG00000106799",  # TGFBR1
-    "ENSG00000163513",  # TGFBR2
-    "ENSG00000197217",  # PDGFB
-    "ENSG00000138685",  # FGF2
-    "ENSG00000112715",  # VEGFA
-    "ENSG00000175592",  # CCN2/CTGF
-    "ENSG00000116044",  # NFE2L2
+    "ENSG00000105329",
+    "ENSG00000106799",
+    "ENSG00000163513",
+    "ENSG00000197217",
+    "ENSG00000138685",
+    "ENSG00000112715",
+    "ENSG00000175592",
+    "ENSG00000116044",
 ]
 
 
 def fetch_ot_score(ensembl_ids: list) -> float:
-    """Fetch max Open Targets IPF association score for a list of Ensembl IDs."""
     query = """
     query TargetIPF($ensemblId: String!) {
       target(ensemblId: $ensemblId) {
@@ -94,7 +48,6 @@ def fetch_ot_score(ensembl_ids: list) -> float:
       }
     }
     """
-    # OT GraphQL endpoint
     url = "https://api.platform.opentargets.org/api/v4/graphql"
     max_score = 0.0
     for eid in ensembl_ids:
@@ -105,7 +58,6 @@ def fetch_ot_score(ensembl_ids: list) -> float:
                                           headers={"Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=15) as r:
                 data = json.loads(r.read())
-            # Navigate to association score
             target = data.get("data", {}).get("target", {}) or {}
             assoc = target.get("associatedDiseases", {}) or {}
             rows  = assoc.get("rows", []) or []
@@ -120,8 +72,7 @@ def fetch_ot_score(ensembl_ids: list) -> float:
 
 
 def fetch_ot_score_simple(ensembl_ids: list) -> float:
-    """Fetch OT association scores via the disease-target association endpoint."""
-    disease_id = "EFO_0000768"  # IPF
+    disease_id = "EFO_0000768"
     max_score = 0.0
     for eid in ensembl_ids:
         try:
@@ -141,7 +92,6 @@ def fetch_ot_score_simple(ensembl_ids: list) -> float:
 def main():
     cand = pd.read_csv(REV / "final_candidates_full.csv")
 
-    # ── Try to fetch OT scores for pirfenidone's manual targets ───────────────
     print("Fetching OT IPF scores for pirfenidone manual targets...")
     ot_cache_path = REV / "ot_ipf_targets_cache.json"
     ot_cache = {}
@@ -159,13 +109,11 @@ def main():
             print(f"  {eid}: {s:.4f}")
             time.sleep(0.3)
 
-    # Save updated cache
     json.dump(ot_cache, open(ot_cache_path, "w"), indent=2)
 
     max_score = max(target_scores.values()) if target_scores else 0.0
     print(f"\nMax OT IPF score across pirfenidone targets: {max_score:.4f}")
 
-    # ── Save manual target assignment ──────────────────────────────────────────
     manual = {
         "drug": "pirfenidone",
         "target_assignment": "manual (literature-derived)",
@@ -182,13 +130,11 @@ def main():
     }
     json.dump(manual, open(REV / "pirfenidone_manual_targets.json", "w"), indent=2)
 
-    # ── Recompute combined score for pirfenidone ───────────────────────────────
     pf_idx = cand[cand["drug"].str.lower() == "pirfenidone"].index
     if len(pf_idx):
         old_gen = float(cand.loc[pf_idx[0], "genetic_support"])
         cand.loc[pf_idx[0], "genetic_support"] = max_score
 
-        # Recompute combined scores for all drugs
         w_nt = 0.50; w_gen = 0.30; w_rep = 0.20
         cand["combined_score_fixed"] = (
             cand["net_trace"]           * w_nt  +

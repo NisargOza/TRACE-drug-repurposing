@@ -1,32 +1,3 @@
-"""
-Enrichr / L2S2 expanded drug universe query (C2).
-
-Queries the MaayanLab Enrichr API with the IPF consensus up/down gene sets
-against LINCS L1000 drug perturbation libraries, scoring reversal across a
-much larger drug space than the 1,768-drug Phase II L1000 matrix.
-
-Primary API: Enrichr (maayanlab.cloud/Enrichr) — mature, well-maintained
-  Libraries used:
-    LINCS_L1000_Chemical_Perturbations_2020  (drugs, reversed query)
-    LINCS_L1000_CRISPR_KO_2023              (used for C3, not here)
-  Strategy: query DOWN-regulated IPF genes → find drug signatures in library
-  that OVERLAP with DOWN genes (those drugs induce what IPF suppresses → reversal)
-  Query UP-regulated IPF genes → find signatures that suppress what IPF induces.
-
-Fallback: L2S2 GraphQL term search (https://l2s2.maayanlab.cloud/graphql)
-
-Outputs:
-  results/l2s2/enrichr_up_results.json
-  results/l2s2/enrichr_dn_results.json
-  results/l2s2/l2s2_consensus_scores.csv
-  results/l2s2/l2s2_novel_candidates.csv
-  results/l2s2/l2s2_overlap_validation.csv
-  results/l2s2/l2s2_priority_candidate_ranks.txt
-  results/l2s2/l2s2_correlation_report.txt
-
-Usage:
-  python src/benchmarking/C2_l2s2_query.py
-"""
 
 import io
 import json
@@ -49,8 +20,8 @@ OUT     = ROOT / "results/l2s2"
 OUT.mkdir(parents=True, exist_ok=True)
 
 ENRICHR_URL  = "https://maayanlab.cloud/Enrichr"
-CHEM_UP_LIB  = "LINCS_L1000_Chem_Pert_up"    # drugs that UP-regulate query genes
-CHEM_DN_LIB  = "LINCS_L1000_Chem_Pert_down"  # drugs that DOWN-regulate query genes
+CHEM_UP_LIB  = "LINCS_L1000_Chem_Pert_up"
+CHEM_DN_LIB  = "LINCS_L1000_Chem_Pert_down"
 N_TOP        = 150
 
 PRIORITY_DRUGS = ["romidepsin", "JNJ-26481585", "dasatinib",
@@ -58,11 +29,9 @@ PRIORITY_DRUGS = ["romidepsin", "JNJ-26481585", "dasatinib",
 
 
 def build_query_genes(sig_col: str = "meta_log2FC") -> tuple[list[str], list[str]]:
-    """Return top-150 UP and DOWN gene SYMBOLS from IPF consensus."""
     cons = pd.read_csv(META / "consensus_signature.csv", index_col=0)
     cons = cons[cons["meta_padj"] < 0.05].copy()
 
-    # Map Entrez IDs → gene symbols using L1000 gene info (most reliable local source)
     l1k_gi = ROOT / "data/raw/l1000/GSE70138_Broad_LINCS_gene_info_2017-03-06.txt.gz"
     str_gi  = ROOT / "data/raw/string_human_info.txt.gz"
     sym_map: dict[str, str] = {}
@@ -73,8 +42,6 @@ def build_query_genes(sig_col: str = "meta_log2FC") -> tuple[list[str], list[str
         si = pd.read_csv(str_gi, sep="\t", compression="gzip",
                          usecols=["#string_protein_id", "preferred_name"]
                         ).rename(columns={"#string_protein_id": "sid", "preferred_name": "sym"})
-        # STRING uses ENSP IDs, not Entrez — skip unless we have the Entrez map
-    # If still missing many, try NCBI gene2accession approach (slow, skip for now)
     mapped = cons.index.astype(str).map(sym_map)
     cons = cons[mapped.notna()].copy()
     cons.index = mapped[mapped.notna()]
@@ -86,7 +53,6 @@ def build_query_genes(sig_col: str = "meta_log2FC") -> tuple[list[str], list[str
 
 
 def _multipart_body(fields: dict) -> tuple[bytes, str]:
-    """Build a multipart/form-data body from a dict of text fields."""
     boundary = uuid.uuid4().hex
     lines = []
     for name, value in fields.items():
@@ -102,7 +68,6 @@ def _multipart_body(fields: dict) -> tuple[bytes, str]:
 
 
 def enrichr_submit_list(genes: list, description: str) -> str | None:
-    """Submit a gene list to Enrichr (multipart/form-data), return userListId or None."""
     body, ctype = _multipart_body({"list": "\n".join(genes), "description": description})
     for attempt in range(5):
         try:
@@ -121,7 +86,6 @@ def enrichr_submit_list(genes: list, description: str) -> str | None:
 
 
 def enrichr_enrich(user_list_id: str, library: str) -> list | None:
-    """Run Enrichr enrichment for a submitted gene list against a library."""
     url = f"{ENRICHR_URL}/enrich?userListId={user_list_id}&backgroundType={library}"
     for attempt in range(5):
         try:
@@ -136,33 +100,16 @@ def enrichr_enrich(user_list_id: str, library: str) -> list | None:
 
 
 def parse_enrichr_drug_term(term: str) -> str:
-    """Extract drug name from Enrichr LINCS term.
-
-    Format: 'LJP006 A549 24H-dasatinib-10' or 'LJP005 MCF10A 24H-NVP-AEW541-10'
-    Strategy: take last whitespace-delimited token, strip the 'Xh-' prefix and
-    trailing '-concentration' suffix.
-    """
     parts = term.split()
     if not parts:
         return term.lower()
-    last = parts[-1]  # e.g. '24H-dasatinib-10' or '3H-NVP-BEZ235-0.37'
-    # Strip hour prefix: e.g. '24H-' or '3H-'
+    last = parts[-1]
     last = re.sub(r'^\d+h-', '', last, flags=re.IGNORECASE)
-    # Strip concentration suffix: trailing '-number' (possibly decimal)
     last = re.sub(r'-\d+(\.\d+)?$', '', last)
     return last.lower().strip()
 
 
 def aggregate_enrichr_scores(results: list, direction: str) -> pd.DataFrame:
-    """
-    Parse Enrichr enrichment results.
-    direction='dn': we submitted DOWN genes → drugs that induce them (positive reversal)
-    direction='up': we submitted UP genes → drugs that suppress them (positive reversal)
-
-    Enrichr result format: [rank, term, p-value, z-score, combined_score, overlapping_genes,
-                             adjusted_p-value, old_p-value, old_adjusted_p-value]
-    A negative z-score in Enrichr combined score means gene set is 'down' in drug signature.
-    """
     records = []
     for row in results:
         if len(row) < 7:
@@ -186,15 +133,9 @@ def main() -> None:
     up_cache  = OUT / "enrichr_up_results.json"
     dn_cache  = OUT / "enrichr_dn_results.json"
 
-    # ── Step 1: Build query genes ─────────────────────────────────────────────
     print("Step 1: Building IPF consensus query genes ...")
     up_genes, dn_genes = build_query_genes()
 
-    # Reversal strategy:
-    # - Submit IPF DOWN genes → LINCS_L1000_Chem_Pert_UP lib → drugs that UP-regulate
-    #   what IPF suppresses → these are reversal candidates
-    # - Submit IPF UP genes → LINCS_L1000_Chem_Pert_DOWN lib → drugs that DOWN-regulate
-    #   what IPF induces → also reversal candidates
 
     if not dn_cache.exists():
         print(f"\nStep 2a: DOWN genes → Enrichr {CHEM_UP_LIB} ...")
@@ -232,7 +173,6 @@ def main() -> None:
 
     dn_raw = json.loads(dn_cache.read_text())
     up_raw = json.loads(up_cache.read_text())
-    # Enrichr wraps results under the library name key when returned via enrich endpoint
     dn_results = dn_raw if isinstance(dn_raw, list) else dn_raw.get(CHEM_UP_LIB, [])
     up_results = up_raw if isinstance(up_raw, list) else up_raw.get(CHEM_DN_LIB, [])
 
@@ -245,21 +185,15 @@ def main() -> None:
         (OUT / "l2s2_correlation_report.txt").write_text("API unavailable.\n")
         return
 
-    # ── Step 4: Parse and combine ─────────────────────────────────────────────
     print("\nStep 3: Parsing enrichment results ...")
     df_dn = aggregate_enrichr_scores(dn_results, "dn")
     df_up = aggregate_enrichr_scores(up_results, "up")
     all_df = pd.concat([df_dn, df_up], ignore_index=True)
     print(f"  DN results: {len(df_dn)} terms, UP results: {len(df_up)} terms")
 
-    # Compute a reversal score per drug:
-    # For DN query: high combined_score → drug signature overlaps suppressed genes → induction
-    # For UP query: high combined_score → drug signature overlaps activated genes → suppression
-    # Both directions contribute to reversal; we average their combined scores
     def reversal_score(grp):
         dn_score = grp[grp["direction"] == "dn"]["combined_score"].max() if (grp["direction"] == "dn").any() else 0
         up_score = grp[grp["direction"] == "up"]["combined_score"].max() if (grp["direction"] == "up").any() else 0
-        # Geometric-mean-like composite
         return float(np.sqrt(max(dn_score, 0) * max(up_score, 0)) if (dn_score > 0 and up_score > 0)
                      else max(dn_score, up_score))
 
@@ -269,7 +203,6 @@ def main() -> None:
                    .rename(columns={0: "reversal_score"})
                    .sort_values("reversal_score", ascending=False))
 
-    # Also add best p-values
     pvals = all_df.groupby("drug")["adj_pvalue"].min().reset_index().rename(columns={"adj_pvalue": "best_adj_pvalue"})
     drug_scores = drug_scores.merge(pvals, on="drug", how="left")
     drug_scores["l2s2_rank"] = range(1, len(drug_scores) + 1)
@@ -279,7 +212,6 @@ def main() -> None:
     for _, row in drug_scores.head(20).iterrows():
         print(f"  {row['drug']:<30} score={row['reversal_score']:.2f}  adj_p={row['best_adj_pvalue']:.3e}")
 
-    # ── Step 5: Cross-reference with TRACE ────────────────────────────────────
     print("\nStep 4: Cross-referencing with TRACE FDR results ...")
     trace_fdr_path = REV / "extended_fdr_results.csv"
     if trace_fdr_path.exists():
@@ -294,7 +226,6 @@ def main() -> None:
         drug_scores.head(100).to_csv(OUT / "l2s2_novel_candidates.csv", index=False)
         drug_scores.to_csv(OUT / "l2s2_overlap_validation.csv", index=False)
 
-    # ── Step 6: Priority candidate ranks ─────────────────────────────────────
     name_map = dict(zip(drug_scores["drug"], drug_scores["l2s2_rank"]))
     score_map = dict(zip(drug_scores["drug"], drug_scores["reversal_score"]))
     lines = [f"Priority candidate ranks in Enrichr/L2S2 (out of {len(drug_scores):,} drugs):"]
@@ -307,7 +238,6 @@ def main() -> None:
     (OUT / "l2s2_priority_candidate_ranks.txt").write_text(rank_txt)
     print("\n" + rank_txt)
 
-    # ── Step 7: Spearman vs Net-TRACE ─────────────────────────────────────────
     trace_all = pd.read_csv(REV / "trace_scores.csv")
     trace_all["drug_lower"] = trace_all["drug"].str.lower()
     common = set(drug_scores["drug"]) & set(trace_all["drug_lower"])

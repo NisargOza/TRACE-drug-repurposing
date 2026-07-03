@@ -1,13 +1,3 @@
-"""
-Permutation significance test — Step B6.
-
-For each disease, shuffles gene labels of the network score vector 1,000 times,
-recomputes Pearson-based AUROC each time, and reports the empirical p-value.
-
-Usage:
-    python src/benchmarking/B6_permutation_test.py
-    python src/benchmarking/B6_permutation_test.py --n-perm 1000
-"""
 
 import sys
 from pathlib import Path
@@ -41,7 +31,6 @@ def load_actives(disease: str) -> set[str]:
 
 def pearson_scores(disease_vec: np.ndarray,
                    drug_matrix: np.ndarray) -> np.ndarray:
-    """Negative Pearson r per drug column. Higher = stronger reversal."""
     d     = disease_vec - disease_vec.mean()
     d_std = d.std()
     if d_std == 0:
@@ -57,9 +46,6 @@ def run_permutation(disease: str,
                     drug_mat: np.ndarray,
                     drugs: list[str],
                     actives: set[str]) -> tuple[float, np.ndarray, float]:
-    """
-    Returns (observed_auroc, null_auroc_array, empirical_pvalue).
-    """
     labels = np.array([1 if d.lower() in actives else 0 for d in drugs])
     if labels.sum() < 2:
         print(f"  {disease}: fewer than 2 actives found — skipping")
@@ -138,7 +124,6 @@ def main() -> None:
             "n_drugs":        len(drugs),
         })
 
-    # Save null distributions
     if null_store:
         np.savez_compressed(
             BENCH / "permutation_null_distributions.npz",
@@ -148,7 +133,6 @@ def main() -> None:
     pval_df = pd.DataFrame(records)
     pval_df.to_csv(BENCH / "permutation_pvalues.csv", index=False)
 
-    # Plot
     n_plots = len(null_store)
     if n_plots > 0:
         fig, axes = plt.subplots(1, n_plots, figsize=(6 * n_plots, 5))

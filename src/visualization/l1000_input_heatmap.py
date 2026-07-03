@@ -1,15 +1,3 @@
-"""
-Mini heatmap of the L1000 landmark-gene expression matrix.
-
-Designed to replace the gray "input L1000 signature (978 genes)" box in
-ext14_vae_architecture.png. Shows a 60-gene × 40-drug slice of the z-scored
-978 × 1,768 matrix, giving an immediate visual sense of what flows into the
-encoder (gene rows, drug columns, red=up / blue=down).
-
-Outputs:
-  results/figures/l1000_input_heatmap.png  (sized to fit the VAE figure input box)
-  results/figures/l1000_input_heatmap.svg
-"""
 
 from pathlib import Path
 
@@ -25,8 +13,8 @@ L1K     = ROOT / "results/l1000"
 FIG_DIR = ROOT / "results/figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
-N_GENES = 60   # rows  — genes with highest variance (most informative)
-N_DRUGS = 40   # cols  — random sample for visual variety
+N_GENES = 60
+N_DRUGS = 40
 
 
 def main() -> None:
@@ -34,12 +22,10 @@ def main() -> None:
     df  = pd.read_csv(L1K / "drug_signatures_landmark.csv.gz", index_col=0)
     mat = df.values.astype(np.float32)
 
-    # z-score each gene across drugs
     mean = mat.mean(axis=1, keepdims=True)
     std  = mat.std(axis=1, keepdims=True) + 1e-8
     mat_z = (mat - mean) / std
 
-    # Select top-variance genes and a random drug sample
     rng      = np.random.default_rng(42)
     var_rank = np.argsort(mat_z.var(axis=1))[::-1]
     gene_idx = var_rank[:N_GENES]
@@ -47,7 +33,6 @@ def main() -> None:
 
     slice_mat = mat_z[np.ix_(gene_idx, drug_idx)]
 
-    # Map Entrez IDs → gene symbols via L1000 gene info
     gene_info_path = ROOT / "data/raw/l1000/GSE70138_Broad_LINCS_gene_info_2017-03-06.txt.gz"
     if gene_info_path.exists():
         gi = pd.read_csv(gene_info_path, sep="\t", usecols=["pr_gene_id", "pr_gene_symbol"])
@@ -58,7 +43,6 @@ def main() -> None:
 
     print(f"  Slice: {N_GENES} genes × {N_DRUGS} drugs")
 
-    # ── Figure ─────────────────────────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(4.2, 5.8), dpi=150)
     fig.patch.set_facecolor("white")
 
@@ -70,16 +54,13 @@ def main() -> None:
         interpolation="nearest",
     )
 
-    # Gene labels on y-axis
     ax.set_yticks(range(N_GENES))
     ax.set_yticklabels(gene_labels, fontsize=4.2, color="#222")
     ax.yaxis.tick_left()
 
-    # Drug names on x-axis — hide individual names, just mark count
     ax.set_xticks([])
     ax.set_xlabel(f"{N_DRUGS} drug perturbations (sample)", fontsize=7, color="#444", labelpad=4)
 
-    # Colorbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.03, shrink=0.6)
     cbar.set_label("expression z-score", fontsize=6.5, color="#444")
     cbar.ax.tick_params(labelsize=6, colors="#444")

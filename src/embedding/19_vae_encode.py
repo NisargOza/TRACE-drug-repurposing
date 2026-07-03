@@ -1,18 +1,3 @@
-"""
-VAE encoding — RESEARCH.md §1d.
-
-Load the trained vae_model.pt and produce the missing encoding outputs:
-  results/embedding/vae_drug_embeddings.csv
-  results/embedding/vae_ipf_embedding.npy
-  results/embedding/vae_trace_scores.csv
-  results/embedding/vae_training_summary.txt
-
-The VAE was trained in 17_vae_embedding.py; this script just runs the
-encoding/scoring step so it can be executed independently.
-
-Usage:
-    python src/embedding/19_vae_encode.py
-"""
 
 from pathlib import Path
 
@@ -35,10 +20,6 @@ DEVICE = (
 )
 
 
-# ---------------------------------------------------------------------------
-# Model — must match architecture in 17_vae_embedding.py
-# ---------------------------------------------------------------------------
-
 class VAE(nn.Module):
     def __init__(self, n_genes: int = 978, latent_dim: int = 128):
         super().__init__()
@@ -60,7 +41,7 @@ class VAE(nn.Module):
         return self.mu_head(h), self.logvar_head(h)
 
     def reparameterise(self, mu, logvar):
-        return mu   # deterministic at eval
+        return mu
 
     def decode(self, z):
         return self.dec(z)
@@ -73,9 +54,8 @@ class VAE(nn.Module):
 
 @torch.no_grad()
 def encode_batch(model: VAE, mat: np.ndarray, batch_size: int = 1024) -> np.ndarray:
-    """Encode a (genes × samples) matrix; returns (samples × latent_dim)."""
     model.eval()
-    X = torch.tensor(mat.T, dtype=torch.float32)   # samples × genes
+    X = torch.tensor(mat.T, dtype=torch.float32)
     zs = []
     for i in range(0, len(X), batch_size):
         batch = X[i : i + batch_size].to(DEVICE)
@@ -92,7 +72,7 @@ def main() -> None:
     ck = torch.load(CKPT_PATH, map_location=DEVICE, weights_only=False)
     latent_dim = ck["latent_dim"]
     n_genes    = ck["n_genes"]
-    gene_ids   = ck["gene_ids"]           # list[str] — landmark Entrez IDs
+    gene_ids   = ck["gene_ids"]
     gene_mean  = np.array(ck["gene_mean"], dtype=np.float32)
     gene_std   = np.array(ck["gene_std"],  dtype=np.float32)
     gene_std[gene_std == 0] = 1.0
@@ -102,9 +82,6 @@ def main() -> None:
     model.eval()
     print(f"  VAE: {n_genes} genes → {latent_dim}-dim latent")
 
-    # ------------------------------------------------------------------
-    # Encode drug signatures
-    # ------------------------------------------------------------------
     print("\nEncoding drug signatures...")
     drug_sig_path = L1000_DIR / "drug_signatures_weighted.csv.gz"
     if not drug_sig_path.exists():
@@ -112,10 +89,10 @@ def main() -> None:
     drug_sig = pd.read_csv(drug_sig_path, index_col=0)
     drug_sig.index = drug_sig.index.astype(str)
 
-    drug_mat = drug_sig.reindex(gene_ids).fillna(0).values.astype(np.float32)  # genes × drugs
-    drug_mat_std = (drug_mat.T - gene_mean) / gene_std   # drugs × genes
+    drug_mat = drug_sig.reindex(gene_ids).fillna(0).values.astype(np.float32)
+    drug_mat_std = (drug_mat.T - gene_mean) / gene_std
 
-    drug_emb = encode_batch(model, drug_mat_std.T)        # drugs × latent_dim
+    drug_emb = encode_batch(model, drug_mat_std.T)
     drug_emb_df = pd.DataFrame(
         drug_emb,
         index=drug_sig.columns,
@@ -125,9 +102,6 @@ def main() -> None:
     drug_emb_df.to_csv(out_emb)
     print(f"  Drug embeddings: {drug_emb_df.shape}  → {out_emb.name}")
 
-    # ------------------------------------------------------------------
-    # Encode consensus IPF signature
-    # ------------------------------------------------------------------
     print("\nEncoding consensus IPF signature...")
     consensus = pd.read_csv(META_DIR / "consensus_signature.csv", index_col=0)
     consensus.index = consensus.index.astype(str)
@@ -147,9 +121,6 @@ def main() -> None:
     print(f"  IPF latent vector: shape={ipf_emb.shape}  norm={np.linalg.norm(ipf_emb):.4f}")
     print(f"  Consensus genes in VAE space: {len(overlap)}/{len(gene_ids)}")
 
-    # ------------------------------------------------------------------
-    # VAE-TRACE scores: negative cosine similarity in latent space
-    # ------------------------------------------------------------------
     print("\nComputing VAE-TRACE reversal scores...")
     drug_vecs  = drug_emb_df.values
     ipf_norm   = np.linalg.norm(ipf_emb) + 1e-10
@@ -168,9 +139,6 @@ def main() -> None:
     vae_df.to_csv(out_scores, index=False)
     print(f"  VAE-TRACE scores: {len(vae_df)} drugs  → {out_scores.name}")
 
-    # ------------------------------------------------------------------
-    # Report positive controls
-    # ------------------------------------------------------------------
     n = len(vae_df)
     print(f"\n=== Positive control ranks (VAE latent space) ===")
     for pc in ["pirfenidone", "nintedanib"]:
@@ -187,7 +155,6 @@ def main() -> None:
     for _, r in vae_df.head(20).iterrows():
         print(f"  {int(r.vae_rank):>4}  {r.drug:30}  {r.vae_score:>8.4f}")
 
-    # Summary text
     lines = ["=== VAE-TRACE encoding summary ===\n"]
     for pc in ["pirfenidone", "nintedanib"]:
         rows = vae_df[vae_df["drug"].str.lower().str.contains(pc, na=False)]

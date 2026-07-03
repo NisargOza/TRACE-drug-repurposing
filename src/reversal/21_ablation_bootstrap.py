@@ -1,28 +1,3 @@
-"""
-Final TRACE model: ablation table + bootstrap confidence intervals — RESEARCH.md §2c, §10.
-
-Combines all four scoring arms:
-  1. Baseline   — classic KS-based weighted connectivity (Lamb 2006)
-  2. Net-TRACE  — negative cosine in network-propagated space (RWR, no weighting)
-  3. W-TRACE    — Net-TRACE with cell-line lung-similarity weighting (§2a)
-  4. VAE-TRACE  — negative cosine in VAE latent space (§1d)
-
-Then integrates genetic support (Open Targets IPF scores, §2b) into a final
-combined model via normalised rank aggregation.
-
-Ablation table (RESEARCH.md §2c): shows positive control recovery at each stage.
-
-Bootstrap CIs (RESEARCH.md §10): resample consensus IPF signature genes 1000×,
-recompute the combined score, report 95% CIs on rank for top candidates.
-
-Outputs:
-  results/reversal/ablation_table.csv          — method × positive-control metric
-  results/reversal/bootstrap_rank_ci.csv       — top candidate ranks with 95% CIs
-  results/reversal/final_candidates_full.csv   — comprehensive ranked list
-
-Usage:
-    python src/reversal/21_ablation_bootstrap.py [--bootstrap 1000]
-"""
 
 import sys
 from pathlib import Path
@@ -40,27 +15,15 @@ N_BOOT = int(sys.argv[sys.argv.index("--bootstrap") + 1]) if "--bootstrap" in sy
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
 
-# ---------------------------------------------------------------------------
-# Load all score tables
-# ---------------------------------------------------------------------------
-
 def load_scores() -> pd.DataFrame:
-    """
-    Merge all scoring arms into one DataFrame indexed by drug name.
-    Returns columns: drug, baseline_score, trace_score, weighted_trace, vae_score,
-                     genetic_support, n_cell_lines, sig_reproducibility
-    """
-    # 1. Baseline + Net-TRACE (from combined_scores or individual files)
     base = pd.read_csv(REV_DIR / "combined_scores.csv")
     base = base.rename(columns={"baseline_score": "baseline",
                                  "trace_score":    "net_trace"})[
         ["drug", "baseline", "net_trace"]
     ]
 
-    # 2. Weighted TRACE
     wt = pd.read_csv(REV_DIR / "weighted_trace_scores.csv")[["drug", "weighted_trace"]]
 
-    # 3. VAE-TRACE (may not exist yet)
     vae_path = EMB_DIR / "vae_trace_scores.csv"
     if vae_path.exists():
         vae = pd.read_csv(vae_path)[["drug", "vae_score"]]
@@ -68,7 +31,6 @@ def load_scores() -> pd.DataFrame:
         print("  [WARN] vae_trace_scores.csv not found — VAE arm excluded from ablation")
         vae = None
 
-    # 4. Genetic support + reproducibility from model_scores
     gen = pd.read_csv(REV_DIR / "model_scores.csv")[
         ["drug", "genetic_support", "sig_reproducibility", "n_cell_lines"]
     ]
@@ -84,29 +46,12 @@ def load_scores() -> pd.DataFrame:
     return merged
 
 
-# ---------------------------------------------------------------------------
-# Normalised rank score: converts a raw score column to [0,1] rank percentile
-# where higher = better reversal candidate
-# ---------------------------------------------------------------------------
-
 def rank_pct(series: pd.Series, ascending: bool = False) -> pd.Series:
-    """
-    Rank entries; ties get average rank.
-    ascending=False → highest score gets rank 1 (best reversal).
-    Returns rank fraction [0, 1], 1 = best.
-    """
     r = series.rank(ascending=ascending, method="average", na_option="bottom")
     return 1.0 - (r - 1) / (len(series) - 1)
 
 
-# ---------------------------------------------------------------------------
-# Ablation table: positive control recovery at each method step
-# ---------------------------------------------------------------------------
-
 def build_ablation_table(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    For each scoring arm, report nintedanib and pirfenidone rank/percentile.
-    """
     arms = {
         "Baseline (KS)":        ("baseline",       False),
         "Net-TRACE":             ("net_trace",      True),
@@ -141,23 +86,10 @@ def build_ablation_table(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
-# ---------------------------------------------------------------------------
-# Combined model: weighted rank aggregation
-# ---------------------------------------------------------------------------
-
 def combined_score(df: pd.DataFrame) -> pd.Series:
-    """
-    Final score = weighted average of normalised rank percentiles.
-    Weights from RESEARCH.md §2b:
-      - Reversal score: 50% (net_trace or weighted if available, or VAE)
-      - Genetic support: 30%
-      - Reproducibility: 20%
-    When multiple reversal arms exist, average them for the reversal component.
-    """
     reversal_arms = []
     for col in ["net_trace", "weighted_trace", "vae_score"]:
         if col in df.columns and df[col].notna().sum() > 100:
-            # ascending=False: higher reversal score → rank 1 → rank_pct = 1 (best)
             reversal_arms.append(rank_pct(df[col], ascending=False))
 
     if not reversal_arms:
@@ -170,35 +102,22 @@ def combined_score(df: pd.DataFrame) -> pd.Series:
     return 0.50 * reversal + 0.30 * gen + 0.20 * repro
 
 
-# ---------------------------------------------------------------------------
-# Bootstrap CIs on candidate ranks
-# ---------------------------------------------------------------------------
-
 def bootstrap_rank_ci(df: pd.DataFrame, n_boot: int = 1000) -> pd.DataFrame:
-    """
-    Resample consensus IPF signature gene weights with replacement.
-    Recompute net_trace cosine reversal score from the resampled weights.
-    Record rank distribution for the top 25 candidates.
-    Returns DataFrame with: drug, median_rank, ci_lo_95, ci_hi_95, rank_stability
-    """
     print(f"  Running {n_boot} bootstrap iterations (resampling IPF signature genes)…")
 
-    # Load the network propagation scores (the IPF vector used for net_trace)
     network = pd.read_csv(EMB_DIR / "ipf_network_scores.csv", index_col=0)
     network.index = network.index.astype(str)
     ipf_vec_full = network["rwr_net"].values.astype(float)
     n_genes = len(ipf_vec_full)
 
-    # Load drug signatures aligned to network genes
     drug_sig = pd.read_csv(L1000_DIR / "drug_signatures_landmark.csv.gz", index_col=0)
     drug_sig.index = drug_sig.index.astype(str)
     common = network.index.intersection(drug_sig.index)
 
     ipf_base = network.loc[common, "rwr_net"].values.astype(float)
-    dm       = drug_sig.loc[common].fillna(0).values.astype(float)  # genes × drugs
+    dm       = drug_sig.loc[common].fillna(0).values.astype(float)
     drugs    = drug_sig.columns.tolist()
 
-    # Point-estimate ranking for reference
     def score(ipf_v: np.ndarray) -> np.ndarray:
         ipf_n  = np.linalg.norm(ipf_v) + 1e-10
         d_nrms = np.linalg.norm(dm, axis=0)
@@ -206,15 +125,13 @@ def bootstrap_rank_ci(df: pd.DataFrame, n_boot: int = 1000) -> pd.DataFrame:
         return -(ipf_v @ dm) / (ipf_n * d_nrms)
 
     point_scores = score(ipf_base)
-    point_ranks  = (-point_scores).argsort().argsort() + 1   # rank 1 = best reversal
+    point_ranks  = (-point_scores).argsort().argsort() + 1
 
-    # Top 25 candidates by point estimate
     top_idx = np.argsort(point_scores)[::-1][:25]
 
     boot_ranks = np.zeros((n_boot, 25), dtype=int)
     np.random.seed(42)
     for b in range(n_boot):
-        # Resample genes with replacement (same size)
         idx   = np.random.choice(len(ipf_base), size=len(ipf_base), replace=True)
         boot_s = score(ipf_base[idx])
         boot_r = (-boot_s).argsort().argsort() + 1
@@ -238,17 +155,12 @@ def bootstrap_rank_ci(df: pd.DataFrame, n_boot: int = 1000) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("point_rank")
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main() -> None:
     print("Loading all score tables…")
     df = load_scores()
     n  = len(df)
     print(f"  {n} drugs with scores")
 
-    # ---- Ablation table ----
     print("\nBuilding ablation table…")
     abl = build_ablation_table(df)
     abl.to_csv(REV_DIR / "ablation_table.csv", index=False)
@@ -256,7 +168,6 @@ def main() -> None:
     pivot = abl.pivot(index="method", columns="drug", values=["rank", "pct"])
     print(pivot.to_string())
 
-    # ---- Combined model ----
     print("\n\nBuilding combined model (reversal 50% + genetic 30% + repro 20%)…")
     df["combined_score"] = combined_score(df)
     df_sorted = df.sort_values("combined_score", ascending=False).reset_index(drop=True)
@@ -276,7 +187,6 @@ def main() -> None:
                   f"reversal={r.get('net_trace', float('nan')):.4f}  "
                   f"genetic={r.genetic_support:.3f}")
 
-    # Novel candidates (exclude positive controls)
     novel = df_sorted[~df_sorted["drug"].str.lower().str.contains(
         "|".join(POSITIVE_CONTROLS), na=False
     )].head(20)
@@ -286,7 +196,6 @@ def main() -> None:
     cols_show = [c for c in cols_show if c in novel.columns]
     print(novel[cols_show].to_string(index=False))
 
-    # ---- Bootstrap CIs ----
     print(f"\n\nRunning bootstrap ({N_BOOT} iterations)…")
     ci_df = bootstrap_rank_ci(df, n_boot=N_BOOT)
     ci_df.to_csv(REV_DIR / "bootstrap_rank_ci.csv", index=False)

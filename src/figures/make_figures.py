@@ -1,29 +1,3 @@
-"""
-Publication-quality figures for the TRACE IPF drug-repurposing manuscript.
-
-Every panel below is computed directly from results/*.csv and results/*.npz
-at run time — no hardcoded numbers. If a results file is missing, the
-corresponding figure is skipped with a printed warning rather than
-fabricating placeholder data.
-
-Main text (results/figures/):
-  fig1_consensus_replication.png  — single-dataset fragility -> consensus signature
-  fig2_ablation.png               — method ablation: rank percentile per drug
-  fig3_null_distribution.png      — empirical null (permutation) with nintedanib marked
-  fig4_bootstrap_ci.png           — rank stability of top Net-TRACE candidates
-  fig5_auroc_benchmark.png        — AUROC/AUPRC benchmarking vs. baselines (IPF & RA)
-  fig6_evidence_heatmap.png       — multi-evidence dossier heatmap, top candidates
-
-Extended data (results/figures/):
-  ext7_scrna_at2at1.png           — scRNA AT2->AT1 transition signature validation
-  ext8_l2s2_expansion.png         — L2S2 2,834-compound universe cross-validation
-  ext9_crispr_targets.png         — CRISPR knockout reversal targets (HMGCR, HSP90AB1)
-  ext10_ra_specificity.png        — RA dual-disease specificity control
-  ext11_heldout_validation.png    — independent held-out cohort validation
-  ext12_mr_forest.png             — drug-target Mendelian randomization (null/underpowered)
-  ext13_robustness.png            — weight-sensitivity + negative-control robustness
-  ext14_vae_architecture.png      — VAE-TRACE model architecture (schematic + loss/inference)
-"""
 from pathlib import Path
 import sys
 import warnings
@@ -53,7 +27,6 @@ from _style import (
     META_GREY,
 )
 
-# ── Paths ────────────────────────────────────────────────────────────────────
 ROOT   = Path(__file__).resolve().parents[2]
 RES    = ROOT / "results"
 META   = RES / "meta"
@@ -91,9 +64,6 @@ def _save(fig, name):
     print(f"saved {path}")
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Figure 1 — Single-dataset fragility vs. consensus replication
-# ══════════════════════════════════════════════════════════════════════════
 def fig1_consensus_replication():
     name = "fig1_consensus_replication.png"
     de_files = {
@@ -107,7 +77,6 @@ def fig1_consensus_replication():
     if not all(_require(p, name) for p in list(de_files.values()) + [rep_path, cons_path]):
         return
 
-    # per-dataset significant gene counts (padj<0.05) from each single-dataset DE result
     ds_counts = {}
     ds_n = {}
     qc_path = QC / "qc_summary.csv"
@@ -126,11 +95,10 @@ def fig1_consensus_replication():
     cons = pd.read_csv(cons_path)
     n_tested = len(rep)
     n_meta_sig = int((rep["meta_padj"] < 0.05).sum())
-    n_consensus = len(cons)  # meta_padj<0.05 AND replicated==True
+    n_consensus = len(cons)
 
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.2), gridspec_kw={"width_ratios": [1.1, 1]})
 
-    # Panel a: per-dataset significant DE genes (fragile, inconsistent across cohorts)
     ax = axes[0]
     labels = list(ds_counts.keys())
     vals = [ds_counts[k] for k in labels]
@@ -146,7 +114,6 @@ def fig1_consensus_replication():
     ax.text(0.02, 0.98, "no two cohorts agree\non gene count", transform=ax.transAxes,
             fontsize=6.5, color=META_GREY, ha="left", va="top", style="italic")
 
-    # Panel b: funnel from tested -> meta-significant -> replicated consensus
     ax = axes[1]
     stages = ["Genes tested\n(meta-analysis)", "Meta padj<0.05", "+ replicated\n(consensus)"]
     counts = [n_tested, n_meta_sig, n_consensus]
@@ -172,16 +139,13 @@ def fig1_consensus_replication():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Figure 2 — Method ablation: rank percentile of positive controls
-# ══════════════════════════════════════════════════════════════════════════
 def fig2_ablation():
     name = "fig2_ablation.png"
     path = REV / "ablation_table.csv"
     if not _require(path, name):
         return
     d = pd.read_csv(path)
-    methods = list(dict.fromkeys(d["method"]))  # preserve file order
+    methods = list(dict.fromkeys(d["method"]))
     drugs = list(dict.fromkeys(d["drug"]))
 
     fig, ax = plt.subplots(figsize=(6.6, 4.2))
@@ -209,9 +173,6 @@ def fig2_ablation():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Figure 3 — Empirical permutation null with nintedanib marked
-# ══════════════════════════════════════════════════════════════════════════
 def fig3_null_distribution():
     name = "fig3_null_distribution.png"
     null_path = REV / "extended_fdr_null.npz"
@@ -276,9 +237,6 @@ def fig3_null_distribution():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Figure 4 — Bootstrap rank-stability CI for top Net-TRACE candidates
-# ══════════════════════════════════════════════════════════════════════════
 def fig4_bootstrap_ci():
     name = "fig4_bootstrap_ci.png"
     path = REV / "bootstrap_rank_ci.csv"
@@ -311,9 +269,6 @@ def fig4_bootstrap_ci():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Figure 5 — AUROC / AUPRC benchmarking against baselines
-# ══════════════════════════════════════════════════════════════════════════
 def fig5_auroc_benchmark():
     name = "fig5_auroc_benchmark.png"
     path = BENCH / "auroc_summary.csv"
@@ -364,9 +319,6 @@ def fig5_auroc_benchmark():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Figure 6 — Multi-evidence dossier heatmap for top candidates
-# ══════════════════════════════════════════════════════════════════════════
 def fig6_evidence_heatmap():
     name = "fig6_evidence_heatmap.png"
     path = AIM3 / "final_dossier.csv"
@@ -374,8 +326,6 @@ def fig6_evidence_heatmap():
         return
     d = pd.read_csv(path).sort_values("combined_rank").reset_index(drop=True)
 
-    # Build a normalized evidence matrix: reversal score, genetic support, trial evidence,
-    # FAERS signal (inverted: high ROR = caution, shown as its own row), literature support.
     trial_map = {"none": 0, "moderate": 0.5, "strong": 1.0}
     lit_map = {"none": 0, "low": 0.33, "moderate": 0.66, "strong": 1.0}
     rev = (d["net_trace"] - d["net_trace"].min()) / (d["net_trace"].max() - d["net_trace"].min())
@@ -397,7 +347,6 @@ def fig6_evidence_heatmap():
     ax.set_xticklabels(xlabels, rotation=45, ha="right", fontsize=7)
     ax.set_yticks(np.arange(len(row_labels)))
     ax.set_yticklabels(row_labels, fontsize=7.5)
-    # annotate FAERS row with actual ROR values, and mark adverse-signal drugs
     for j, ror in enumerate(faers):
         if not np.isnan(ror):
             txt = f"{ror:.1f}"
@@ -420,9 +369,6 @@ def fig6_evidence_heatmap():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 7 — scRNA-seq AT2->AT1 transition signature validation
-# ══════════════════════════════════════════════════════════════════════════
 def ext7_scrna_at2at1():
     name = "ext7_scrna_at2at1.png"
     sig_path = SCRNA / "at2_at1_transition_signature.csv"
@@ -438,7 +384,6 @@ def ext7_scrna_at2at1():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.2), gridspec_kw={"width_ratios": [1, 1.15]})
 
-    # Panel a: AT2->AT1 transition DE signature volcano-style (log2FC vs -log10 padj)
     ax = axes[0]
     sig = sig.copy()
     sig["neglog10p"] = -np.log10(sig["padj"].clip(lower=1e-300))
@@ -454,7 +399,6 @@ def ext7_scrna_at2at1():
     ax.set_title(f"AT2\u2192AT1 transition signature\n({int(sig_sig.sum()):,}/{len(sig):,} genes padj<0.05)",
                  fontsize=8.7, loc="left")
 
-    # Panel b: scRNA-derived vs bulk-derived Net-TRACE reversal rank concordance
     ax = axes[1]
     ax.scatter(cmp["net_trace"], cmp["scrna_rank"], s=6, color=GRAY, alpha=0.4, linewidths=0)
     for drug in POS_CONTROLS:
@@ -480,9 +424,6 @@ def ext7_scrna_at2at1():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 8 — L2S2 2,834-compound universe cross-validation
-# ══════════════════════════════════════════════════════════════════════════
 def ext8_l2s2_expansion():
     name = "ext8_l2s2_expansion.png"
     l2s2_path = L2S2 / "l2s2_consensus_scores.csv"
@@ -501,7 +442,6 @@ def ext8_l2s2_expansion():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.2), gridspec_kw={"width_ratios": [1, 1.1]})
 
-    # Panel a: universe size comparison
     ax = axes[0]
     labels = ["L1000/CMap\n(main universe)", "L2S2\n(expanded universe)"]
     counts = [len(trace), len(l2s2)]
@@ -514,7 +454,6 @@ def ext8_l2s2_expansion():
     set_frame(ax)
     ax.set_title("Compound-universe expansion", fontsize=9, loc="left")
 
-    # Panel b: rank concordance scatter, main-universe rank vs L2S2 rank
     ax = axes[1]
     ax.scatter(merged["trace_rank"], merged["l2s2_rank"], s=5, color=GRAY, alpha=0.35, linewidths=0)
     for drug in POS_CONTROLS:
@@ -540,9 +479,6 @@ def ext8_l2s2_expansion():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 9 — CRISPR knockout reversal targets
-# ══════════════════════════════════════════════════════════════════════════
 def ext9_crispr_targets():
     name = "ext9_crispr_targets.png"
     scores_path = CRISPR / "crispr_reversal_scores.csv"
@@ -556,7 +492,6 @@ def ext9_crispr_targets():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.8, 4.4), gridspec_kw={"width_ratios": [1.1, 1]})
 
-    # Panel a: full CRISPR reversal-score rank distribution with HMGCR/HSP90AB1 marked
     ax = axes[0]
     ax.plot(cr["rank"], cr["reversal_score"], color=GRAY, lw=1.2)
     highlight = {"HSP90AB1": GREEN, "HMGCR": GOLD}
@@ -574,7 +509,6 @@ def ext9_crispr_targets():
     set_frame(ax)
     ax.set_title("Genome-wide CRISPR reversal screen", fontsize=9, loc="left")
 
-    # Panel b: top-20 priority targets ranked by composite priority_score
     ax = axes[1]
     pr2 = pr.sort_values("priority_score", ascending=True).reset_index(drop=True)
     ys = np.arange(len(pr2))
@@ -597,9 +531,6 @@ def ext9_crispr_targets():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 10 — RA dual-disease specificity control
-# ══════════════════════════════════════════════════════════════════════════
 def ext10_ra_specificity():
     name = "ext10_ra_specificity.png"
     ra_path = VALID / "ra_trace_scores.csv"
@@ -611,9 +542,8 @@ def ext10_ra_specificity():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.8, 4.4))
 
-    # Panel a: IPF-approved drugs shift from top-1% (IPF) to ~70-98%ile (RA) -- specificity
     ax = axes[0]
-    ipf_pct = {"nintedanib": 0.8, "pirfenidone": 39.5}  # from ablation_table.csv (Net-TRACE, IPF)
+    ipf_pct = {"nintedanib": 0.8, "pirfenidone": 39.5}
     ra_rows = ra[ra.drug.isin(POS_CONTROLS)]
     for drug in POS_CONTROLS:
         col = RED if drug == "nintedanib" else ORANGE
@@ -630,7 +560,6 @@ def ext10_ra_specificity():
     set_frame(ax)
     ax.set_title("IPF-specific drugs do not score for RA", fontsize=9, loc="left")
 
-    # Panel b: RA-approved drugs are NOT recovered by the IPF-tuned pipeline (as expected)
     ax = axes[1]
     ra_drugs = ["tofacitinib", "baricitinib", "dexamethasone", "leflunomide"]
     sub = ra[ra.drug.isin(ra_drugs)].set_index("drug").loc[ra_drugs].reset_index()
@@ -656,9 +585,6 @@ def ext10_ra_specificity():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 11 — Independent held-out cohort validation
-# ══════════════════════════════════════════════════════════════════════════
 def ext11_heldout_validation():
     name = "ext11_heldout_validation.png"
     concord_path = AIM3 / "heldout_v2_concordance.txt"
@@ -668,7 +594,6 @@ def ext11_heldout_validation():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.2))
 
-    # Panel a: GSE47460 (LGRC) direction-concordance vs. chance
     ax = axes[0]
     labels = ["All ILD\nvs. controls\n(n=6,443 genes)", "UIP/IPF subset\nvs. controls\n(n=6,443 genes)"]
     vals = [77.0, 78.8]
@@ -684,7 +609,6 @@ def ext11_heldout_validation():
     set_frame(ax)
     ax.set_title("GSE47460 (LGRC): direction concordance", fontsize=8.8, loc="left")
 
-    # Panel b: GSE134692 (transplant-stage, no-control) caveat panel
     ax = axes[1]
     ax.axis("off")
     txt = (
@@ -713,9 +637,6 @@ def ext11_heldout_validation():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 12 — Drug-target Mendelian Randomization (null / underpowered)
-# ══════════════════════════════════════════════════════════════════════════
 def ext12_mr_forest():
     name = "ext12_mr_forest.png"
     ext_path = MR / "extended_mr_results.csv"
@@ -727,7 +648,7 @@ def ext12_mr_forest():
     hmgcr = hmgcr.copy(); hmgcr["gene"] = "HMGCR"; hmgcr["drugs"] = "statins (proxy)"
     ivw_ext = ext[ext.method == "Inverse variance weighted"].copy()
     ivw_h = hmgcr[hmgcr.method == "Inverse variance weighted"].copy()
-    ivw_wald = ext[ext.method == "Wald ratio"].copy()  # single-SNP targets have no IVW row
+    ivw_wald = ext[ext.method == "Wald ratio"].copy()
     rows = pd.concat([ivw_h, ivw_ext[ivw_ext.gene.isin(ivw_ext.gene) & ~ivw_ext.gene.isin(ivw_wald.gene)],
                       ivw_wald], ignore_index=True)
     rows = rows.drop_duplicates(subset=["gene"]).reset_index(drop=True)
@@ -766,9 +687,6 @@ def ext12_mr_forest():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 13 — Robustness: weight sensitivity + negative controls
-# ══════════════════════════════════════════════════════════════════════════
 def ext13_robustness():
     name = "ext13_robustness.png"
     ws_path = REV / "weight_sensitivity.csv"
@@ -780,7 +698,6 @@ def ext13_robustness():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.8, 4.4), gridspec_kw={"width_ratios": [1, 1.2]})
 
-    # Panel a: top-10 jaccard stability across 125 weight perturbations
     ax = axes[0]
     ax.hist(ws["jaccard_top10"], bins=np.arange(0.6, 1.05, 0.025), color=BLUE, alpha=0.85, edgecolor="none")
     ax.set_xlabel("Jaccard(top-10) vs. default weights")
@@ -791,7 +708,6 @@ def ext13_robustness():
     ax.text(med, ax.get_ylim()[1] * 0.9, f" median={med:.2f}", color=RED, fontsize=7)
     ax.set_title("Top-10 rank stability under weight perturbation", fontsize=8.8, loc="left")
 
-    # Panel b: negative-control drugs by category (rank percentile; lower=stronger reversal)
     ax = axes[1]
     cat_colors = {"A": GOLD, "B": GRAY, "C": RED}
     colors = [cat_colors.get(str(c)[0], GRAY) for c in nc["category"]]
@@ -821,11 +737,7 @@ def ext13_robustness():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Extended Data 14 — VAE-TRACE model architecture
-# ══════════════════════════════════════════════════════════════════════════
 def _sch_box(ax, xy, w, h, text, fc, ec=DGRAY, fontsize=6.6, fontcolor="white", lw=0.9):
-    """Draw a rounded schematic box; returns (cx, cy, x, y, w, h) for chaining arrows."""
     x, y = xy
     p = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.015,rounding_size=0.06",
                         fc=fc, ec=ec, lw=lw, zorder=3, mutation_aspect=1)
@@ -850,8 +762,6 @@ def ext14_vae_architecture():
     if not all(_require(p, name) for p in [ckpt_path, sig_path]):
         return
 
-    # Pull real architecture + parameter counts from the trained checkpoint rather
-    # than hardcoding shapes, so the figure tracks the actual model on disk.
     n_genes, latent_dim = 978, 128
     hidden1, hidden2 = 512, 256
     n_params = None
@@ -884,7 +794,6 @@ def ext14_vae_architecture():
 
     fig, axes = plt.subplots(1, 2, figsize=(12.2, 5.9), gridspec_kw={"width_ratios": [1.72, 1]})
 
-    # ---- Panel a: encoder/decoder schematic ----
     ax = axes[0]
     ax.set_xlim(0, 130)
     ax.set_ylim(0, 58)
@@ -930,7 +839,6 @@ def ext14_vae_architecture():
     ax.set_title(f"VAE-TRACE encoder\u2013decoder: {n_genes}\u2192{hidden1}\u2192{hidden2}\u2192{latent_dim}\u2192"
                  f"{hidden2}\u2192{hidden1}\u2192{n_genes}, {param_str} trainable parameters", fontsize=8.8, loc="left")
 
-    # ---- Panel b: training objective + inference ----
     axb = axes[1]
     axb.axis("off"); axb.set_xlim(0, 1); axb.set_ylim(0, 1)
 
@@ -980,9 +888,6 @@ def ext14_vae_architecture():
     _save(fig, name)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# Main
-# ══════════════════════════════════════════════════════════════════════════
 def main():
     fig1_consensus_replication()
     fig2_ablation()

@@ -1,34 +1,3 @@
-"""
-FAERS pharmacoepidemiologic validation — RESEARCH.md §3b.
-
-Uses the openFDA Adverse Event Reporting System (FAERS) to compute
-disproportionality statistics for each top candidate drug and IPF.
-
-Method: Reporting Odds Ratio (ROR) with 95% CI.
-  ROR = (a/b) / (c/d)
-  where:
-    a = reports of drug X AND IPF
-    b = reports of drug X AND NOT IPF
-    c = reports of NOT drug X AND IPF
-    d = reports of NOT drug X AND NOT IPF
-
-  ROR < 1 = drug associated with FEWER IPF reports than expected (protective signal)
-  ROR > 1 = drug associated with MORE IPF reports (risk/adverse signal)
-
-Repurposing hypothesis: true protective drugs should show ROR < 1.
-
-IMPORTANT CAVEAT (report this):
-  FAERS is an adverse-event database — under-reporting, channeling bias, and
-  confounding by indication all apply. A protective signal here is suggestive,
-  not confirmatory. A null result does not rule out efficacy.
-
-Outputs:
-  results/aim3/faers_results.csv     — ROR, CI, n_reports per drug
-  results/aim3/faers_report.txt      — human-readable summary
-
-Usage:
-    python src/aim3_validation/16_faers_validation.py
-"""
 
 import time
 from pathlib import Path
@@ -44,14 +13,12 @@ AIM3_DIR.mkdir(parents=True, exist_ok=True)
 OPENFDA_API = "https://api.fda.gov/drug/event.json"
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
-# IPF MedDRA preferred terms
 IPF_PT_TERMS = [
     "idiopathic pulmonary fibrosis",
     "pulmonary fibrosis",
     "interstitial lung disease",
 ]
 
-# Load .env for NCBI key (openFDA doesn't require a key, but accepts one)
 def _load_env():
     from pathlib import Path as P
     env = P(".env")
@@ -64,7 +31,6 @@ _load_env()
 
 
 def count_reports(search_query: str) -> int:
-    """Count FAERS reports matching a search query."""
     try:
         r = requests.get(
             OPENFDA_API,
@@ -80,7 +46,6 @@ def count_reports(search_query: str) -> int:
 
 
 def get_ipf_reports(drug: str) -> int:
-    """Count FAERS reports where drug is listed AND any IPF term appears as reaction."""
     total = 0
     for term in IPF_PT_TERMS:
         params = {
@@ -100,7 +65,6 @@ def get_ipf_reports(drug: str) -> int:
 
 
 def compute_ror(a: int, b: int, c: int, d: int) -> tuple[float, float, float]:
-    """ROR with 95% Woolf CI. Returns (ROR, CI_lo, CI_hi)."""
     if a == 0 or b == 0 or c == 0 or d == 0:
         return np.nan, np.nan, np.nan
     ror = (a * d) / (b * c)
@@ -119,7 +83,6 @@ def main() -> None:
     print("Querying openFDA FAERS for disproportionality analysis...")
     print(f"Drugs: {len(all_drugs)}\n")
 
-    # Total IPF reports across all drugs (denominator component)
     print("Fetching total IPF reports in FAERS...")
     total_ipf = sum(
         count_reports(f'patient.reaction.reactionmeddrapt:"{term}"')
@@ -127,7 +90,6 @@ def main() -> None:
     )
     print(f"  Total FAERS IPF reports: {total_ipf:,}")
 
-    # Total FAERS reports (all)
     total_all = count_reports("_exists_:safetyreportid")
     print(f"  Total FAERS reports:     {total_all:,}\n")
 
@@ -135,11 +97,11 @@ def main() -> None:
     for drug in all_drugs:
         print(f"  {drug}...", end=" ", flush=True)
 
-        a = get_ipf_reports(drug)                   # drug + IPF
+        a = get_ipf_reports(drug)
         drug_total = count_reports(f'patient.drug.medicinalproduct:"{drug}"')
-        b = max(drug_total - a, 0)                  # drug + NOT IPF
-        c = max(total_ipf - a, 0)                   # NOT drug + IPF
-        d = max(total_all - drug_total - c, 0)      # NOT drug + NOT IPF
+        b = max(drug_total - a, 0)
+        c = max(total_ipf - a, 0)
+        d = max(total_all - drug_total - c, 0)
 
         ror, ci_lo, ci_hi = compute_ror(a, b, c, d)
 
@@ -167,7 +129,6 @@ def main() -> None:
     results = pd.DataFrame(rows)
     results.to_csv(AIM3_DIR / "faers_results.csv", index=False)
 
-    # Report
     lines = [
         "FAERS Disproportionality Analysis (Reporting Odds Ratio)",
         "=" * 60,

@@ -1,23 +1,3 @@
-"""
-IMPROVE item 5: Expand genetic support coverage beyond 5% of drugs.
-
-Problem: only 96/1,768 drugs have OT genetic scores; 1,672 get 0 by default,
-structurally advantaging well-annotated drugs.
-
-Fix: use ChEMBL REST API to fetch all drug-target interactions (not just MOA),
-then look up OT IPF scores for each target. Also pulls DrugBank-style target
-data via the UniChem cross-referencing.
-
-Strategy:
-1. For each drug in L1000, fetch ChEMBL mechanisms + activities
-2. Map to Ensembl IDs via UniProt cross-ref in ChEMBL
-3. Look up Open Targets IPF association score for each Ensembl target
-4. Assign max score to drug
-
-Writes:
-  results/reversal/genetic_support_expanded.csv
-  results/reversal/expanded_drug_targets.json
-"""
 
 from pathlib import Path
 import json
@@ -35,7 +15,7 @@ CHEMBL_BASE = "https://www.ebi.ac.uk/chembl/api/data"
 OT_REST     = "https://api.platform.opentargets.org/api/v4/rest"
 
 BATCH_SIZE   = 50
-OT_DISEASE   = "EFO_0000768"  # IPF (idiopathic pulmonary fibrosis)
+OT_DISEASE   = "EFO_0000768"
 
 
 def fetch_json(url: str, retries: int = 3) -> dict:
@@ -54,7 +34,6 @@ def fetch_json(url: str, retries: int = 3) -> dict:
 
 
 def chembl_name_to_id(drug_name: str) -> str | None:
-    """Search ChEMBL for drug by name; return first CHEMBL ID."""
     q = urlencode({"q": drug_name, "format": "json", "limit": 1})
     url = f"{CHEMBL_BASE}/molecule/search?{q}"
     data = fetch_json(url)
@@ -65,8 +44,6 @@ def chembl_name_to_id(drug_name: str) -> str | None:
 
 
 def chembl_targets_for_drug(chembl_id: str) -> list[str]:
-    """Fetch UniProt accessions for all targets of a ChEMBL drug."""
-    # Get mechanisms
     url = f"{CHEMBL_BASE}/mechanism?molecule_chembl_id={chembl_id}&format=json&limit=100"
     data = fetch_json(url)
     mechs = data.get("mechanisms", [])
@@ -76,7 +53,6 @@ def chembl_targets_for_drug(chembl_id: str) -> list[str]:
         if tc:
             target_ids.add(tc)
 
-    # Also get activities (broader coverage)
     url2 = f"{CHEMBL_BASE}/activity?molecule_chembl_id={chembl_id}&format=json&limit=200&assay_type=B"
     data2 = fetch_json(url2)
     acts = data2.get("activities", [])
@@ -85,9 +61,8 @@ def chembl_targets_for_drug(chembl_id: str) -> list[str]:
         if tc:
             target_ids.add(tc)
 
-    # Convert target ChEMBL IDs → UniProt accessions
     uniprot_ids = []
-    for tc in list(target_ids)[:20]:  # cap to avoid rate limiting
+    for tc in list(target_ids)[:20]:
         url3 = f"{CHEMBL_BASE}/target/{tc}?format=json"
         tdata = fetch_json(url3)
         comps = tdata.get("target_components", [])
@@ -101,7 +76,6 @@ def chembl_targets_for_drug(chembl_id: str) -> list[str]:
 
 
 def uniprot_to_ensembl(uniprot_ids: list[str]) -> list[str]:
-    """Convert UniProt accessions to Ensembl gene IDs via UniProt REST."""
     ensembl_ids = []
     for uid in uniprot_ids[:10]:
         url = f"https://rest.uniprot.org/uniprotkb/{uid}?format=json"
@@ -119,7 +93,6 @@ def uniprot_to_ensembl(uniprot_ids: list[str]) -> list[str]:
 
 
 def ot_ipf_score(ensembl_ids: list[str]) -> float:
-    """Get max OT IPF association score for a list of Ensembl gene IDs."""
     max_score = 0.0
     for eid in ensembl_ids[:10]:
         url = f"{OT_REST}/association/filter?targetId={eid}&diseaseId={OT_DISEASE}&size=1"
@@ -132,7 +105,6 @@ def ot_ipf_score(ensembl_ids: list[str]) -> float:
 
 
 def main():
-    # Load L1000 drug list and existing genetic support
     cand = pd.read_csv(REV / "final_candidates_full.csv")
     existing_cache = {}
     cache_path = REV / "expanded_drug_targets.json"
@@ -142,12 +114,10 @@ def main():
     print(f"Drugs to process: {len(cand)}")
     print(f"Already cached: {len(existing_cache)}")
 
-    # Process drugs without existing coverage or with genetic_support = 0
     no_support = cand[cand["genetic_support"] == 0]["drug"].tolist()
     print(f"Drugs with zero genetic support: {len(no_support)}")
 
-    # Process in batches; limit to avoid excessive API calls
-    MAX_NEW = 200  # cap per run to respect API limits
+    MAX_NEW = 200
     to_process = [d for d in no_support if d not in existing_cache][:MAX_NEW]
     print(f"Processing {len(to_process)} new drugs this run...")
 
@@ -176,13 +146,11 @@ def main():
         }
         time.sleep(0.3)
 
-    # Save updated cache
     json.dump(existing_cache, open(cache_path, "w"), indent=2)
 
-    # ── Build expanded genetic support column ─────────────────────────────────
     def get_score(drug: str, existing_gen: float) -> float:
         if existing_gen > 0:
-            return existing_gen  # keep original OT score if already populated
+            return existing_gen
         entry = existing_cache.get(drug, {})
         return float(entry.get("ot_score", 0.0))
 
@@ -195,7 +163,6 @@ def main():
     n_new  = (cand["genetic_support_expanded"] > 0).sum()
     print(f"\nGenetic support coverage: {n_orig} → {n_new} drugs ({n_new/len(cand)*100:.1f}%)")
 
-    # Recompute combined rank with expanded genetic support
     w_nt = 0.50; w_gen = 0.30; w_rep = 0.20
     cand["combined_score_expanded"] = (
         cand["net_trace"]                  * w_nt +
@@ -207,7 +174,6 @@ def main():
 
     cand.to_csv(REV / "genetic_support_expanded.csv", index=False)
 
-    # Report positive controls and top novel changes
     print("\nRank changes after expanded genetic support:")
     print(f"{'Drug':<20} {'Old rank':>10} {'New rank':>10} {'Change':>8}")
     for drug in ["nintedanib", "pirfenidone", "cediranib", "romidepsin",

@@ -1,40 +1,22 @@
-"""
-Shared publication-figure style module for the TRACE manuscript figure set.
-
-Consolidates the figure-style skill's helper functions (apply_figure_style,
-bar_with_points, end_of_line_labels, focal_palette, goodness_arrow,
-panel_crops, panel_letter, set_frame, strip_with_median, two_tier_label)
-plus a small IPF/RA-specific colour palette used consistently across all
-13 figures in make_figures.py.
-"""
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.text
 
-# ── Shared semantic palette ─────────────────────────────────────────────────
-BLUE    = "#2166ac"   # Net-TRACE / primary method
-TEAL    = "#1b7a72"   # VAE-TRACE
-RED     = "#d6604d"   # nintedanib / positive control 1
-ORANGE  = "#f4a582"   # pirfenidone / positive control 2
-GRAY    = "#aaaaaa"   # non-focal / baseline
+BLUE    = "#2166ac"
+TEAL    = "#1b7a72"
+RED     = "#d6604d"
+ORANGE  = "#f4a582"
+GRAY    = "#aaaaaa"
 DGRAY   = "#555555"
-GREEN   = "#1a9641"   # significant / validated
-PURPLE  = "#7b2d8b"   # RA / dual-disease
-GOLD    = "#b8860b"   # CRISPR / genetic evidence
+GREEN   = "#1a9641"
+PURPLE  = "#7b2d8b"
+GOLD    = "#b8860b"
 META_GREY = "#888888"
 
 
-# ===== apply_figure_style =====
 def apply_figure_style(*, frame="open", font=None, sizes=(8, 7, 6), grid=False):
-    """Set matplotlib rcParams for publication-grade output. Call once before plotting.
-
-    frame : 'open' (bottom+left spines, default) | 'boxed' (all four) | 'none'
-    font  : sans-serif family name; None = system default sans-serif
-    sizes : (base, secondary, tick) — titles/axis-labels, legend/annotation, ticks
-    grid  : whether to draw axes.grid (default False)
-    """
     if frame not in ("open", "boxed", "none"):
         raise ValueError(f"frame must be 'open'|'boxed'|'none', got {frame!r}")
     try:
@@ -81,10 +63,8 @@ def apply_figure_style(*, frame="open", font=None, sizes=(8, 7, 6), grid=False):
     mpl.rcParams.update(rc)
 
 
-# ===== bar_with_points =====
 def bar_with_points(ax, x, ymat, labels, colors, jitter=0.08, show_points=True,
                     errorbar=None, point_alpha=0.5, point_size=8):
-    """bar = mean; optionally overlay raw points or draw an interval."""
     means = np.array([np.mean(y) for y in ymat], float)
     err = None
     if errorbar and not show_points:
@@ -109,9 +89,7 @@ def bar_with_points(ax, x, ymat, labels, colors, jitter=0.08, show_points=True,
     return ax
 
 
-# ===== end_of_line_labels =====
 def end_of_line_labels(ax, xs, ys, labels, colors=None, dx=0.01, fontsize=None):
-    """Label each line series at its right end instead of a legend box."""
     if fontsize is None:
         fontsize = plt.rcParams["font.size"]
     if colors is None:
@@ -121,9 +99,7 @@ def end_of_line_labels(ax, xs, ys, labels, colors=None, dx=0.01, fontsize=None):
         ax.text(x[-1] + dx * span, y[-1], lab, color=c, va="center", ha="left", fontsize=fontsize)
 
 
-# ===== focal_palette =====
 def focal_palette(labels, focal, focal_color, other="muted", base_colors=None):
-    """Map labels -> colours with the focal series visually dominant."""
     focal_set = {focal} if isinstance(focal, str) else set(focal)
     n = len(labels)
     if not focal_set & set(labels):
@@ -140,7 +116,7 @@ def focal_palette(labels, focal, focal_color, other="muted", base_colors=None):
         rest, k = [], 0
         for l in labels:
             rest.append(ramp[min(k, nf - 1)]); k += (l not in focal_set)
-    else:  # 'muted'
+    else:
         def mute(c):
             r, g, b = mcolors.to_rgb(c)
             m = (r + g + b) / 3
@@ -149,9 +125,7 @@ def focal_palette(labels, focal, focal_color, other="muted", base_colors=None):
     return [focal_color if l in focal_set else rest[i] for i, l in enumerate(labels)]
 
 
-# ===== goodness_arrow =====
 def goodness_arrow(ax, text="higher = better", loc="upper left", axis="y", fontsize=None):
-    """Small upright direction-of-goodness cue in the margin."""
     if fontsize is None:
         fontsize = plt.rcParams["legend.fontsize"]
     pos = {"upper left": (0.02, 0.98), "upper right": (0.98, 0.98),
@@ -163,9 +137,7 @@ def goodness_arrow(ax, text="higher = better", loc="upper left", axis="y", fonts
             fontsize=fontsize, color=META_GREY, ha=ha, va=va)
 
 
-# ===== panel_crops =====
 def panel_crops(fig, dpi=None, pad_px=6, bbox_inches=None, pad_inches=None):
-    """Pixel-space crop boxes for each lettered panel in the SAVED PNG."""
     if dpi is None:
         dpi = mpl.rcParams.get("savefig.dpi", fig.dpi)
         if dpi == "figure":
@@ -224,9 +196,7 @@ def panel_crops(fig, dpi=None, pad_px=6, bbox_inches=None, pad_inches=None):
     return out
 
 
-# ===== panel_letter =====
 def panel_letter(ax, letter, dx=-0.18, dy=1.02, case="lower", fontsize=None):
-    """Bold panel letter outside top-left of axes. case in {'lower','upper'}."""
     if fontsize is None:
         fontsize = plt.rcParams.get("font.size", 8) + 1
     s = letter.lower() if case == "lower" else letter.upper()
@@ -234,9 +204,7 @@ def panel_letter(ax, letter, dx=-0.18, dy=1.02, case="lower", fontsize=None):
             fontweight="bold", fontsize=fontsize, va="bottom", ha="left")
 
 
-# ===== set_frame =====
 def set_frame(ax, style="open"):
-    """Set spine visibility on an existing axes. style in {'open','boxed','none'}."""
     show = {"open": (False, False, True, True),
             "boxed": (True, True, True, True),
             "none": (False, False, False, False)}[style]
@@ -247,9 +215,7 @@ def set_frame(ax, style="open"):
     ax.tick_params(direction="out", length=0 if style == "none" else 3, width=0.6)
 
 
-# ===== strip_with_median =====
 def strip_with_median(ax, groups, values, colors=None, jitter=0.12):
-    """Jittered points + bold horizontal median tick per group."""
     labs = list(groups)
     if colors is None:
         colors = ["#444444"] * len(labs)
@@ -263,7 +229,5 @@ def strip_with_median(ax, groups, values, colors=None, jitter=0.12):
     return ax
 
 
-# ===== two_tier_label =====
 def two_tier_label(name, meta):
-    """Two-line label string (name / metadata)."""
     return f"{name}\n{meta}"

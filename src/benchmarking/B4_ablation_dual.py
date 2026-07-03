@@ -1,23 +1,3 @@
-"""
-Dual-disease ablation — Step B4.
-
-Evaluates four scoring arms for IPF and RA:
-  full         — VAE-TRACE  (results/embedding/vae_trace_scores.csv)
-  skip_vae     — Net-TRACE  (results/reversal/trace_scores.csv for IPF;
-                              Pearson network for RA from B3)
-  skip_network — Raw landmark cosine (computed here from drug_signatures_landmark)
-  baseline     — KS connectivity score (results/reversal/baseline_scores.csv for IPF;
-                  computed here for RA)
-
-Metric: median rank of known actives (lower = better).
-
-Outputs:
-  results/benchmarking/ablation_dual_disease.csv
-  results/benchmarking/ablation_dual_disease_summary.txt
-
-Usage:
-    python src/benchmarking/B4_ablation_dual.py
-"""
 
 from pathlib import Path
 
@@ -47,7 +27,6 @@ def load_actives(disease: str) -> set[str]:
 def median_rank(score_series: pd.Series,
                 actives: set[str],
                 higher_is_better: bool = True) -> tuple[float, int]:
-    """Return (median_rank, n_actives_found). Rank 1 = best drug."""
     df = (score_series.dropna()
                       .reset_index()
                       .rename(columns={"index": "drug",
@@ -64,7 +43,6 @@ def median_rank(score_series: pd.Series,
 
 def cosine_reversal(disease_vec: np.ndarray,
                     drug_matrix: np.ndarray) -> np.ndarray:
-    """Negative cosine per drug column. Higher = stronger reversal."""
     d_norm  = np.linalg.norm(disease_vec) + 1e-10
     c_norms = np.linalg.norm(drug_matrix, axis=0)
     c_norms[c_norms == 0] = 1e-10
@@ -73,9 +51,6 @@ def cosine_reversal(disease_vec: np.ndarray,
 
 def compute_arms(disease: str,
                  drug_mat: pd.DataFrame) -> dict[str, pd.Series]:
-    """
-    Return dict arm_name -> pd.Series(index=drug, values=score) for all arms.
-    """
     drug_mat = drug_mat.copy()
     drug_mat.index = drug_mat.index.astype(str)
     drugs = drug_mat.columns.tolist()
@@ -89,33 +64,25 @@ def compute_arms(disease: str,
     dis_lfc    = cons.loc[common_lfc, "meta_log2FC"].values.astype(float)
     dm_lfc     = drug_mat.loc[common_lfc].values.astype(float)
 
-    # ── skip-network: raw landmark cosine (no network, no VAE) ───────────────
     skip_net_arr = cosine_reversal(dis_lfc, dm_lfc)
     arms["skip_network"] = pd.Series(skip_net_arr, index=drugs)
 
-    # ── skip-vae / full: load from existing score files ──────────────────────
     if disease == "IPF":
-        # skip_vae = Net-TRACE (network cosine, no VAE encoder)
         trace_df = pd.read_csv(REV / "trace_scores.csv")
         arms["skip_vae"] = trace_df.set_index("drug")["trace_score"]
 
-        # full = VAE-TRACE
         vae_df = pd.read_csv(EMB / "vae_trace_scores.csv")
         arms["full"] = vae_df.set_index("drug")["vae_score"]
 
-        # baseline KS: more negative score = stronger reversal.
-        # Negate so all arms share higher_is_better=True in median_rank().
         base_df = pd.read_csv(REV / "baseline_scores.csv")
         arms["baseline"] = -base_df.set_index("drug")["baseline_score"]
 
-    else:  # RA
-        # skip_vae = Pearson network scores from B3
+    else:
         b3_path = BENCH / "ra_drug_scores.csv"
         if b3_path.exists():
             ra_scores = pd.read_csv(b3_path)
             arms["skip_vae"] = ra_scores.set_index("drug")["pearson"]
-            arms["full"]     = ra_scores.set_index("drug")["pearson"]  # no VAE for RA
-            # CMap: more negative score = stronger reversal. Negate for consistency.
+            arms["full"]     = ra_scores.set_index("drug")["pearson"]
             arms["baseline"] = -ra_scores.set_index("drug")["cmap"]
         else:
             print(f"  WARNING: {b3_path.name} missing — run B3 first")
@@ -155,7 +122,6 @@ def main() -> None:
     ablation = pd.DataFrame(records)
     ablation.to_csv(BENCH / "ablation_dual_disease.csv", index=False)
 
-    # Pretty text summary
     lines = [
         "Dual-Disease Ablation — Median Rank of Known Actives",
         "=" * 62,

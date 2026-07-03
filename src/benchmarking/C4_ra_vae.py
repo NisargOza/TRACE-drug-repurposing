@@ -1,29 +1,3 @@
-"""
-RA fine-tuning of IPF β-VAE (C4).
-
-Fine-tunes the pre-trained IPF β-VAE (results/embedding/vae_model.pt) on the
-RA transcriptomic signature with an RA-alignment contrastive loss added to the
-standard ELBO. This produces vae_ra_model.pt and a RA drug ranking that can be
-compared with the existing Pearson (RA) arm in B5.
-
-Architecture: same as IPF VAE (gene_dim → 512 → 256 → latent_dim → 256 → 512 → gene_dim).
-Fine-tuning: 10 epochs, lr=1e-4, RA contrastive weight λ=0.1.
-
-RA contrastive loss: for each batch, compute cosine similarity between the
-latent mean of RA disease signature and the mean latent of each drug signature;
-push drugs in the known-RA-actives list toward the RA disease latent, pull all
-others away. (Triplet-style in latent space.)
-
-Skip flag: if vae_ra_model.pt exists, skip fine-tuning unless --retrain is passed.
-
-Outputs:
-  results/embedding/vae_ra_model.pt
-  results/embedding/vae_ra_trace_scores.csv
-  results/benchmarking/ablation_ra_with_vae.csv
-
-Usage:
-  python src/benchmarking/C4_ra_vae.py [--retrain]
-"""
 
 import argparse
 from pathlib import Path
@@ -74,7 +48,6 @@ class BVAE(nn.Module):
 
 
 def load_state_dict_compatible(model: BVAE, path: Path) -> None:
-    """Load checkpoint (handles both flat state dict and wrapped {'model_state': ...} format)."""
     ck = torch.load(path, map_location="cpu", weights_only=False)
     sd = ck["model_state"] if isinstance(ck, dict) and "model_state" in ck else ck
     model_sd = model.state_dict()
@@ -87,10 +60,6 @@ def load_state_dict_compatible(model: BVAE, path: Path) -> None:
 
 def ra_contrastive_loss(drug_latents: torch.Tensor, disease_latent: torch.Tensor,
                         is_active: torch.Tensor, margin: float = 0.5) -> torch.Tensor:
-    """
-    Triplet-style: push active drug latents toward disease latent (cos-sim → 1),
-    pull inactive drug latents away (cos-sim < 1 - margin).
-    """
     sim = F.cosine_similarity(drug_latents, disease_latent.unsqueeze(0).expand_as(drug_latents))
     pos_loss = (1 - sim[is_active.bool()]).clamp(min=0).mean() if is_active.any() else torch.tensor(0.0)
     neg_loss = (sim[~is_active.bool()] - (1 - margin)).clamp(min=0).mean() if (~is_active.bool()).any() else torch.tensor(0.0)
@@ -106,7 +75,6 @@ def elbo(x_hat, x, mu, logv, beta: float = 1.0):
 def load_l1000_matrix() -> tuple[pd.DataFrame, np.ndarray]:
     df   = pd.read_csv(L1K / "drug_signatures_landmark.csv.gz", index_col=0)
     mat  = df.values.astype(np.float32)
-    # z-score per gene across drugs
     mean = mat.mean(axis=1, keepdims=True); std = mat.std(axis=1, keepdims=True) + 1e-8
     mat  = (mat - mean) / std
     return df, mat
@@ -114,12 +82,10 @@ def load_l1000_matrix() -> tuple[pd.DataFrame, np.ndarray]:
 
 def compute_ra_drug_scores(model: BVAE, gene_idx: np.ndarray,
                            drug_mat: np.ndarray) -> np.ndarray:
-    """Cosine similarity in latent space: RA disease mean vs each drug column."""
     model.eval()
     with torch.no_grad():
-        drug_t = torch.tensor(drug_mat[gene_idx].T)  # n_drugs × n_genes
+        drug_t = torch.tensor(drug_mat[gene_idx].T)
         mu_d, _= model.encode(drug_t)
-        # Reverse direction: negate for reversal (anti-correlation = good)
         return -F.cosine_similarity(mu_d, mu_d.mean(dim=0, keepdim=True)).cpu().numpy()
 
 
@@ -136,31 +102,25 @@ def main() -> None:
         print(f"ERROR: Pre-trained IPF VAE not found at {ipf_model_path}. Run Step 5 first.")
         return
 
-    # ── Load L1000 matrix ─────────────────────────────────────────────────────
     print("Loading L1000 drug matrix ...")
     drug_df, drug_mat = load_l1000_matrix()
     n_genes, n_drugs = drug_mat.shape
     print(f"  {n_genes} landmark genes × {n_drugs} drugs")
 
-    # ── Load RA disease signature ─────────────────────────────────────────────
     ra_sig_path = VAL / "ra_consensus_signature.csv"
     if not ra_sig_path.exists():
-        # Build from ra_trace_scores or any available RA signal
         print(f"  RA signature not found at {ra_sig_path}; using RA z-score proxy ...")
         ra_trace = pd.read_csv(VAL / "ra_trace_scores.csv", index_col="drug")
-        # Use the top-scoring RA drug signature as proxy disease vector
         best_drug = ra_trace["net_trace"].idxmax()
         drug_idx  = list(drug_df.columns).index(best_drug) if best_drug in drug_df.columns else 0
         ra_sig_vec = drug_mat[:, drug_idx]
     else:
         ra_sig = pd.read_csv(ra_sig_path, index_col=0)
-        # Align: map Entrez IDs in RA sig to L1000 gene index
         gene_ids = [str(g) for g in drug_df.index]
         lfc_series = ra_sig["meta_log2FC"].astype(float)
         ra_sig_vec = np.array([float(lfc_series.get(g, 0)) for g in gene_ids], dtype=np.float32)
         ra_sig_vec = (ra_sig_vec - ra_sig_vec.mean()) / (ra_sig_vec.std() + 1e-8)
 
-    # ── Load RA known actives ─────────────────────────────────────────────────
     act_path = ACT / "ra_actives.txt"
     ra_actives = set()
     if act_path.exists():
@@ -169,9 +129,7 @@ def main() -> None:
     is_active  = np.array([1 if d in ra_actives else 0 for d in drug_names], dtype=np.float32)
     print(f"  RA actives in L1000 matrix: {int(is_active.sum())}")
 
-    # ── Determine model dimensions from checkpoint ────────────────────────────
     ck = torch.load(ipf_model_path, map_location="cpu", weights_only=False)
-    # Wrapped format: {'model_state': ..., 'n_genes': ..., 'latent_dim': ...}
     if isinstance(ck, dict) and "model_state" in ck:
         gene_dim_ck = int(ck.get("n_genes", n_genes))
         latent_dim  = int(ck.get("latent_dim", 64))
@@ -185,7 +143,6 @@ def main() -> None:
         latent_dim = sd.get("mu_head.bias", torch.zeros(64)).shape[0] if "mu_head.bias" in sd else 64
     print(f"  Checkpoint architecture: gene_dim={gene_dim_ck}, latent_dim={latent_dim}")
 
-    # Align drug matrix to checkpoint gene dimension
     if gene_dim_ck != n_genes:
         drug_mat_in = drug_mat[:gene_dim_ck]
         ra_sig_vec  = ra_sig_vec[:gene_dim_ck]
@@ -194,7 +151,6 @@ def main() -> None:
 
     model = BVAE(gene_dim=gene_dim_ck, latent_dim=latent_dim)
 
-    # ── Fine-tuning ───────────────────────────────────────────────────────────
     if ra_model_path.exists() and not args.retrain:
         print(f"\n[skip] {ra_model_path.name} exists; loading for scoring. Pass --retrain to redo.")
         load_state_dict_compatible(model, ra_model_path)
@@ -203,8 +159,7 @@ def main() -> None:
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
 
-        # Dataset: columns of drug_mat_in (each drug is a sample, genes are features)
-        X = torch.tensor(drug_mat_in.T, dtype=torch.float32)  # n_drugs × n_genes
+        X = torch.tensor(drug_mat_in.T, dtype=torch.float32)
         ra_t = torch.tensor(ra_sig_vec, dtype=torch.float32).unsqueeze(0)
         act_t = torch.tensor(is_active, dtype=torch.float32)
         ds = TensorDataset(X, act_t); loader = DataLoader(ds, batch_size=256, shuffle=True)
@@ -217,7 +172,6 @@ def main() -> None:
                 x_hat, mu, logv = model(x_batch)
                 e, recon, kld = elbo(x_hat, x_batch, mu, logv, beta=0.5)
 
-                # RA contrastive loss in latent space
                 with torch.no_grad():
                     ra_mu, _ = model.encode(ra_t)
                 cont = ra_contrastive_loss(mu, ra_mu.squeeze(0), act_batch)
@@ -231,7 +185,6 @@ def main() -> None:
         torch.save(model.state_dict(), ra_model_path)
         print(f"  Saved fine-tuned model → {ra_model_path.name}")
 
-    # ── Score all drugs in latent space ───────────────────────────────────────
     print("\nScoring drugs in RA-fine-tuned latent space ...")
     model.eval()
     with torch.no_grad():
@@ -239,16 +192,14 @@ def main() -> None:
         ra_t   = torch.tensor(ra_sig_vec, dtype=torch.float32).unsqueeze(0)
         mu_all, _ = model.encode(X_all)
         ra_mu, _  = model.encode(ra_t)
-        # Reversal = anti-correlation in latent space → negate cosine
         sim = F.cosine_similarity(mu_all, ra_mu.expand_as(mu_all)).cpu().numpy()
-        vae_ra_scores = -sim  # higher = stronger reversal
+        vae_ra_scores = -sim
 
     score_df = pd.DataFrame({"drug": drug_df.columns, "vae_ra_score": vae_ra_scores})
     score_df["vae_ra_rank"] = score_df["vae_ra_score"].rank(ascending=False).astype(int)
     score_df = score_df.sort_values("vae_ra_rank")
     score_df.to_csv(EMB / "vae_ra_trace_scores.csv", index=False)
 
-    # ── Ablation table ────────────────────────────────────────────────────────
     n_act = int(is_active.sum())
     if n_act >= 2:
         auroc = float(roc_auc_score(is_active, vae_ra_scores))
@@ -258,7 +209,6 @@ def main() -> None:
         auroc = ap = rand = float("nan")
         print(f"  Only {n_act} RA actives in L1000 — cannot compute AUROC/AUPRC")
 
-    # Load existing B5 RA results for comparison
     abl_rows = []
     b5_csv = BENCH / "auroc_summary.csv"
     if b5_csv.exists():
@@ -283,7 +233,6 @@ def main() -> None:
         print(f"  {r['arm']:35} AUROC={r['auroc']:.4f}  "
               f"AUPRC={r['auprc']:.5f} ({r['auprc_fold_over_random']:.1f}× random)")
 
-    # Priority drugs in top-200
     priority = ["tofacitinib", "baricitinib", "leflunomide", "methotrexate"]
     top200 = set(score_df.head(200)["drug"].str.lower())
     print("\nRA priority drugs in VAE-RA top-200:")

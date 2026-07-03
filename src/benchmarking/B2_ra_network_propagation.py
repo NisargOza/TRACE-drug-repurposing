@@ -1,28 +1,3 @@
-"""
-RA network propagation via signed RWR — Step B2.
-
-Reuses the same STRING raw files downloaded by 07_network_propagation.py:
-  data/raw/string_human_ppi.txt.gz   — protein interaction edges
-  data/raw/string_human_info.txt.gz  — STRING ID -> gene symbol map
-
-The network is never saved as an edge CSV by 07_network_propagation.py;
-it is built in memory each time. This script does the same, then runs
-signed RWR with alpha=0.85 on the RA consensus signature.
-
-Prerequisites:
-  - Run src/embedding/07_network_propagation.py at least once so that
-    data/raw/string_human_ppi.txt.gz and data/raw/string_human_info.txt.gz
-    exist on disk. B2 only reads those files; it does not re-download them.
-  - Run Rscript src/benchmarking/ra_meta_analysis.R so that
-    results/meta/ra_consensus_signature.csv exists.
-
-Output:
-  results/embedding/ra_network_scores.csv
-    (same format as results/embedding/ipf_network_scores.csv)
-
-Usage:
-    python src/benchmarking/B2_ra_network_propagation.py
-"""
 
 import subprocess
 import csv
@@ -50,7 +25,6 @@ INFO_FILE   = DATA / "string_human_info.txt.gz"
 
 def rwr(W: sp.csr_matrix, seed: np.ndarray,
         alpha: float = ALPHA) -> np.ndarray:
-    """Random walk with restart. Returns converged propagation scores."""
     p0 = np.abs(seed).astype(float)
     if p0.sum() == 0:
         return p0
@@ -80,7 +54,6 @@ def load_string_network() -> pd.DataFrame:
 
 
 def load_string_id_map() -> pd.Series:
-    """STRING protein ID -> gene symbol."""
     info = pd.read_csv(INFO_FILE, sep="\t", compression="gzip",
                        usecols=["#string_protein_id", "preferred_name"])
     info.columns = ["string_id", "gene_symbol"]
@@ -88,7 +61,6 @@ def load_string_id_map() -> pd.Series:
 
 
 def map_symbol_to_entrez(symbols: list[str]) -> dict[str, str]:
-    """Gene symbol -> Entrez ID via org.Hs.eg.db (same R call as 07_network_propagation.py)."""
     sym_file = Path(tempfile.mktemp(suffix=".txt"))
     out_file = Path(tempfile.mktemp(suffix=".csv"))
     sym_file.write_text("\n".join(symbols))
@@ -116,7 +88,6 @@ write.csv(res, "{out_file.as_posix()}", row.names=FALSE)
 
 
 def build_network() -> tuple[list[str], sp.csr_matrix]:
-    """Build column-normalised adjacency matrix. Returns (node_list, W)."""
     edges   = load_string_network()
     sym_map = load_string_id_map()
 

@@ -1,18 +1,3 @@
-"""
-Differential expression — RESEARCH.md §1b.
-
-RNA-seq (GSE213001, GSE150910): pydeseq2, IPF vs. control.
-Microarray (GSE38958, GSE53845): limma via R subprocess, IPF vs. control.
-
-Outputs per dataset:
-  results/de/{acc}_de_results.csv  — gene_id, log2FoldChange, pvalue, padj, stat
-
-GSE150910 outliers flagged in QC (chp_23, ipf_779, chp_142) are excluded here.
-CHP samples in GSE150910 are excluded; only IPF vs. control is run.
-
-Usage:
-    python src/05_differential_expression.py
-"""
 
 import gzip
 import os
@@ -33,15 +18,10 @@ DE_DIR.mkdir(parents=True, exist_ok=True)
 RNASEQ_DATASETS = ["GSE213001", "GSE150910"]
 ARRAY_DATASETS  = [("GSE38958", "GPL5175"), ("GSE53845", "GPL6480")]
 
-# Samples flagged as outliers in QC — exclude from all analyses
 QC_OUTLIERS = {"chp_23", "ipf_779", "chp_142"}
 
 GEO_FTP = "https://ftp.ncbi.nlm.nih.gov/geo/platforms"
 
-
-# ---------------------------------------------------------------------------
-# GPL annotation download & parsing
-# ---------------------------------------------------------------------------
 
 def gpl_prefix(gpl: str) -> str:
     return gpl[:-3] + "nnn"
@@ -57,7 +37,6 @@ def download_gpl_soft(gpl: str) -> Path:
     print(f"  Downloading {gpl} annotation...", end=" ", flush=True)
     r = requests.get(url, stream=True, timeout=120)
     if r.status_code == 404:
-        # Try annot file as fallback
         url = f"{GEO_FTP}/{prefix}/{gpl}/annot/{gpl}.annot.gz"
         r = requests.get(url, stream=True, timeout=120)
     r.raise_for_status()
@@ -69,10 +48,6 @@ def download_gpl_soft(gpl: str) -> Path:
 
 
 def parse_gpl_probe_map(gpl_path: Path) -> pd.Series:
-    """
-    Parse a GPL soft file → Series mapping probe_id → Entrez gene ID (str).
-    Returns only probes with a valid Entrez ID.
-    """
     print(f"  Parsing {gpl_path.name} for probe→Entrez mapping...")
     id_col = gene_id_col = None
     rows = []
@@ -92,23 +67,19 @@ def parse_gpl_probe_map(gpl_path: Path) -> pd.Series:
             if not in_table:
                 continue
             if id_col is None:
-                # Header row
                 cols = line.split("\t")
-                id_col = 0  # first column is always the probe ID
-                # Find the Entrez/Gene_ID column
+                id_col = 0
                 for i, c in enumerate(cols):
                     if c.strip().lower() in ("gene_id", "entrez_gene_id", "entrez gene id",
                                               "gene id", "ncbi gene", "gene", "geneids"):
                         gene_id_col = i
                         break
                 if gene_id_col is None:
-                    # Fall back to any column containing "gene" and "id"
                     for i, c in enumerate(cols):
                         if "gene" in c.lower() and "id" in c.lower():
                             gene_id_col = i
                             break
                 if gene_id_col is None:
-                    # Last resort: gene symbol column
                     for i, c in enumerate(cols):
                         if "symbol" in c.lower() or "gene_symbol" in c.lower():
                             gene_id_col = i
@@ -121,7 +92,6 @@ def parse_gpl_probe_map(gpl_path: Path) -> pd.Series:
             probe_id = parts[id_col].strip()
             gene_val = parts[gene_id_col].strip()
             if gene_val and gene_val not in ("---", "NA", ""):
-                # Some entries have multiple IDs separated by /// or ,
                 first_id = gene_val.split("///")[0].split(",")[0].strip()
                 rows.append((probe_id, first_id))
 
@@ -134,10 +104,6 @@ def parse_gpl_probe_map(gpl_path: Path) -> pd.Series:
     return probe_map
 
 
-# ---------------------------------------------------------------------------
-# RNA-seq DE with pydeseq2
-# ---------------------------------------------------------------------------
-
 def run_deseq2(acc: str) -> None:
     from pydeseq2.dds import DeseqDataSet
     from pydeseq2.ds import DeseqStats
@@ -147,23 +113,18 @@ def run_deseq2(acc: str) -> None:
         print(f"  [skip] {out.name} already exists")
         return
 
-    # Load counts
     counts = pd.read_csv(DATA_PROC / acc / "counts_raw.csv.gz", index_col=0)
     counts = counts.select_dtypes(include=[np.number])
 
-    # Load metadata, align to count columns
     meta = pd.read_csv(DATA_PROC / acc / "metadata.csv", index_col=0, low_memory=False)
 
-    # Align short IDs → GSM via Sample_title if needed
     title_col = next((c for c in meta.columns if "title" in c.lower()), None)
     if title_col and not (set(counts.columns) & set(meta.index)):
         title_to_gsm = dict(zip(meta[title_col], meta.index))
         counts.columns = [title_to_gsm.get(c, c) for c in counts.columns]
 
-    # Build sample metadata aligned to count columns
     sample_meta = meta.reindex(counts.columns)[["condition"]].copy()
 
-    # Drop outliers and non-IPF/control samples
     keep = (
         ~sample_meta.index.isin(QC_OUTLIERS) &
         sample_meta["condition"].isin(["IPF", "control"])
@@ -173,11 +134,9 @@ def run_deseq2(acc: str) -> None:
 
     print(f"  Samples: {sample_meta['condition'].value_counts().to_dict()}")
 
-    # pydeseq2 expects int counts — round and cast
-    counts_int = counts.T.round().astype(int)  # samples × genes
+    counts_int = counts.T.round().astype(int)
     sample_meta = sample_meta.loc[counts_int.index]
 
-    # Filter low-count genes (at least 10 reads in at least 10% of samples)
     min_samples = max(3, int(0.1 * len(counts_int)))
     keep_genes = (counts_int >= 10).sum(axis=0) >= min_samples
     counts_int = counts_int.loc[:, keep_genes]
@@ -209,19 +168,12 @@ def run_deseq2(acc: str) -> None:
           f"(up={( sig['log2FoldChange']>0).sum()}, down={(sig['log2FoldChange']<0).sum()})")
 
 
-# ---------------------------------------------------------------------------
-# Microarray DE with limma (R)
-# ---------------------------------------------------------------------------
-
 R_SCRIPT = Path("src/de_array.R")
 
 
 def write_r_script() -> None:
     R_SCRIPT.write_text(
         r"""
-# Limma DE for a single microarray dataset.
-# Handles probe->Entrez mapping internally per platform.
-# Args: acc  gpl  expr_csv  meta_csv  out_csv
 
 args <- commandArgs(trailingOnly = TRUE)
 acc      <- args[1]
@@ -245,7 +197,6 @@ get_probe_map <- function(gpl) {
     cat(sprintf("  GPL5175: %d probe->Entrez mappings\n", length(probe_map)))
     return(probe_map)
   } else if (gpl == "GPL6480") {
-    # Pre-built by 05_differential_expression.py (streaming Python parse of soft file)
     pmap_csv <- file.path("results/de", "GPL6480_probe_map.csv")
     if (!file.exists(pmap_csv)) stop(paste("GPL6480 probe map not found:", pmap_csv))
     tbl <- read.csv(pmap_csv, stringsAsFactors = FALSE)
@@ -305,7 +256,6 @@ def run_limma(acc: str, gpl: str) -> None:
         print(f"  [skip] {out.name} already exists")
         return
 
-    # GPL6480 soft file must be present for R to parse annotation
     if gpl == "GPL6480":
         download_gpl_soft(gpl)
 
@@ -326,10 +276,6 @@ def run_limma(acc: str, gpl: str) -> None:
         print(result.stderr[-2000:])
         raise RuntimeError(f"limma failed for {acc}")
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main() -> None:
     write_r_script()

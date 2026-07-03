@@ -1,28 +1,3 @@
-"""
-Reversal scoring — RESEARCH.md §2a.
-
-Computes two scores for each drug against the IPF consensus signature:
-
-1. BASELINE: Classic weighted connectivity score (Kolmogorov-Smirnov enrichment,
-   Lamb 2006 / Subramanian 2017). Uses raw landmark-gene signatures, no
-   tissue-awareness. This is the honest benchmark TRACE must beat.
-
-2. TRACE score: Reversal in the tissue-aware (network-propagated) space.
-   - Cell-line relevance weighting: down-weight signatures from cell lines
-     least similar to lung tissue (similarity estimated from baseline expression
-     overlap with the IPF consensus — a proxy until GTEx/CCLE data is added)
-   - Cosine similarity between propagated drug signature and propagated IPF
-     signature in the network embedding space
-
-Outputs:
-  results/reversal/baseline_scores.csv   — drug, baseline_score, rank
-  results/reversal/trace_scores.csv      — drug, trace_score, rank
-  results/reversal/combined_scores.csv   — both scores + positive control ranks
-  results/reversal/positive_controls.txt — pirfenidone / nintedanib ranks
-
-Usage:
-    python src/aim2_reversal/10_reversal_scoring.py
-"""
 
 from pathlib import Path
 
@@ -40,21 +15,9 @@ REV_DIR.mkdir(parents=True, exist_ok=True)
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
 
-# ---------------------------------------------------------------------------
-# Baseline: weighted connectivity score (KS-based)
-# ---------------------------------------------------------------------------
-
 def weighted_connectivity_score(disease_lfc: pd.Series,
                                  drug_sig: pd.Series,
                                  n_top: int = 150) -> float:
-    """
-    Compute the normalised connectivity score between a disease and drug
-    signature, following Subramanian et al. 2017.
-
-    Uses the top-n_top up and down genes from the disease signature as query,
-    scores enrichment of these genes in the drug signature ranked list.
-    """
-    # Rank drug signature genes by z-score (high = up-regulated by drug)
     common = disease_lfc.index.intersection(drug_sig.index)
     if len(common) < 50:
         return np.nan
@@ -62,12 +25,10 @@ def weighted_connectivity_score(disease_lfc: pd.Series,
     d_lfc  = disease_lfc[common]
     d_sig  = drug_sig[common]
 
-    # Disease query: top-n up and down genes
     top_up   = d_lfc.nlargest(n_top).index
     top_down = d_lfc.nsmallest(n_top).index
 
-    # Rank drug genes
-    ranked = d_sig.rank(ascending=False)   # rank 1 = most up by drug
+    ranked = d_sig.rank(ascending=False)
     n = len(ranked)
 
     def ks_score(query_genes: pd.Index) -> float:
@@ -75,10 +36,8 @@ def weighted_connectivity_score(disease_lfc: pd.Series,
         if len(q) == 0:
             return 0.0
         ranks_q = ranked[q].sort_values().values
-        # KS-like enrichment
         hit_score  = np.cumsum(np.abs(d_sig[q].values)) / np.abs(d_sig[q]).sum()
         miss_score = np.cumsum(np.ones(n - len(q))) / (n - len(q))
-        # Interleave
         indicators = np.zeros(n)
         indicators[ranks_q.astype(int) - 1] = 1
         ks_vals = []
@@ -92,28 +51,16 @@ def weighted_connectivity_score(disease_lfc: pd.Series,
                 ks_vals.append(hit_i / len(q) - miss_i / max(n - len(q), 1))
         return max(ks_vals, key=abs)
 
-    # Connectivity score = mean of up and down KS scores if opposite sign
     ks_up   = ks_score(top_up)
     ks_down = ks_score(top_down)
 
     if np.sign(ks_up) != np.sign(ks_down):
-        return (ks_up - ks_down) / 2  # reversal: drug opposes disease
+        return (ks_up - ks_down) / 2
     return 0.0
 
 
-# ---------------------------------------------------------------------------
-# Cell-line relevance weighting (proxy without GTEx/CCLE)
-# ---------------------------------------------------------------------------
-
 def estimate_cell_line_weights(sig_info: pd.DataFrame,
                                 consensus: pd.Series) -> pd.Series:
-    """
-    Proxy for lung-tissue similarity: cell lines whose drug-signature gene
-    space overlaps most with IPF-relevant genes get higher weight.
-    Full implementation will use GTEx/CCLE baseline expression (RESEARCH.md §2a).
-    For now, use A549 (lung adenocarcinoma) as highest weight, penalise breast/
-    prostate lines that dominate the dataset.
-    """
     LUNG_LINES   = {"A549", "HCC515"}
     NEUTRAL      = {"HA1E", "HEPG2", "HT29", "YAPC", "HELA"}
     weights = {}
@@ -123,20 +70,15 @@ def estimate_cell_line_weights(sig_info: pd.DataFrame,
         elif cl in NEUTRAL:
             weights[cl] = 1.0
         else:
-            weights[cl] = 0.5   # cancer lines far from lung get down-weighted
+            weights[cl] = 0.5
     return pd.Series(weights)
 
 
-# ---------------------------------------------------------------------------
-# TRACE score: cosine similarity in network-propagated space
-# ---------------------------------------------------------------------------
-
 def propagate_drug_signature(drug_sig: pd.Series,
                               network_nodes: pd.Index,
-                              W: object,   # sparse adjacency
+                              W: object,
                               alpha: float = 0.85,
                               max_iter: int = 50) -> np.ndarray:
-    """RWR with drug signature as seed on the same PPI network."""
     from scipy import sparse as sp
     seed = np.zeros(len(network_nodes))
     common = drug_sig.index.intersection(network_nodes)
@@ -145,7 +87,6 @@ def propagate_drug_signature(drug_sig: pd.Series,
     node_idx = {n: i for i, n in enumerate(network_nodes)}
     for g in common:
         seed[node_idx[g]] = drug_sig[g]
-    # Separate up/down
     seed_up   = np.clip(seed, 0, None)
     seed_down = np.clip(-seed, 0, None)
     if seed_up.sum() > 0:   seed_up   /= seed_up.sum()
@@ -164,7 +105,6 @@ def propagate_drug_signature(drug_sig: pd.Series,
 
 
 def main() -> None:
-    # Load inputs
     print("Loading inputs...")
     consensus = pd.read_csv(META_DIR / "consensus_signature.csv", index_col=0)
     consensus.index = consensus.index.astype(str)
@@ -181,12 +121,8 @@ def main() -> None:
     drugs = sig_matrix.columns.tolist()
     print(f"  {len(drugs):,} drugs  ×  {len(sig_matrix):,} landmark genes")
 
-    # Cell-line weights
     cl_weights = estimate_cell_line_weights(sig_info, disease_lfc)
 
-    # ---------------------------------------------------------------------------
-    # Baseline scores
-    # ---------------------------------------------------------------------------
     print(f"\nComputing baseline connectivity scores ({len(drugs):,} drugs)...")
     baseline = {}
     for i, drug in enumerate(drugs):
@@ -203,16 +139,8 @@ def main() -> None:
     baseline_df["baseline_rank"] = range(1, len(baseline_df) + 1)
     baseline_df.to_csv(REV_DIR / "baseline_scores.csv", index=False)
 
-    # ---------------------------------------------------------------------------
-    # TRACE scores: cosine similarity in network-propagated space
-    # Approximation: use cosine similarity between:
-    #   - drug landmark z-scores projected onto network nodes (those measurable)
-    #   - IPF RWR net scores on same nodes
-    # Full version propagates each drug signature through PPI (slow but more principled)
-    # ---------------------------------------------------------------------------
     print(f"\nComputing TRACE scores (network cosine similarity)...")
 
-    # Only use genes present in both network and landmark space
     common_genes = disease_net.index.intersection(sig_matrix.index)
     ipf_vec = disease_net[common_genes].values
     ipf_norm = np.linalg.norm(ipf_vec)
@@ -227,7 +155,6 @@ def main() -> None:
         if drug_norm == 0 or ipf_norm == 0:
             trace_scores[drug] = np.nan
             continue
-        # Negative cosine = reversal (drug opposes disease direction)
         trace_scores[drug] = -float(np.dot(ipf_vec, drug_vec) / (ipf_norm * drug_norm))
     print(f"  {len(drugs):,} done        ")
 
@@ -238,9 +165,6 @@ def main() -> None:
     trace_df["trace_rank"] = range(1, len(trace_df) + 1)
     trace_df.to_csv(REV_DIR / "trace_scores.csv", index=False)
 
-    # ---------------------------------------------------------------------------
-    # Combined + positive control check
-    # ---------------------------------------------------------------------------
     combined = baseline_df.merge(trace_df, on="drug", how="inner")
     combined.to_csv(REV_DIR / "combined_scores.csv", index=False)
     n_drugs = len(combined)

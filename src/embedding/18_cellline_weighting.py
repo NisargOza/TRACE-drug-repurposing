@@ -1,28 +1,3 @@
-"""
-GTEx/CCLE cell-line tissue similarity weighting — RESEARCH.md §2a.
-
-The proposal requires weighting L1000 drug signatures by how similar each
-cell line is to lung tissue, using GTEx (lung tissue baseline expression)
-and CCLE (cancer cell line baseline expression).
-
-Method:
-  1. Download GTEx lung tissue median TPM from the GTEx portal API
-  2. Download CCLE RNA-seq for the 30 L1000 cell lines via DepMap
-  3. Compute Spearman correlation between GTEx lung median and each cell line
-     across shared genes → lung-similarity weight per cell line
-  4. For each drug, compute weighted-average signature:
-       drug_weighted_sig = Σ(w_cl * sig_cl) / Σ(w_cl)
-  5. Recompute TRACE scores using weighted signatures
-  6. Compare positive control ranks vs. unweighted baseline
-
-Outputs:
-  results/embedding/cellline_lung_similarity.csv  — per-cell-line weight
-  results/l1000/drug_signatures_weighted.csv.gz   — weighted drug signatures
-  results/reversal/weighted_trace_scores.csv      — updated scores
-
-Usage:
-    python src/embedding/18_cellline_weighting.py
-"""
 
 import io
 from pathlib import Path
@@ -41,16 +16,7 @@ EMB_DIR.mkdir(exist_ok=True)
 POSITIVE_CONTROLS = ["pirfenidone", "nintedanib"]
 
 
-# ---------------------------------------------------------------------------
-# 1. GTEx lung median expression
-# ---------------------------------------------------------------------------
-
 def get_lung_reference(cache: Path) -> pd.Series:
-    """
-    Build lung tissue reference from GSE213001 normal lung controls (73 samples).
-    This is more appropriate than GTEx because it's the same tissue/processing
-    pipeline as our IPF study. Returns median log-count per gene (Entrez index).
-    """
     if cache.exists():
         print(f"  [skip] {cache.name}")
         return pd.read_csv(cache, index_col=0).squeeze()
@@ -77,23 +43,13 @@ def get_lung_reference(cache: Path) -> pd.Series:
     return lung_median
 
 
-# ---------------------------------------------------------------------------
-# 2. CCLE/DepMap cell-line expression
-# ---------------------------------------------------------------------------
-
 def get_l1000_cell_baselines(cache: Path, sig_info: pd.DataFrame,
                               all_sigs: pd.DataFrame) -> pd.DataFrame:
-    """
-    Compute median DMSO (vehicle control) expression per L1000 cell line.
-    Uses L1000 ctl_vehicle signatures as each cell line's baseline expression.
-    Returns DataFrame: cell_lines × landmark_genes.
-    """
     if cache.exists():
         print(f"  [skip] {cache.name}")
         return pd.read_csv(cache, index_col=0)
 
     print("  Computing L1000 cell-line baselines from DMSO control signatures...")
-    # Load full sig_info including controls
     full_sig_info_path = Path("data/raw/l1000/GSE70138_Broad_LINCS_inst_info_2017-03-06.txt.gz")
     if not full_sig_info_path.exists():
         print("  [WARN] inst_info not found — cannot compute baselines")
@@ -114,32 +70,22 @@ def get_l1000_cell_baselines(cache: Path, sig_info: pd.DataFrame,
         print("  [WARN] No baselines computed")
         return pd.DataFrame()
 
-    result = pd.DataFrame(baselines, index=all_sigs.index).T  # cell_lines × genes
+    result = pd.DataFrame(baselines, index=all_sigs.index).T
     result.to_csv(cache)
     print(f"  {len(result)} cell lines with baseline profiles")
     return result
 
 
-# ---------------------------------------------------------------------------
-# 3. Compute lung similarity weights
-# ---------------------------------------------------------------------------
-
 def compute_lung_weights(lung_ref: pd.Series,
                          cell_baselines: pd.DataFrame,
                          cell_lines: list[str]) -> pd.Series:
-    """
-    Spearman correlation between lung tissue reference and each L1000 cell line baseline.
-    lung_ref:       Entrez-indexed gene expression (from GSE213001 normal controls)
-    cell_baselines: cell_lines × landmark_genes (from L1000 DMSO controls)
-    Returns pd.Series: cell_line → normalised weight (sums to 1).
-    """
     if lung_ref.empty or cell_baselines.empty:
         print("  Using heuristic weights (data not available)")
         heuristic = {
-            "A549": 2.0, "HCC515": 2.0,           # lung adenocarcinoma
-            "HA1E": 1.0, "HEPG2": 1.0,            # kidney/liver (neutral)
+            "A549": 2.0, "HCC515": 2.0,
+            "HA1E": 1.0, "HEPG2": 1.0,
             "HT29": 0.5, "YAPC": 0.5, "HELA": 0.5,
-            "MCF7": 0.3, "A375": 0.3, "PC3": 0.3,  # breast/skin/prostate
+            "MCF7": 0.3, "A375": 0.3, "PC3": 0.3,
         }
         weights = pd.Series({cl: heuristic.get(cl, 0.5) for cl in cell_lines})
         return (weights / weights.sum()).rename("lung_weight")
@@ -161,18 +107,9 @@ def compute_lung_weights(lung_ref: pd.Series,
     return weights.rename("lung_weight")
 
 
-# ---------------------------------------------------------------------------
-# 4. Weighted drug signatures
-# ---------------------------------------------------------------------------
-
 def compute_weighted_signatures(sig_info: pd.DataFrame,
                                  all_sigs: pd.DataFrame,
                                  weights: pd.Series) -> pd.DataFrame:
-    """
-    For each drug, compute cell-line-weighted consensus signature.
-    all_sigs: genes × all_signatures
-    Returns: genes × drugs DataFrame
-    """
     print(f"  Computing weighted signatures for {sig_info['pert_iname'].nunique():,} drugs...")
     drug_groups = sig_info.groupby("pert_iname")["sig_id"].apply(list)
     weighted_sigs = {}
@@ -185,17 +122,12 @@ def compute_weighted_signatures(sig_info: pd.DataFrame,
         cell_lines_in = sig_info.loc[sig_info["sig_id"].isin(present), "cell_id"]
         cl_map = dict(zip(present, cell_lines_in.values))
 
-        # Weight each signature by its cell-line lung similarity
         w = np.array([weights.get(cl_map.get(s, ""), 1.0) for s in present])
         w = w / w.sum()
         weighted_sigs[drug] = (sub.values * w).sum(axis=1)
 
     return pd.DataFrame(weighted_sigs, index=all_sigs.index)
 
-
-# ---------------------------------------------------------------------------
-# 5. Recompute TRACE scores with weighted signatures
-# ---------------------------------------------------------------------------
 
 def compute_weighted_trace(weighted_sigs: pd.DataFrame,
                             network_scores: pd.DataFrame) -> pd.DataFrame:
@@ -217,32 +149,24 @@ def compute_weighted_trace(weighted_sigs: pd.DataFrame,
     return df
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main() -> None:
     sig_info = pd.read_csv(L1000_DIR / "sm_sig_info.csv", low_memory=False)
     network  = pd.read_csv(EMB_DIR / "ipf_network_scores.csv", index_col=0)
     network.index = network.index.astype(str)
     cell_lines = sig_info["cell_id"].unique().tolist()
 
-    # Load all signatures for cell-line baseline computation
     parquet_path = Path("data/raw/l1000/all_signatures_landmark.parquet")
     all_sigs = pd.read_parquet(parquet_path) if parquet_path.exists() else pd.DataFrame()
     all_sigs.index = all_sigs.index.astype(str)
 
-    # 1. Lung reference from GSE213001 normal controls
     print("\n1. Lung tissue reference (GSE213001 normal controls)")
     lung_ref = get_lung_reference(DATA_RAW / "lung_reference_gse213001.csv")
 
-    # 2. L1000 cell-line baselines from DMSO controls
     print("\n2. L1000 cell-line baseline expression (DMSO controls)")
     cell_baselines = get_l1000_cell_baselines(
         DATA_RAW / "l1000_cell_baselines.csv", sig_info, all_sigs
     )
 
-    # 3. Lung similarity weights
     print("\n3. Computing lung-similarity weights per cell line")
     weights = compute_lung_weights(lung_ref, cell_baselines, cell_lines)
     weights.to_csv(EMB_DIR / "cellline_lung_similarity.csv")
@@ -251,11 +175,10 @@ def main() -> None:
     for cl, w in weights.sort_values(ascending=False).head(15).items():
         print(f"    {cl:12} {w:.4f}")
 
-    # 4. Load all signatures and compute weighted consensus
     print("\n4. Computing weighted drug signatures")
     parquet_path = Path("data/raw/l1000/all_signatures_landmark.parquet")
     if parquet_path.exists():
-        all_sigs = pd.read_parquet(parquet_path)   # genes × all_sigs
+        all_sigs = pd.read_parquet(parquet_path)
         all_sigs.index = all_sigs.index.astype(str)
         sig_info_idx = sig_info.set_index("sig_id")
         weighted_sigs = compute_weighted_signatures(
@@ -269,12 +192,10 @@ def main() -> None:
         weighted_sigs = pd.read_csv(L1000_DIR / "drug_signatures_landmark.csv.gz", index_col=0)
         weighted_sigs.index = weighted_sigs.index.astype(str)
 
-    # 5. Weighted TRACE scores
     print("\n5. Weighted TRACE scores")
     wtrace = compute_weighted_trace(weighted_sigs, network)
     wtrace.to_csv(REV_DIR / "weighted_trace_scores.csv", index=False)
 
-    # Compare positive controls
     n = len(wtrace)
     print(f"\n=== Positive control ranks (weighted vs unweighted TRACE) ===")
     unweighted = pd.read_csv(REV_DIR / "trace_scores.csv")

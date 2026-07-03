@@ -1,12 +1,3 @@
-"""
-Aim 3a — Literature corroboration.
-
-For each top TRACE candidate, query PubMed via NCBI E-utilities for
-publications linking the drug to IPF/pulmonary fibrosis. Classifies
-each hit by study type and evidence strength, then writes:
-  results/aim3/literature_results.csv
-  results/aim3/literature_report.txt
-"""
 
 import csv
 import json
@@ -21,7 +12,6 @@ ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "results" / "aim3"
 RESULTS.mkdir(parents=True, exist_ok=True)
 
-# ── Candidate list (top 20 by combined rank + key extras) ─────────────────────
 CANDIDATES = [
     ("cediranib",    "VEGFR/PDGFR inhibitor"),
     ("nintedanib",   "VEGFR/PDGFR/FGFR inhibitor — POSITIVE CONTROL"),
@@ -121,7 +111,6 @@ def efetch_abstracts(pmids: list[str]) -> list[dict]:
 
 
 def classify_study(pub_types: str, title: str, abstract: str) -> tuple[str, str]:
-    """Return (study_type, evidence_strength)."""
     t = (pub_types + " " + title + " " + abstract).lower()
 
     if any(k in t for k in ["randomized controlled trial", "clinical trial, phase iii",
@@ -145,7 +134,6 @@ def classify_study(pub_types: str, title: str, abstract: str) -> tuple[str, str]
 
 
 def summarize_finding(title: str, abstract: str) -> str:
-    """Extract a short 1-sentence finding from the abstract."""
     for sent in abstract.replace(". ", ".\n").split("\n"):
         s = sent.strip()
         if len(s) > 40 and any(k in s.lower() for k in [
@@ -163,7 +151,7 @@ def main():
         query = f'("{drug}"[tiab]) AND ("idiopathic pulmonary fibrosis"[tiab] OR "IPF"[tiab] OR "pulmonary fibrosis"[tiab])'
         print(f"  Searching: {drug} ...", end=" ", flush=True)
         pmids = esearch(query, retmax=8)
-        time.sleep(0.4)  # NCBI rate limit: ≤3 req/s without API key
+        time.sleep(0.4)
 
         articles = efetch_abstracts(pmids)
         time.sleep(0.4)
@@ -203,7 +191,6 @@ def main():
                 "key_finding": finding,
             })
 
-    # ── Save CSV ───────────────────────────────────────────────────────────────
     fields = ["drug", "mechanism", "n_hits", "pmid", "year", "journal",
               "study_type", "evidence_strength", "pub_types", "title", "key_finding"]
     out_csv = RESULTS / "literature_results.csv"
@@ -213,7 +200,6 @@ def main():
         w.writerows(rows)
     print(f"\nSaved {len(rows)} records → {out_csv}")
 
-    # ── Build text report ──────────────────────────────────────────────────────
     by_drug: dict[str, list] = {}
     for r in rows:
         by_drug.setdefault(r["drug"], []).append(r)

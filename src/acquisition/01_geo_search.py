@@ -1,13 +1,3 @@
-"""
-GEO dataset inventory search — RESEARCH.md §8 (data acquisition step).
-
-Queries NCBI GEO DataSets with the three searches specified in the proposal,
-deduplicates results, fetches per-series metadata, and writes
-results/geo_dataset_inventory.csv for manual curation.
-
-Usage:
-    python src/01_geo_search.py
-"""
 
 import csv
 import os
@@ -16,7 +6,6 @@ from pathlib import Path
 
 import requests
 
-# Load .env manually — avoids python-dotenv dependency
 _env_path = Path(__file__).parent.parent / ".env"
 if _env_path.exists():
     for line in _env_path.read_text().splitlines():
@@ -29,7 +18,7 @@ NCBI_API_KEY = os.environ.get("NCBI_API_KEY", "")
 EMAIL = "nisargo09@outlook.com"
 TOOL = "TRACE-IPF"
 BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-SLEEP = 0.11 if NCBI_API_KEY else 0.34  # 10 req/s with key, 3 req/s without
+SLEEP = 0.11 if NCBI_API_KEY else 0.34
 
 QUERIES = [
     (

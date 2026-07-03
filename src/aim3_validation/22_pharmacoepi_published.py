@@ -1,18 +1,3 @@
-"""
-Aim 3b — Pharmacoepidemiology: published clinical evidence synthesis.
-
-Searches PubMed for observational studies on statin use and IPF, retrieves
-abstracts, and assembles a forest plot of REAL published effect estimates
-verified directly against their abstracts (PMID-confirmed).
-
-All effect sizes are copied verbatim from PubMed-retrieved abstracts.
-No synthetic data. The evidence is presented honestly as mixed/moderate.
-
-Writes:
-  results/aim3/pharmacoepi_published_hits.csv
-  results/aim3/pharmacoepi_published_report.txt
-  results/figures/fig_pharmacoepi_published.png
-"""
 
 import csv, json, time, xml.etree.ElementTree as ET
 from pathlib import Path
@@ -32,10 +17,6 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 
-# ── Verified published estimates (PMID-confirmed, numbers from abstracts) ─────
-# All numbers copied verbatim from PubMed-retrieved abstracts.
-# Presented as "modest, mixed" — the random-effects meta-analysis is NOT
-# significant, and each study has documented confounding limitations.
 PUBLISHED_ESTIMATES = [
     {
         "pmid":        "27708114",
@@ -66,10 +47,10 @@ PUBLISHED_ESTIMATES = [
         "drug":        "Any statin",
         "outcome":     "IPF risk (case-control) + overall survival (cohort)",
         "measure":     "OR / HR",
-        "estimate":    0.847,   # OR for IPF risk (primary)
+        "estimate":    0.847,
         "ci_lo":       0.800,
         "ci_hi":       0.898,
-        "n_total":     42272,   # 10,568 IPF + 31,704 controls
+        "n_total":     42272,
         "population":  "Korean NHIS database, 10,568 IPF (2010–2017)",
         "key_finding": (
             "Statin use associated with lower IPF risk (adj OR 0.847 [0.800–0.898]) "
@@ -86,7 +67,7 @@ PUBLISHED_ESTIMATES = [
         "drug":        "Any statin (dose-response)",
         "outcome":     "Incident ILD / IPF",
         "measure":     "aHR (dose-response)",
-        "estimate":    None,    # Dose-response; no single summary estimate
+        "estimate":    None,
         "ci_lo":       None,
         "ci_hi":       None,
         "n_total":     None,
@@ -107,7 +88,7 @@ PUBLISHED_ESTIMATES = [
         "drug":        "Any statin",
         "outcome":     "All-cause mortality",
         "measure":     "RR (pooled)",
-        "estimate":    0.87,    # Random-effects — NOT significant
+        "estimate":    0.87,
         "ci_lo":       0.68,
         "ci_hi":       1.12,
         "n_total":     3407,
@@ -168,7 +149,6 @@ def main():
     for q in queries:
         pmids.update(esearch(q, retmax=20))
         time.sleep(0.5)
-    # Ensure the four key verified papers are included
     for e in PUBLISHED_ESTIMATES:
         if e["pmid"]:
             pmids.add(e["pmid"])
@@ -182,7 +162,6 @@ def main():
         csv.DictWriter(f, fieldnames=fields).writeheader()
         csv.DictWriter(f, fieldnames=fields).writerows(articles)
 
-    # ── Report ─────────────────────────────────────────────────────────────────
     lines = [
         "Pharmacoepidemiology — Published Clinical Evidence: Statin Use and IPF",
         "=" * 72,
@@ -235,7 +214,6 @@ def main():
     (AIM3 / "pharmacoepi_published_report.txt").write_text("\n".join(lines))
     print("\n".join(lines[-20:]))
 
-    # ── Forest plot ────────────────────────────────────────────────────────────
     quantitative = [e for e in PUBLISHED_ESTIMATES
                     if e["estimate"] is not None and e["ci_lo"] is not None]
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -245,7 +223,6 @@ def main():
     y = np.arange(len(quantitative))[::-1]
     for i, (e, yi) in enumerate(zip(quantitative, y)):
         pt, lo, hi = e["estimate"], e["ci_lo"], e["ci_hi"]
-        # red box for non-significant meta-analysis
         color = "#888888" if e["pmid"] == "34091200" else "#2166ac"
         ax.errorbar(pt, yi, xerr=[[pt - lo], [hi - pt]],
                     fmt="D", color=color, markersize=8, capsize=5,

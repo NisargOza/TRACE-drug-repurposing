@@ -1,11 +1,3 @@
-"""
-Aim 3 — Final candidate evidence dossier.
-
-Reads all Aim 2/3 outputs and assembles a per-drug triangulated evidence
-summary for the top 10 novel TRACE candidates.  Writes:
-  results/aim3/final_dossier.csv
-  results/aim3/final_dossier_report.txt
-"""
 
 import csv
 import json
@@ -16,7 +8,6 @@ ROOT = Path(__file__).resolve().parents[2]
 REV  = ROOT / "results" / "reversal"
 AIM3 = ROOT / "results" / "aim3"
 
-# ── Load combined scores ───────────────────────────────────────────────────────
 def load_combined() -> dict:
     data = {}
     with open(REV / "final_candidates_full.csv") as f:
@@ -24,7 +15,6 @@ def load_combined() -> dict:
             data[row["drug"].lower()] = row
     return data
 
-# ── Load clinical trials ───────────────────────────────────────────────────────
 def load_trials() -> dict:
     data = {}
     with open(AIM3 / "clinicaltrials_results.csv") as f:
@@ -32,7 +22,6 @@ def load_trials() -> dict:
             data[row["drug"].lower()] = row
     return data
 
-# ── Load FAERS ─────────────────────────────────────────────────────────────────
 def load_faers() -> dict:
     data = {}
     with open(AIM3 / "faers_results.csv") as f:
@@ -40,7 +29,6 @@ def load_faers() -> dict:
             data[row["drug"].lower()] = row
     return data
 
-# ── Load literature ────────────────────────────────────────────────────────────
 def load_literature() -> dict[str, list]:
     data: dict[str, list] = defaultdict(list)
     path = AIM3 / "literature_results.csv"
@@ -52,7 +40,6 @@ def load_literature() -> dict[str, list]:
                 data[row["drug"].lower()].append(row)
     return data
 
-# ── Top candidates to feature (excluding the two positive controls) ────────────
 TOP_NOVEL = [
     ("cediranib",    "VEGFR/PDGFR kinase inhibitor"),
     ("romidepsin",   "HDAC inhibitor"),
@@ -77,7 +64,6 @@ def best_lit_strength(hits: list) -> str:
 
 
 def best_lit_study(hits: list) -> str:
-    """Return description of the strongest study."""
     order = {"high": 0, "moderate": 1, "low": 2, "none": 3}
     if not hits:
         return "—"
@@ -116,10 +102,8 @@ def trials_summary(trow: dict | None) -> str:
 def overall_verdict(drug: str, scores: dict | None, gen: float,
                     trial_lvl: str, faers_ror: float | None,
                     lit_strength: str) -> str:
-    """One-sentence triangulated verdict."""
     flags = []
 
-    # Reversal signal
     if scores:
         nt = float(scores.get("net_trace", 0))
         rank = int(scores.get("combined_rank", 9999))
@@ -128,21 +112,17 @@ def overall_verdict(drug: str, scores: dict | None, gen: float,
         elif rank <= 25:
             flags.append("moderate reversal (top 25 combined)")
 
-    # Genetic support
     if gen >= 0.5:
         flags.append("high genetic support (Open Targets)")
     elif gen >= 0.05:
         flags.append("modest genetic support")
 
-    # Trials
     if trial_lvl in ("strong", "moderate"):
         flags.append(f"clinical trial evidence ({trial_lvl})")
 
-    # FAERS adverse
     if faers_ror is not None and faers_ror >= 2.0:
         flags.append(f"⚠ FAERS adverse signal (ROR={faers_ror:.1f})")
 
-    # Literature
     if lit_strength == "high":
         flags.append("high-quality literature support")
     elif lit_strength == "moderate":
@@ -214,7 +194,6 @@ def main():
             "verdict": verdict,
         })
 
-        # ── Report block ───────────────────────────────────────────────────────
         tag = " [POSITIVE CONTROL]" if drug in POSITIVE_CONTROLS else ""
         report_lines.append(f"{drug.upper()}{tag}")
         report_lines.append(f"  Mechanism   : {mech}")
@@ -228,7 +207,6 @@ def main():
         report_lines.append(f"  VERDICT     : {verdict}")
         report_lines.append("")
 
-    # ── Save CSV ───────────────────────────────────────────────────────────────
     fields = ["drug", "mechanism", "combined_rank", "net_trace", "vae_trace",
               "genetic_support", "trial_evidence", "trial_ids",
               "faers_ror", "faers_n_ipf", "lit_n_hits", "lit_best_strength",
@@ -239,7 +217,6 @@ def main():
         w.writeheader()
         w.writerows(rows)
 
-    # ── Save report ────────────────────────────────────────────────────────────
     out_txt = AIM3 / "final_dossier_report.txt"
     out_txt.write_text("\n".join(report_lines))
 

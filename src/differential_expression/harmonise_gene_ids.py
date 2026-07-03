@@ -1,16 +1,3 @@
-"""
-Map all DE result gene IDs to Entrez IDs — run once before meta-analysis.
-
-GSE213001: Ensembl -> Entrez  (via org.Hs.eg.db, pre-mapped by R)
-GSE150910: gene symbol -> Entrez  (via org.Hs.eg.db, pre-mapped by R)
-GSE38958:  already Entrez integers
-GSE53845:  already Entrez integers
-
-Writes results/de/{acc}_de_entrez.csv for each dataset.
-
-Usage:
-    python src/harmonise_gene_ids.py
-"""
 
 from pathlib import Path
 import pandas as pd

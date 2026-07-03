@@ -1,21 +1,3 @@
-"""
-Extract per-drug consensus signatures from L1000 .gctx — RESEARCH.md §2a.
-
-For each drug:
-  - Collect all Level 5 signatures (replicates across cell lines / doses)
-  - Compute median z-score across replicates = consensus drug signature
-  - Also compute cell-line-stratified medians for tissue-aware weighting
-
-Outputs:
-  results/l1000/drug_signatures_landmark.csv.gz  — drugs x 978 landmark genes
-  results/l1000/drug_cell_signatures.pkl          — drug x cell_line x gene (for weighting)
-  results/l1000/drug_metadata.csv                — drug name, n_sigs, cell_lines
-
-Requires: data/raw/l1000/GSE70138_Broad_LINCS_Level5_COMPZ_*.gctx.gz
-
-Usage:
-    python src/aim2_reversal/09_l1000_signatures.py
-"""
 
 import pickle
 from pathlib import Path
@@ -48,9 +30,8 @@ def extract_signatures() -> None:
     sig_info = pd.read_csv(L1000_DIR / "sm_sig_info.csv", low_memory=False)
     lm_genes = pd.read_csv(L1000_DIR / "landmark_genes.csv")
 
-    # pr_gene_id = Entrez ID; row IDs in .gctx are also pr_gene_id (integer strings)
     lm_entrez = lm_genes["pr_gene_id"].astype(str).tolist()
-    lm_ids    = lm_entrez  # .gctx row IDs match pr_gene_id
+    lm_ids    = lm_entrez
 
     sm_sig_ids = sig_info["sig_id"].tolist()
 
@@ -58,11 +39,10 @@ def extract_signatures() -> None:
     gctx = parse_gctx.parse(str(GCTX_FILE),
                              cid=sm_sig_ids,
                              rid=lm_ids)
-    mat = gctx.data_df  # landmark genes × signatures
+    mat = gctx.data_df
 
     print(f"  Matrix shape: {mat.shape}")
 
-    # Build drug → signature IDs map
     drug_to_sigs = sig_info.groupby("pert_iname")["sig_id"].apply(list).to_dict()
     drug_to_cell = sig_info.set_index("sig_id")["cell_id"].to_dict()
 
@@ -75,7 +55,7 @@ def extract_signatures() -> None:
         if not present:
             continue
         sub = mat[present]
-        drug_medians[drug] = sub.median(axis=1)  # median across all replicates
+        drug_medians[drug] = sub.median(axis=1)
         cells = [drug_to_cell.get(s, "") for s in present]
         drug_meta_rows.append({
             "pert_iname": drug,
@@ -84,9 +64,8 @@ def extract_signatures() -> None:
             "cell_lines": "|".join(sorted(set(cells))),
         })
 
-    # Genes × drugs matrix (landmark, Entrez IDs as index)
     sig_matrix = pd.DataFrame(drug_medians)
-    sig_matrix.index = lm_entrez  # replace probe IDs with Entrez IDs
+    sig_matrix.index = lm_entrez
     sig_matrix.index.name = "entrez_id"
 
     out = L1000_DIR / "drug_signatures_landmark.csv.gz"
@@ -97,7 +76,6 @@ def extract_signatures() -> None:
     meta_df.to_csv(L1000_DIR / "drug_metadata.csv", index=False)
     print(f"  Saved drug_metadata.csv  ({len(meta_df):,} drugs)")
 
-    # Per-cell-line consensus (for tissue-aware weighting)
     print("  Computing per-drug × per-cell-line signatures...")
     drug_cell_sigs: dict[str, dict[str, pd.Series]] = {}
     for drug, sig_ids in drug_to_sigs.items():
@@ -106,7 +84,7 @@ def extract_signatures() -> None:
             continue
         sub = mat[present].copy()
         sub.columns = [drug_to_cell.get(s, "unknown") for s in present]
-        by_cell = sub.T.groupby(level=0).median().T  # genes × cell_lines
+        by_cell = sub.T.groupby(level=0).median().T
         drug_cell_sigs[drug] = {cl: by_cell[cl] for cl in by_cell.columns}
 
     with open(L1000_DIR / "drug_cell_signatures.pkl", "wb") as f:

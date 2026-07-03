@@ -1,20 +1,3 @@
-"""
-Download selected IPF GEO datasets — RESEARCH.md §8 (data acquisition).
-
-Downloads series matrix files (normalized expression + sample metadata) for
-the 5 selected datasets. For RNA-seq series, also fetches supplementary
-count matrices so DESeq2 can be run on raw counts.
-
-Selected datasets:
-  GSE213001 — RNA-seq, bulk lung tissue, IPF vs. healthy donors
-  GSE150910 — RNA-seq, lung tissue, IPF + CHP + controls
-  GSE38958  — microarray, IPF lung tissue
-  GSE134692 — RNA-seq, transplant-stage IPF lung
-  GSE53845  — microarray, 40 IPF + 8 healthy controls
-
-Usage:
-    python src/02_download_datasets.py
-"""
 
 import os
 import re
@@ -37,22 +20,18 @@ DATA_DIR = Path("data/raw")
 
 
 def geo_prefix(acc: str) -> str:
-    """GSE213001 → GSE213nnn (GEO FTP directory convention)."""
     return acc[:-3] + "nnn"
 
 
 def list_ftp_dir(url: str) -> list[str]:
-    """Return filenames listed in an NCBI HTTPS FTP directory page."""
     r = requests.get(url, timeout=30)
     if r.status_code == 404:
         return []
     r.raise_for_status()
-    # NCBI FTP-over-HTTPS returns an Apache directory listing
     return re.findall(r'href="([^"/?][^"]*)"', r.text)
 
 
 def download_file(url: str, dest: Path, label: str = "") -> bool:
-    """Stream-download url to dest; skip if already exists. Returns True on success."""
     if dest.exists():
         print(f"  [skip] {dest.name} already downloaded")
         return True
@@ -81,14 +60,12 @@ def download_file(url: str, dest: Path, label: str = "") -> bool:
 
 
 def download_series_matrix(acc: str, out_dir: Path) -> list[Path]:
-    """Download all series matrix files for an accession."""
     prefix = geo_prefix(acc)
     matrix_url = f"{GEO_HTTPS}/{prefix}/{acc}/matrix/"
     files = list_ftp_dir(matrix_url)
     matrix_files = [f for f in files if "series_matrix" in f and f.endswith(".gz")]
 
     if not matrix_files:
-        # Fallback: try the standard single-file name
         matrix_files = [f"{acc}_series_matrix.txt.gz"]
 
     downloaded = []
@@ -101,12 +78,10 @@ def download_series_matrix(acc: str, out_dir: Path) -> list[Path]:
 
 
 def download_supplementary(acc: str, out_dir: Path) -> list[Path]:
-    """Download supplementary files (count matrices etc.) for RNA-seq series."""
     prefix = geo_prefix(acc)
     suppl_url = f"{GEO_HTTPS}/{prefix}/{acc}/suppl/"
     files = list_ftp_dir(suppl_url)
 
-    # Prioritise count/expression matrix files; skip raw FASTQ or huge archives
     wanted_exts = (".txt.gz", ".csv.gz", ".tsv.gz", ".xlsx", ".txt", ".csv", ".tsv")
     skip_keywords = ("RAW.tar", "fastq", "bam", "bigwig", "bw", "raw.tar")
 
