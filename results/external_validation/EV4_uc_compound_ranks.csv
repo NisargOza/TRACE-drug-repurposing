@@ -1,0 +1,9 @@
+compound,l1000_rank,uc_pearson,percentile,evidence
+baricitinib,206,0.04479,88.3,JAK1/2 inhibitor; approved RA; UC trials positive (SSD study)
+mercaptopurine,640,0.01113,63.8,
+tofacitinib,697,0.00846,60.6,JAK1/3 inhibitor; FDA-approved UC (OCTAVE Induction/Sustain)
+tacrolimus,699,0.00825,60.5,Calcineurin inhibitor; UC rescue therapy (Ogata 2006 Gut)
+prednisone,816,0.00112,53.8,Glucocorticoid; UC acute flare induction; no maintenance role
+azathioprine,839,-0.00031,52.5,Thiopurine; widely used UC maintenance therapy
+sulfasalazine,1062,-0.01227,39.9,Aminosalicylate; UC first-line (Svartz 1942; multiple RCTs)
+methylprednisolone,1258,-0.02757,28.8,

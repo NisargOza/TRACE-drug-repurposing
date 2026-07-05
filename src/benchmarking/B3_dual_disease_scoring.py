@@ -132,6 +132,11 @@ def main() -> None:
             EMB  / "ra_network_scores.csv",
             META / "ra_consensus_signature.csv",
         ),
+        (
+            "UC",
+            EMB  / "uc_network_scores.csv",
+            META / "uc_consensus_signature.csv",
+        ),
     ]
 
     all_scores = {}
@@ -148,7 +153,7 @@ def main() -> None:
         print(f"  Saved → results/benchmarking/{label.lower()}_drug_scores.csv")
         all_scores[label] = scores
 
-    if len(all_scores) == 2:
+    if "IPF" in all_scores and "RA" in all_scores:
         ipf = all_scores["IPF"].rename(
             columns={"pearson": "ipf_pearson", "cmap": "ipf_cmap"})
         ra  = all_scores["RA"].rename(
@@ -157,6 +162,14 @@ def main() -> None:
         merged.to_csv(BENCH / "dual_disease_scores.csv", index=False)
         print(f"\nMerged → results/benchmarking/dual_disease_scores.csv "
               f"({len(merged):,} drugs)")
+
+        if "UC" in all_scores:
+            uc = all_scores["UC"].rename(
+                columns={"pearson": "uc_pearson", "cmap": "uc_cmap"})
+            tri = merged.merge(uc, on="drug", how="outer")
+            tri.to_csv(BENCH / "tri_disease_scores.csv", index=False)
+            print(f"Tri-disease → results/benchmarking/tri_disease_scores.csv "
+                  f"({len(tri):,} drugs)")
 
     print("\nNext: python src/benchmarking/B4_ablation_dual.py")
 

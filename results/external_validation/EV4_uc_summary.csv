@@ -1,0 +1,2 @@
+n_actives,n_total,auroc,auroc_permutation_pval,auprc,auprc_ci_lo,auprc_ci_hi,auprc_fold_over_random,mannwhitney_pval
+8,1768,0.561,0.2714,0.0063,0.00264,0.01257,1.39,0.279

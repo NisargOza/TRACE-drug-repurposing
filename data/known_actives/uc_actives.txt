@@ -1,0 +1,11 @@
+tofacitinib
+baricitinib
+methotrexate
+azathioprine
+6-mercaptopurine
+cyclosporine
+tacrolimus
+budesonide
+sulfasalazine
+prednisone
+prednisolone
