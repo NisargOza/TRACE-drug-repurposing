@@ -1,0 +1,11 @@
+compound,l1000_rank,ipf_pearson,percentile,evidence
+dasatinib,25,0.08114,98.6,"Rhee 2014 PLOS ONE; Src/ABL inhibition, bleomycin model"
+gefitinib,272,0.0118,84.6,Hardie 2008 AJP; EGFR inhibition reverses TGF-β-induced fibrosis
+losartan,517,-0.00722,70.8,Otsuka 2004 ERJ; AT1R blockade attenuates fibrosis
+erlotinib,574,-0.01038,67.5,Tsakiri 2008; EGFR pathway antifibrotic in lung fibrosis models
+sildenafil,628,-0.01379,64.5,Zisman 2010 Chest; Ryu 2011 Chest (phase II 6MWT improvement); PDE5 inhibition
+roflumilast,1136,-0.03907,35.7,PDE4 inhibition; antifibrotic in rodent bleomycin models
+bosentan,1358,-0.05137,23.2,Shi-Wen 2007; endothelin-1 antagonism; BUILD trials (clinical) negative
+imatinib,1537,-0.06187,13.1,Daniels 2004 JCI; Raghu 2010 ERJ (phase II met 28-wk endpoint); bleomycin attenuation
+sirolimus,1590,-0.0674,10.1,Shegogue 2003 J Immunol; mTOR inhibition reduces collagen deposition
+sorafenib,1664,-0.07765,5.9,Hostettler 2014 Resp Res; bleomycin model antifibrotic

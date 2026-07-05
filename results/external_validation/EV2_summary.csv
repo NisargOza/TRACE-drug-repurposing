@@ -1,0 +1,2 @@
+cohort,n_ipf,n_ctrl,n_matched_drugs,spearman_r,spearman_p,jaccard_top25,jaccard_top50,jaccard_top100,jaccard_top200
+GSE47460 (LGRC),193,91,1768,0.4149,1.6114034981780086e-74,0.0417,0.0753,0.1364,0.2158
