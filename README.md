@@ -1,4 +1,4 @@
-# TRACE — Transcriptomic Reversal and Convergence Engine
+# TRACE — Transcriptomic Reversal and Convergent Evidence
 
 TRACE is a computational drug-repurposing pipeline that identifies candidates whose transcriptomic profiles reverse a target disease signature. It was developed for idiopathic pulmonary fibrosis (IPF) but is designed to be applied to any disease with bulk RNA-seq or microarray data.
 
